@@ -1,21 +1,39 @@
 
 var Viewport = (function () {
 
+    var _viewport;
+    var _pressedKeys = [];
+
     function Viewport() {
-        this._viewport = document.getElementById('viewport');
-        setViewportSize.call(this);
+        _viewport = document.getElementById('viewport');
+        setViewportSize.call();
+        
+        document.onkeydown = keyDown;
+        document.onkeyup = keyUp;
     }
 
     function setViewportSize() {
-        var width = this._viewport.offsetWidth;
+        var width = _viewport.offsetWidth;
         var height = Math.round(width / 16 * 9);
         
-        this._viewport.setAttribute('width', width);
-        this._viewport.setAttribute('height', height);
+        _viewport.setAttribute('width', width);
+        _viewport.setAttribute('height', height);
+    }
+    
+    function keyDown(event) {
+        _pressedKeys[event.keyCode] = true;
+    }
+    
+    function keyUp(event) {
+        _pressedKeys[event.keyCode] = false;
     }
 
-    Viewport.prototype.get = function () {
-        return this._viewport;
+    Viewport.prototype.getCanvas = function () {
+        return _viewport;
+    };
+    
+    Viewport.prototype.keyDown = function (char) {
+        return _pressedKeys[char.charCodeAt(0)] === true;
     };
 
 

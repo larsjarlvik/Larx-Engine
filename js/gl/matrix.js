@@ -1,22 +1,16 @@
+/* global mat3 */
+/* global mat4 */
+
 var Matrix = (function () {
     
-    var _mvMatrix, _pMatrix;
+    var _gl, _camera, _mvMatrix, _pMatrix;
     var _mvStack = [];
     
-    var _camera = {
-        zoom: 15,
-        rot: { x: -20, y: 0 },
-        pos: { x: 0, y: 4, z: -15 },
-        lookAt: { x: 0, y: 0, z: 0 }
-    }
-    
-    function Matrix() {
+    function Matrix(gl, camera) {
         _mvMatrix = mat4.create();
         _pMatrix = mat4.create();
-    }
-    
-    function degToRad(degrees) {
-        return degrees * Math.PI / 180;
+        _gl = gl;
+        _camera = camera;
     }
     
     Matrix.prototype.push = function () {
@@ -29,24 +23,42 @@ var Matrix = (function () {
         _mvMatrix = _mvStack.pop();
     };
     
-    Matrix.prototype.setIdentity = function (gl) {
-        mat4.perspective(45, gl.viewportWidth / gl.viewportHeight, 0.1, 100.0, _pMatrix);
+    Matrix.prototype.setIdentity = function () {
+        mat4.perspective(45, _gl.viewportWidth / _gl.viewportHeight, 0.1, 100.0, _pMatrix);
         
         mat4.identity(_mvMatrix);
         
-        mat4.rotate(_mvMatrix, degToRad(-_camera.rot.x), [1, 0, 0]);
-        mat4.rotate(_mvMatrix, degToRad(-_camera.rot.y), [0, 1, 0]);
-        mat4.translate(_mvMatrix, [-_camera.pos.x, -_camera.pos.y, _camera.pos.z]);
+        var mat = _camera.getMatrix();
+        
+        mat4.rotate(_mvMatrix, mat.rotV, [1, 0, 0]);
+        mat4.rotate(_mvMatrix, mat.rotH, [0, 1, 0]);
+        mat4.translate(_mvMatrix, [mat.x, mat.y, mat.z]);
     };
     
-    Matrix.prototype.setUniforms = function (gl, shaderProgram) {
-        gl.uniformMatrix4fv(shaderProgram.pMatrixUniform, false, _pMatrix);
-        gl.uniformMatrix4fv(shaderProgram.mvMatrixUniform, false, _mvMatrix);
+    Matrix.prototype.setUniforms = function (shaderProgram) {
+        _gl.uniformMatrix4fv(shaderProgram.pMatrixUniform, false, _pMatrix);
+        _gl.uniformMatrix4fv(shaderProgram.mvMatrixUniform, false, _mvMatrix);
         
         var normalMatrix = mat3.create();
         mat4.toInverseMat3(_mvMatrix, normalMatrix);
         mat3.transpose(normalMatrix);
-        gl.uniformMatrix3fv(shaderProgram.nMatrixUniform, false, normalMatrix);
+        _gl.uniformMatrix3fv(shaderProgram.nMatrixUniform, false, normalMatrix);
+    };
+    
+    Matrix.prototype.translate = function (vec) {
+        mat4.translate(_mvMatrix, vec);
+    };
+    
+    Matrix.prototype.camera = {
+        get: function () {
+            return _camera;
+        },
+        translate: function (x, z) {
+            _camera.look.x = x;
+            _camera.look.z = z;
+            
+            console.log(_camera.look.z);
+        }  
     };
     
     return Matrix;

@@ -2,23 +2,54 @@
 /* global Q */
 
 var Engine = (function () {
-    var s = this;
+    var _gl, _viewport, 
+        _shaders, _camera, _matrix;
+        
+    var _renderCallback, _initCallback;
     
-    var _gl, _canvas, _shaders;
-    var _matrix;
-    var _tree;
+    Engine.prototype = {
+        get: function() {
+            return {
+                shaders: _shaders, 
+                matrix: _matrix,
+                camera: _camera
+            }; 
+        },
+        render: function(callback) {
+            _renderCallback = callback;
+        },
+        init: function(callback) {
+            _initCallback = callback;
+        },
+        loadModel: function (name) {
+            var deferred = Q.defer();
+            
+            var model = new Model(_gl, 'tree');
+            model.load().then(function () {
+                deferred.resolve(model);
+            });
+            
+            return deferred.promise;
+        }
+    };
+    
     
     function Engine(viewport) {
-        _canvas = viewport.get();
+        _viewport = viewport;
               
         Q(true)
           .then(initGL)
           .then(initShaders)
           .then(initSettings)
-          .then(loadModels)
           .then(function () {
-              console.log('ENGINE: Render');
-              render();
+              console.log('ENGINE: Init');
+              
+              var deferred = Q.defer();
+              
+              _initCallback(deferred).then(function () {
+                  console.log('ENGINE: Render');
+                  render();
+              });
           })
           .catch(function(e) {
               console.log(e);
@@ -30,9 +61,11 @@ var Engine = (function () {
         console.log('ENGINE: Init');
         
         try {
-            _gl = _canvas.getContext('webgl');            
-            _gl.viewportWidth = _canvas.width;
-            _gl.viewportHeight = _canvas.height;
+            var canvas = _viewport.getCanvas();
+            
+            _gl = canvas.getContext('webgl');            
+            _gl.viewportWidth = canvas.width;
+            _gl.viewportHeight = canvas.height;
         } catch(e) {
             return Q.reject(e); // TODO: Error handling
         }
@@ -64,22 +97,10 @@ var Engine = (function () {
         _gl.clearColor(1.0, 1.0, 1.0, 1.0);
         _gl.enable(_gl.DEPTH_TEST);
         
-        _matrix = new Matrix();
+        _camera = new Camera();
+        _matrix = new Matrix(_gl, _camera);
         
         return Q(true);
-    }
-    
-    function loadModels() {
-        var deferred = Q.defer();
-        
-        console.log('ENGINE: Models');
-        
-        _tree = new Model(_gl, 'tree');
-        _tree.load().then(function () {
-            deferred.resolve();
-        });
-        
-        return deferred.promise;
     }
     
     function degToRad(degrees) {
@@ -92,12 +113,11 @@ var Engine = (function () {
         _gl.viewport(0, 0, _gl.viewportWidth, _gl.viewportHeight);
         _gl.clear(_gl.COLOR_BUFFER_BIT | _gl.DEPTH_BUFFER_BIT);
         
-        var defaultShader = _shaders.get().default;
-        
         _matrix.setIdentity(_gl);
         _matrix.push();
-        _matrix.setUniforms(_gl, defaultShader)
-        _tree.render(defaultShader, _matrix);
+        
+       
+        _renderCallback();
         
         _matrix.pop();
     }

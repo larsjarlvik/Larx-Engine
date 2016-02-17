@@ -1,3 +1,4 @@
+/* global vec3 */
 
 // TODO: Error handling
 var Shaders = (function () {
@@ -43,7 +44,7 @@ var Shaders = (function () {
         return deferred.promise;
     }
     
-   function getShaderProgram (name) {
+   function downloadShaderProgram (name) {
         var deferred = Q.defer();
 
         createShader(name, 'fs', _gl.FRAGMENT_SHADER).then(function (fs) {
@@ -65,8 +66,7 @@ var Shaders = (function () {
         
         var deferred = Q.defer();
         
-        getShaderProgram('shader').then(function (shaderProgram) {     
-        
+        downloadShaderProgram('shader').then(function (shaderProgram) {    
             _defaultShader = shaderProgram;
             
             _gl.linkProgram(_defaultShader);
@@ -91,7 +91,6 @@ var Shaders = (function () {
             _defaultShader.ambientColor = _gl.getUniformLocation(_defaultShader, "uAmbientColor");
             _defaultShader.lightDirection = _gl.getUniformLocation(_defaultShader, "uLightingDirection");
             _defaultShader.directionalColor = _gl.getUniformLocation(_defaultShader, "uDirectionalColor");
-            
             
             _gl.uniform3f(_defaultShader.ambientColor, 0.2, 0.2, 0.2);
             _gl.uniform3f(_defaultShader.directionalColor, 0.8, 0.8, 0.8);

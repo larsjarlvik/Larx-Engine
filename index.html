@@ -37,6 +37,7 @@
         <script src="/js/gl/engine.js"></script>
         <script src="/js/gl/matrix.js"></script>
         <script src="/js/gl/shaders.js"></script>
+        <script src="/js/gl/camera.js"></script>
         <script src="/js/gl/model.js"></script>
         
     </head>
@@ -50,6 +51,49 @@
         
         var vp = new Viewport();
         var engine = new Engine(vp);
+        var gl, shaders;
+        var tree;
         
+        engine.init(function(q) {
+            gl = engine.get();
+            shaders = gl.shaders.get();
+            
+            return engine.loadModel('tree').then(function(model) {
+                tree = model;
+                q.resolve();
+            });
+        });
+        
+        engine.render(function() {
+            gl.matrix.translate([5, 0, -5]);
+            
+            for(var z = 0; z < 10; z++) {
+                gl.matrix.translate([-10, 0, 1]);
+                
+                for(var x = 0; x < 10; x++) {
+                    gl.matrix.translate([1, 0, 0]);
+                    gl.matrix.setUniforms(shaders.default);
+                    
+                    tree.render(shaders.default);
+                }
+            }
+            
+            keyboard();
+        });
+        
+        function keyboard() {
+            
+            if(vp.keyDown('W')) { gl.camera.move( 0.0,  0.5); }
+            if(vp.keyDown('S')) { gl.camera.move( 0.0, -0.5); }
+            if(vp.keyDown('A')) { gl.camera.move(-0.5,  0.0); }
+            if(vp.keyDown('D')) { gl.camera.move( 0.5,  0.0); }
+            
+            if(vp.keyDown('Q')) { gl.camera.rotate(-2.0, 0.0); }
+            if(vp.keyDown('E')) { gl.camera.rotate( 2.0, 0.0); }
+            
+            if(vp.keyDown('1')) { gl.camera.zoom(-0.2); }
+            if(vp.keyDown('2')) { gl.camera.zoom( 0.2); }
+        }
+            
     </script>
 </html>
