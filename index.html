@@ -1,0 +1,55 @@
+<!DOCTYPE html>
+<html>
+    <head>
+        <meta charset="UTF-8" />
+                
+        <title>LARX 0.01</title>
+        <link href="style.css" rel="stylesheet" />
+        
+        <!-- SHADERS -->
+        <script id="shader-fs" type="x-shader/x-fragment">
+            precision mediump float;
+
+            void main(void) {
+                gl_FragColor = vec4(1.0, 1.0, 1.0, 1.0);
+            }
+        </script>
+        
+        <script id="shader-vs" type="x-shader/x-vertex">
+        
+            attribute vec3 aVertexPosition;
+
+            uniform mat4 uMVMatrix;
+            uniform mat4 uPMatrix;
+
+            void main(void) {
+                gl_Position = uPMatrix * uMVMatrix * vec4(aVertexPosition, 1.0);
+            }
+        
+        </script>
+        
+        <!-- DIST -->
+        <script src="/js/dist/q.js"></script>
+        <script src="/js/dist/gl-matrix.js"></script>
+        
+        <!-- SCRIPTS -->
+        <script src="/js/viewport.js"></script>
+        <script src="/js/gl/engine.js"></script>
+        <script src="/js/gl/matrix.js"></script>
+        <script src="/js/gl/shaders.js"></script>
+        <script src="/js/gl/model.js"></script>
+        
+    </head>
+    
+    <body> 
+        <canvas id="viewport"></canvas>
+    </body>
+    
+    <!-- INITIALIZATION -->
+    <script>
+        
+        var vp = new Viewport();
+        var engine = new Engine(vp);
+        
+    </script>
+</html>
