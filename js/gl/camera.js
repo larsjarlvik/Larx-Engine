@@ -18,8 +18,6 @@ var Camera = (function () {
             y: _camera.zoom * Math.sin(v)
         }
         
-        console.log(vec);
-        
         return vec;
     }
     
@@ -29,9 +27,6 @@ var Camera = (function () {
     
     Camera.prototype.getMatrix = function () {
         var pos = calcPos();
-        
-        console.log(pos);
-        console.log(_camera.look);
         
         return {
             rotV: degToRad(_camera.rot.v),
