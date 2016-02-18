@@ -57,7 +57,11 @@ var Engine = (function () {
             _gl.viewportWidth = canvas.width;
             _gl.viewportHeight = canvas.height;
             
-    
+            
+            _gl.blendFunc(_gl.SRC_ALPHA, _gl.ONE_MINUS_SRC_ALPHA);
+            _gl.enable(_gl.BLEND);
+            _gl.disable(_gl.DEPTH_TEST);
+                
             _viewport.resize(function () {
                 var canvas = _viewport.getCanvas();
                 _gl.viewportWidth = canvas.width;

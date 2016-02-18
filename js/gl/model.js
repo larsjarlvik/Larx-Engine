@@ -114,6 +114,7 @@ Model.prototype.load = function (name) {
         .then(this.bindBuffers.bind(this))
         .then(function (mesh) {
             mesh.shininess = 0;
+            mesh.opacity = 1.0;
             deferred.resolve(mesh); 
         })
         .catch(function(error) {
@@ -151,6 +152,7 @@ Model.prototype.clone = function (sourceMesh) {
 
 Model.prototype.render = function (mesh, shaderProgram) {
     this.gl.uniform1f(shaderProgram.shininess, mesh.shininess); 
+    this.gl.uniform1f(shaderProgram.opacity, mesh.opacity); 
     
     this.gl.bindBuffer(this.gl.ARRAY_BUFFER, mesh.vertexBuffer);
     this.gl.vertexAttribPointer(shaderProgram.vertexPositionAttribute, mesh.vertexBuffer.itemSize, this.gl.FLOAT, false, 0, 0);

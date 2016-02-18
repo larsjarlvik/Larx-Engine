@@ -46,11 +46,15 @@ var Viewport = (function () {
     }
 
     function setViewportSize() {
-        var width = _canvas.offsetWidth;
+        var width = _viewport.offsetWidth;
         var height = Math.round(width / 16 * 9);
         
-        _canvas.setAttribute('width', width);
-        _canvas.setAttribute('height', height);
+        _canvas.setAttribute('width', width * window.devicePixelRatio);
+        _canvas.setAttribute('height', height * window.devicePixelRatio);
+        
+        _canvas.style.width  = width  + "px";
+        _canvas.style.height = height + "px";
+        
         
         if(_resizeCallback) { _resizeCallback(); }
         

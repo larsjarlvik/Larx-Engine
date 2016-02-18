@@ -9,6 +9,7 @@ uniform vec3 uDirectionalColor;
 uniform vec3 uLightingDirection;
 uniform vec3 uSpecularColor;
 uniform float uShininess;
+uniform float uOpacity;
     
 varying vec3 vColor;
 
@@ -31,5 +32,5 @@ void main(void) {
         lightWeighting += uSpecularColor * specularLightWeighting;
     }
     
-    gl_FragColor = vec4(vColor * lightWeighting, 1.0);
+    gl_FragColor = vec4(vColor * lightWeighting, uOpacity);
 }

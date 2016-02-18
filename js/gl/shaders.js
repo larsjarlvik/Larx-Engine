@@ -92,6 +92,8 @@ var Shaders = (function () {
             _defaultShader.pMatrixUniform = _gl.getUniformLocation(_defaultShader, 'uPMatrix');
             _defaultShader.mvMatrixUniform = _gl.getUniformLocation(_defaultShader, 'uMVMatrix');
             _defaultShader.nMatrixUniform  = _gl.getUniformLocation(_defaultShader, 'uNMatrix');
+            
+            _defaultShader.opacity = _gl.getUniformLocation(_defaultShader, 'uOpacity');
             // END BUFFERS
             
             // START LIGHTING

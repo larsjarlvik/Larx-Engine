@@ -68,11 +68,12 @@
                 gl.model.load('water').then(function(model) {
                     water = model;
                     water.shininess = 3.0;
+                    water.opacity = 0.75;
                 }),
                 gl.model.load('tree').then(function(model) {
                     model.shininess = 6.0;
                     
-                    for(var i = 0; i < 100; i ++) {
+                    for(var i = 0; i < 200; i ++) {
                         var tree = gl.model.clone(model);
                         
                         tree.x = Math.random() * 20 - 10;
@@ -86,11 +87,6 @@
         });
         
         engine.render(function() {
-            gl.matrix.setIdentity();
-            gl.matrix.setUniforms(shaders.default);
-                       
-            gl.model.render(water, shaders.default);
-            
             
             for(var i = 0; i < trees.length; i ++) {
                 gl.matrix.setIdentity()
@@ -99,6 +95,10 @@
                 
                 gl.model.render(trees[i], shaders.default);
             }
+            
+            gl.matrix.setIdentity();
+            gl.matrix.setUniforms(shaders.default);
+            gl.model.render(water, shaders.default);
             
             keyboard();
             mouse();
