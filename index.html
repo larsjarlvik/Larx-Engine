@@ -2,7 +2,8 @@
 <html>
     <head>
         <meta charset="UTF-8" />
-                
+        <meta name="viewport" content="initial-scale=1, maximum-scale=1">
+        
         <title>LARX 0.01</title>
         <link href="style.css" rel="stylesheet" />
         
@@ -43,7 +44,10 @@
     </head>
     
     <body> 
-        <canvas id="viewport"></canvas>
+        <div id="viewport">
+            <div id="fullscreen">Fullscreen</div>
+            <canvas class="renderTarget"></canvas>
+        </div>
     </body>
     
     <!-- INITIALIZATION -->
@@ -108,7 +112,7 @@
         }
         
         function mouse() {
-            if(vp.mouse.buttons.right) {
+            if(vp.mouse.buttons.right || vp.mouse.touchDown) {               
                 gl.camera.rotate(vp.mouse.deltaX / 3.0, vp.mouse.deltaY / 3.0);
             }
             
@@ -118,6 +122,10 @@
             
             vp.resetDelta();
         }
+        
+        document.getElementById('fullscreen').onclick = function() {
+            vp.toggleFullscreen();
+        };
             
     </script>
 </html>

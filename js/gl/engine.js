@@ -53,9 +53,16 @@ var Engine = (function () {
         try {
             var canvas = _viewport.getCanvas();
             
-            _gl = canvas.getContext('webgl');            
+            _gl = canvas.getContext('webgl');
             _gl.viewportWidth = canvas.width;
             _gl.viewportHeight = canvas.height;
+            
+    
+            _viewport.resize(function () {
+                var canvas = _viewport.getCanvas();
+                _gl.viewportWidth = canvas.width;
+                _gl.viewportHeight = canvas.height;
+            });
             
             _model = new Model(_gl);
         } catch(e) {
@@ -99,8 +106,7 @@ var Engine = (function () {
         return degrees * Math.PI / 180;
     }
     
-    function render() {    
-        
+    function render() {            
         _gl.viewport(0, 0, _gl.viewportWidth, _gl.viewportHeight);
         _gl.clear(_gl.COLOR_BUFFER_BIT | _gl.DEPTH_BUFFER_BIT);
         

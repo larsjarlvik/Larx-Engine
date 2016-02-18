@@ -1,6 +1,9 @@
 html, body {
     height: 100%;
     margin: 0;
+    padding: 0;
+    font: 1em arial;
+    overflow: hidden;
 }
 
 body {
@@ -9,9 +12,30 @@ body {
 }
 
 #viewport {
-    position: absolute;
     width: 100%;
-    top: 50%;
-    transform: translateY(-50%);
     background: #000;
+    position: absolute;
+    top: 0;
+    line-height: 0;
+}
+
+#viewport .renderTarget {
+    width: 100%;
+}
+
+#fullscreen {
+    position: absolute;
+    top: 1em;
+    left: 1em;
+    padding: 10px 15px;
+    border-radius: 5px;
+    background: rgba(0, 0, 0, 0.3);
+    color: #fff;
+    cursor: pointer;
+    z-index: 1000;
+    line-height: 1;
+}
+
+#fullscreen:hover {
+    background: rgba(0, 0, 0, 0.6);
 }

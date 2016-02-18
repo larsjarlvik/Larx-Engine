@@ -1,8 +1,9 @@
 
 var Viewport = (function () {
 
-    var _viewport;
+    var _viewport, _canvas;
     var _pressedKeys = [];
+    var _resizeCallback;
     
     var _mouse = { 
         buttons: {
@@ -10,8 +11,9 @@ var Viewport = (function () {
             middle: false, 
             right: false,
         },
-        x: undefined,
-        y: undefined,
+        touchDown: false,
+        x: 0,
+        y: 0,
         deltaX: 0,
         deltaY: 0,
         wheelDelta: 0
@@ -19,6 +21,8 @@ var Viewport = (function () {
 
     function Viewport() {
         _viewport = document.getElementById('viewport');
+        _canvas = _viewport.getElementsByClassName('renderTarget')[0];
+        
         _viewport.oncontextmenu = function (event) {
             event.preventDefault();
         }
@@ -34,14 +38,22 @@ var Viewport = (function () {
         document.addEventListener('mousewheel', mouseWheel);
         document.addEventListener('DOMMouseScroll', mouseWheel);
         
+        document.addEventListener('touchstart', touchStart);
+        document.addEventListener('touchend', touchEnd);
+        document.addEventListener('touchmove', touchMove);
+        
+        window.addEventListener('resize', setViewportSize);
     }
 
     function setViewportSize() {
-        var width = _viewport.offsetWidth;
+        var width = _canvas.offsetWidth;
         var height = Math.round(width / 16 * 9);
         
-        _viewport.setAttribute('width', width);
-        _viewport.setAttribute('height', height);
+        _canvas.setAttribute('width', width);
+        _canvas.setAttribute('height', height);
+        
+        if(_resizeCallback) { _resizeCallback(); }
+        
     }
     
     function keyDown(event) {
@@ -95,9 +107,32 @@ var Viewport = (function () {
             _mouse.wheelDelta --;
         }
     }
+    
+    function touchStart(event) {
+        _mouse.x = event.touches[0].screenX;
+        _mouse.y = event.touches[0].screenY;
+        _mouse.touchDown = true;
+    }
+    
+    function touchEnd(event) {
+        _mouse.touchDown = false;
+    }
+    
+    function touchMove(event) {
+        _mouse.deltaX += event.touches[0].screenX - _mouse.x;
+        _mouse.deltaY += event.touches[0].screenY - _mouse.y;
+        
+        _mouse.x = event.touches[0].screenX;
+        _mouse.y = event.touches[0].screenY;
+    }
+    
+    Viewport.prototype.resize = function (callback) {
+        _resizeCallback = callback;
+    };
+    
 
     Viewport.prototype.getCanvas = function () {
-        return _viewport;
+        return _canvas;
     };
     
     Viewport.prototype.keyDown = function (char) {
@@ -108,6 +143,28 @@ var Viewport = (function () {
         _mouse.deltaX = 0;
         _mouse.deltaY = 0;
         _mouse.wheelDelta = 0;
+    };
+    
+    Viewport.prototype.toggleFullscreen = function () {
+        if (!document.fullscreenElement && 
+            !document.mozFullScreenElement && 
+            !document.webkitFullscreenElement) {  
+            if (document.documentElement.requestFullscreen) {
+                document.documentElement.requestFullscreen();
+            } else if (document.documentElement.mozRequestFullScreen) {
+                document.documentElement.mozRequestFullScreen();
+            } else if (document.documentElement.webkitRequestFullscreen) {
+                document.documentElement.webkitRequestFullscreen(Element.ALLOW_KEYBOARD_INPUT);
+            }
+        } else {
+            if (document.exitFullscreen) {
+                document.exitFullscreen();
+            } else if (document.mozCancelFullScreen) {
+                document.mozCancelFullScreen();
+            } else if (document.webkitExitFullscreen) {
+                document.webkitExitFullscreen();
+            }
+        }
     };
     
     Viewport.prototype.mouse = _mouse;
