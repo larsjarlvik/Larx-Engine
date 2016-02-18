@@ -3,7 +3,7 @@
 
 var Engine = (function () {
     var _gl, _viewport, 
-        _shaders, _camera, _matrix;
+        _shaders, _camera, _matrix, _model;
         
     var _renderCallback, _initCallback;
     
@@ -12,7 +12,8 @@ var Engine = (function () {
             return {
                 shaders: _shaders, 
                 matrix: _matrix,
-                camera: _camera
+                camera: _camera,
+                model: _model
             }; 
         },
         render: function(callback) {
@@ -20,19 +21,8 @@ var Engine = (function () {
         },
         init: function(callback) {
             _initCallback = callback;
-        },
-        loadModel: function (name) {
-            var deferred = Q.defer();
-            var model = new Model(_gl, name);
-            
-            model.load().then(function () {
-                deferred.resolve(model);
-            });
-            
-            return deferred.promise;
         }
     };
-    
     
     function Engine(viewport) {
         _viewport = viewport;
@@ -66,6 +56,8 @@ var Engine = (function () {
             _gl = canvas.getContext('webgl');            
             _gl.viewportWidth = canvas.width;
             _gl.viewportHeight = canvas.height;
+            
+            _model = new Model(_gl);
         } catch(e) {
             return Q.reject(e); // TODO: Error handling
         }

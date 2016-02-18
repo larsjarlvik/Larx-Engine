@@ -52,44 +52,45 @@
         var vp = new Viewport();
         var engine = new Engine(vp);
         var gl, shaders;
-        var tree, water;
+        var trees, water;
+        
+        trees = [];
         
         engine.init(function(deferred) {
             gl = engine.get();
             shaders = gl.shaders.get();
             
-            
-            engine.loadModel('water').then(function(model) {
-                water = model;
-                
-                engine.loadModel('tree').then(function(model2) {
-                    tree = model2;
-                    deferred.resolve();
-                });
-            });
-            
-            return deferred.promise;
+            return Q.all([
+                gl.model.load('water').then(function(model) {
+                    water = model;
+                }),
+                gl.model.load('tree').then(function(model) {
+                    for(var i = 0; i < 100; i ++) {
+                        var tree = gl.model.clone(model);
+                        
+                        tree.x = Math.random() * 20 - 10;
+                        tree.z = Math.random() * 20 - 10;
+                        gl.model.rotate(tree, Math.random() * Math.PI);
+                        
+                        trees.push(tree);
+                    }
+                })
+            ]);
         });
         
-        var treePos = [];
-        for(var i = 0; i < 100; i++) {
-            var x = Math.random() * 20 - 10;
-            var z = Math.random() * 20 - 10;
-            
-            treePos.push({ x: x, z: z });
-        }
-        
         engine.render(function() {
-            
             gl.matrix.setIdentity();
             gl.matrix.setUniforms(shaders.default);
-            water.render(shaders.default);
+                       
+            gl.model.render(water, shaders.default);
             
-            for(var i = 0; i < 100; i ++) {
-                gl.matrix.setIdentity();
-                gl.matrix.translate([treePos[i].x, 0, treePos[i].z]);
+            
+            for(var i = 0; i < trees.length; i ++) {
+                gl.matrix.setIdentity()
+                gl.matrix.translate([trees[i].x, 0, trees[i].z]);
                 gl.matrix.setUniforms(shaders.default);
-                tree.render(shaders.default);
+                
+                gl.model.render(trees[i], shaders.default);
             }
             
             keyboard();
