@@ -7,6 +7,7 @@ var Shaders = (function () {
     var light = {
         ambient: [0.3, 0.3, 0.3],
         directional: [0.85, 0.85, 0.85],
+        specular: [1.0, 1.0, 1.0, 1.0],
         direction: [-0.25, -0.25, -1.0]
     };
     
@@ -96,10 +97,13 @@ var Shaders = (function () {
             // START LIGHTING
             _defaultShader.ambientColor = _gl.getUniformLocation(_defaultShader, 'uAmbientColor');
             _defaultShader.directionalColor = _gl.getUniformLocation(_defaultShader, 'uDirectionalColor');
+            _defaultShader.specularColor = _gl.getUniformLocation(_defaultShader, 'uSpecularColor');
             _defaultShader.lightDirection = _gl.getUniformLocation(_defaultShader, 'uLightingDirection');
+            _defaultShader.shininess = _gl.getUniformLocation(_defaultShader, 'uShininess');
             
             _gl.uniform3f(_defaultShader.ambientColor, light.ambient[0], light.ambient[1], light.ambient[2]);
             _gl.uniform3f(_defaultShader.directionalColor, light.directional[0], light.directional[1], light.directional[2]);
+            _gl.uniform3f(_defaultShader.specularColor, light.specular[0], light.specular[1], light.specular[2]);
             
             var adjustedLightDir = vec3.create();      
             vec3.normalize(light.direction, adjustedLightDir);

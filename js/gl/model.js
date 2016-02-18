@@ -113,6 +113,7 @@ Model.prototype.load = function (name) {
         .then(this.parse.bind(this))
         .then(this.bindBuffers.bind(this))
         .then(function (mesh) {
+            mesh.shininess = 0;
             deferred.resolve(mesh); 
         })
         .catch(function(error) {
@@ -134,7 +135,6 @@ Model.prototype.rotate = function (mesh, angle) {
         mesh.vertices[i] = x;
         mesh.vertices[i + 2] = z;
         
-        
         var nx = cosTheta * (mesh.normals[i]) - sinTheta*(mesh.normals[i + 2]);
         var nz = sinTheta * (mesh.normals[i]) + cosTheta*(mesh.normals[i + 2]);
         
@@ -150,6 +150,8 @@ Model.prototype.clone = function (sourceMesh) {
 };
 
 Model.prototype.render = function (mesh, shaderProgram) {
+    this.gl.uniform1f(shaderProgram.shininess, mesh.shininess); 
+    
     this.gl.bindBuffer(this.gl.ARRAY_BUFFER, mesh.vertexBuffer);
     this.gl.vertexAttribPointer(shaderProgram.vertexPositionAttribute, mesh.vertexBuffer.itemSize, this.gl.FLOAT, false, 0, 0);
     

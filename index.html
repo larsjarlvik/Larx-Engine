@@ -63,8 +63,11 @@
             return Q.all([
                 gl.model.load('water').then(function(model) {
                     water = model;
+                    water.shininess = 3.0;
                 }),
                 gl.model.load('tree').then(function(model) {
+                    model.shininess = 6.0;
+                    
                     for(var i = 0; i < 100; i ++) {
                         var tree = gl.model.clone(model);
                         
