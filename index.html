@@ -52,30 +52,44 @@
         var vp = new Viewport();
         var engine = new Engine(vp);
         var gl, shaders;
-        var tree;
+        var tree, water;
         
-        engine.init(function(q) {
+        engine.init(function(deferred) {
             gl = engine.get();
             shaders = gl.shaders.get();
             
-            return engine.loadModel('tree').then(function(model) {
-                tree = model;
-                q.resolve();
+            
+            engine.loadModel('water').then(function(model) {
+                water = model;
+                
+                engine.loadModel('tree').then(function(model2) {
+                    tree = model2;
+                    deferred.resolve();
+                });
             });
+            
+            return deferred.promise;
         });
         
-        engine.render(function() {
-            gl.matrix.translate([5, 0, -5]);
+        var treePos = [];
+        for(var i = 0; i < 100; i++) {
+            var x = Math.random() * 20 - 10;
+            var z = Math.random() * 20 - 10;
             
-            for(var z = 0; z < 10; z++) {
-                gl.matrix.translate([-10, 0, 1]);
-                
-                for(var x = 0; x < 10; x++) {
-                    gl.matrix.translate([1, 0, 0]);
-                    gl.matrix.setUniforms(shaders.default);
-                    
-                    tree.render(shaders.default);
-                }
+            treePos.push({ x: x, z: z });
+        }
+        
+        engine.render(function() {
+            
+            gl.matrix.setIdentity();
+            gl.matrix.setUniforms(shaders.default);
+            water.render(shaders.default);
+            
+            for(var i = 0; i < 100; i ++) {
+                gl.matrix.setIdentity();
+                gl.matrix.translate([treePos[i].x, 0, treePos[i].z]);
+                gl.matrix.setUniforms(shaders.default);
+                tree.render(shaders.default);
             }
             
             keyboard();

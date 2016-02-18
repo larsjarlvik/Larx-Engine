@@ -24,7 +24,7 @@ var Matrix = (function () {
     };
     
     Matrix.prototype.setIdentity = function () {
-        mat4.perspective(45, _gl.viewportWidth / _gl.viewportHeight, 0.1, 100.0, _pMatrix);
+        mat4.perspective(45, _gl.viewportWidth / _gl.viewportHeight, 0.1, 1000.0, _pMatrix);
         
         mat4.identity(_mvMatrix);
         

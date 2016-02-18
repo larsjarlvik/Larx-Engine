@@ -23,8 +23,8 @@ var Engine = (function () {
         },
         loadModel: function (name) {
             var deferred = Q.defer();
+            var model = new Model(_gl, name);
             
-            var model = new Model(_gl, 'tree');
             model.load().then(function () {
                 deferred.resolve(model);
             });
@@ -108,7 +108,6 @@ var Engine = (function () {
     }
     
     function render() {    
-        requestAnimationFrame(render);
         
         _gl.viewport(0, 0, _gl.viewportWidth, _gl.viewportHeight);
         _gl.clear(_gl.COLOR_BUFFER_BIT | _gl.DEPTH_BUFFER_BIT);
@@ -116,10 +115,11 @@ var Engine = (function () {
         _matrix.setIdentity(_gl);
         _matrix.push();
         
-       
         _renderCallback();
         
         _matrix.pop();
+        
+        requestAnimationFrame(render);
     }
 
     return Engine;
