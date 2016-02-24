@@ -180,33 +180,6 @@ Model.prototype.clone = function (sourceMesh) {
     return Object.create(sourceMesh);
 };
 
-Model.prototype.calculateNormals = function (mesh) {
-    mesh.normals = Array(mesh.vertices.length);
-    
-    for (var i = 0; i < mesh.vertices.length; i += 9) {
-        var a = vec3.fromValues(mesh.vertices[i], mesh.vertices[i + 1], mesh.vertices[i + 2]);
-        var b = vec3.fromValues(mesh.vertices[i + 3], mesh.vertices[i + 4], mesh.vertices[i + 5]);
-        var c = vec3.fromValues(mesh.vertices[i + 6], mesh.vertices[i + 7], mesh.vertices[i + 8]);
-
-        var v1 = vec3.create(), v2 = vec3.create();
-        
-        vec3.subtract(v1, c, b);
-        vec3.subtract(v2, a, b);
-        vec3.cross(v1, v1, v2);
-        vec3.normalize(v1, v1);
-        
-        mesh.normals[i] = v1[0];
-        mesh.normals[i + 1] = v1[1];
-        mesh.normals[i + 2] = v1[2];
-        mesh.normals[i + 3] = v1[0];
-        mesh.normals[i + 4] = v1[1];
-        mesh.normals[i + 5] = v1[2];
-        mesh.normals[i + 6] = v1[0];
-        mesh.normals[i + 7] = v1[1];
-        mesh.normals[i + 8] = v1[2];
-    }
-};
-
 Model.prototype.render = function (mesh, shaderProgram) {
     var sp = shaderProgram.get();
     

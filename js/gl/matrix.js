@@ -36,15 +36,17 @@ var Matrix = (function () {
     };
     
     Matrix.prototype.setUniforms = function (shaderProgram) {
-        _gl.uniformMatrix4fv(shaderProgram.pMatrixUniform, false, _pMatrix);
-        _gl.uniformMatrix4fv(shaderProgram.mvMatrixUniform, false, _mvMatrix);
+        var sp = shaderProgram.get();
+        
+        _gl.uniformMatrix4fv(sp.pMatrixUniform, false, _pMatrix);
+        _gl.uniformMatrix4fv(sp.mvMatrixUniform, false, _mvMatrix);
         
         var normalMatrix = mat3.create();
         mat3.fromMat4(normalMatrix, _mvMatrix);
         mat3.invert(normalMatrix, normalMatrix);
         mat3.transpose(normalMatrix, normalMatrix);
         
-        _gl.uniformMatrix3fv(shaderProgram.nMatrixUniform, false, normalMatrix);
+        _gl.uniformMatrix3fv(sp.nMatrixUniform, false, normalMatrix);
     };
     
     Matrix.prototype.translate = function (vec) {

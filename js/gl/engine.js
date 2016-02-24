@@ -1,43 +1,28 @@
 /* global Q */
 
 var Engine = (function () {
-    var _gl, _viewport, 
-        _shaders, _camera, _matrix, _model;
+    var _gl, _viewport, _camera, _matrix, _model;
         
-    var _renderCallback, _initCallback;
-    
     Engine.prototype = {
         get: function() {
             return {
-                shaders: _shaders, 
                 matrix: _matrix,
                 camera: _camera,
-                model: _model
+                model: _model,
+                gl: _gl
             }; 
-        },
-        render: function(callback) {
-            _renderCallback = callback;
-        },
-        init: function(callback) {
-            _initCallback = callback;
         }
     };
     
-    function Engine(viewport) {
+    function Engine(viewport, initCallback) {
         _viewport = viewport;
               
         Q(true)
           .then(initGL)
-          .then(initShaders)
           .then(initSettings)
           .then(function () {
-              console.log('ENGINE: Init');
-              
-              _initCallback().then(function () {
-                  console.log('ENGINE: Render');
-                  render();
-              })
-              .catch(function (e) { console.error(e); });
+              console.log('ENGINE: Init Complete');
+              initCallback();
           })
           .catch(function(e) {
               console.error(e);
@@ -55,11 +40,10 @@ var Engine = (function () {
             _gl.viewportWidth = canvas.width;
             _gl.viewportHeight = canvas.height;
             
-            
             _gl.blendFunc(_gl.SRC_ALPHA, _gl.ONE_MINUS_SRC_ALPHA);
             _gl.enable(_gl.BLEND);
             _gl.disable(_gl.DEPTH_TEST);
-                
+            
             _viewport.resize(function () {
                 var canvas = _viewport.getCanvas();
                 _gl.viewportWidth = canvas.width;
@@ -78,28 +62,11 @@ var Engine = (function () {
         return Q(true);
     }
     
-    function initShaders() {
-        console.log('ENGINE: Shaders');
-        
-        var deferred = Q.defer();
-        
-        _shaders = new Shaders(_gl);
-        _shaders.initShaders().then(function (shaderProgram) {   
-            deferred.resolve();
-        })
-        .catch(function(e) {
-            console.error(e);
-        })
-        .done();
-        
-        return deferred.promise;
-    }
-    
     
     function initSettings() {
         console.log('ENGINE: Settings');
         
-        _gl.clearColor(1.0, 1.0, 1.0, 1.0);
+        _gl.clearColor(0.0, 0.0, 0.0, 1.0);
         _gl.enable(_gl.DEPTH_TEST);
         
         _camera = new Camera();
@@ -112,19 +79,17 @@ var Engine = (function () {
         return degrees * Math.PI / 180;
     }
     
-    function render() {  
+    Engine.prototype.render = function(callback) {  
         _gl.viewport(0, 0, _gl.viewportWidth, _gl.viewportHeight);
         _gl.clear(_gl.COLOR_BUFFER_BIT | _gl.DEPTH_BUFFER_BIT);
         
         _matrix.setIdentity(_gl);
         _matrix.push();
         
-        _renderCallback();
+        callback();
         
         _matrix.pop();
-        
-        requestAnimationFrame(render);
-    }
+    };
 
     return Engine;
 })();
