@@ -1,4 +1,4 @@
-# rtsengine
-WebGL Engine for RTS Games
+# Larx Engine
+WebGL Engine for low poly games
 
-Simple Game engine for comic style RTS games.
+Simple Game engine for comic style low poly games.
