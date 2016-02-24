@@ -15,7 +15,7 @@ var Matrix = (function () {
     
     Matrix.prototype.push = function () {
         var copy = mat4.create();
-        mat4.set(_mvMatrix, copy);
+        mat4.copy(copy, _mvMatrix);
         _mvStack.push(copy);
     };
     
@@ -24,15 +24,15 @@ var Matrix = (function () {
     };
     
     Matrix.prototype.setIdentity = function () {
-        mat4.perspective(45, _gl.viewportWidth / _gl.viewportHeight, 0.1, 1000.0, _pMatrix);
-        
-        mat4.identity(_mvMatrix);
+        mat4.perspective(_pMatrix, 45, _gl.viewportWidth / _gl.viewportHeight, 0.1, 1000.0);
+
+        mat4.identity(_mvMatrix);   
         
         var mat = _camera.getMatrix();
         
-        mat4.rotate(_mvMatrix, mat.rotV, [1, 0, 0]);
-        mat4.rotate(_mvMatrix, mat.rotH, [0, 1, 0]);
-        mat4.translate(_mvMatrix, [mat.x, mat.y, mat.z]);
+        mat4.rotate(_mvMatrix, _mvMatrix, mat.rotV, [1, 0, 0]);
+        mat4.rotate(_mvMatrix, _mvMatrix, mat.rotH, [0, 1, 0]);
+        mat4.translate(_mvMatrix, _mvMatrix, [mat.x, mat.y, mat.z]);
     };
     
     Matrix.prototype.setUniforms = function (shaderProgram) {
@@ -40,13 +40,15 @@ var Matrix = (function () {
         _gl.uniformMatrix4fv(shaderProgram.mvMatrixUniform, false, _mvMatrix);
         
         var normalMatrix = mat3.create();
-        mat4.toInverseMat3(_mvMatrix, normalMatrix);
-        mat3.transpose(normalMatrix);
+        mat3.fromMat4(normalMatrix, _mvMatrix);
+        mat3.invert(normalMatrix, normalMatrix);
+        mat3.transpose(normalMatrix, normalMatrix);
+        
         _gl.uniformMatrix3fv(shaderProgram.nMatrixUniform, false, normalMatrix);
     };
     
     Matrix.prototype.translate = function (vec) {
-        mat4.translate(_mvMatrix, vec);
+        mat4.translate(_mvMatrix, _mvMatrix, vec);
     };
     
     Matrix.prototype.camera = {
@@ -56,8 +58,6 @@ var Matrix = (function () {
         translate: function (x, z) {
             _camera.look.x = x;
             _camera.look.z = z;
-            
-            console.log(_camera.look.z);
         }  
     };
     

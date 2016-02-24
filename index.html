@@ -6,41 +6,22 @@
         
         <title>LARX 0.01</title>
         <link href="style.css" rel="stylesheet" />
-        
-        <!-- SHADERS -->
-        <script id="shader-fs" type="x-shader/x-fragment">
-            precision mediump float;
-
-            void main(void) {
-                gl_FragColor = vec4(1.0, 1.0, 1.0, 1.0);
-            }
-        </script>
-        
-        <script id="shader-vs" type="x-shader/x-vertex">
-        
-            attribute vec3 aVertexPosition;
-
-            uniform mat4 uMVMatrix;
-            uniform mat4 uPMatrix;
-
-            void main(void) {
-                gl_Position = uPMatrix * uMVMatrix * vec4(aVertexPosition, 1.0);
-            }
-        
-        </script>
-        
+                
         <!-- DIST -->
         <script src="/js/dist/q.js"></script>
         <script src="/js/dist/gl-matrix.js"></script>
         
         <!-- SCRIPTS -->
         <script src="/js/viewport.js"></script>
+        
         <script src="/js/gl/engine.js"></script>
         <script src="/js/gl/matrix.js"></script>
         <script src="/js/gl/shaders.js"></script>
         <script src="/js/gl/camera.js"></script>
         <script src="/js/gl/model.js"></script>
         
+        <script src="/js/terrain.js"></script>
+        <script src="/js/water.js"></script>
     </head>
     
     <body> 
@@ -55,50 +36,83 @@
         
         var vp = new Viewport();
         var engine = new Engine(vp);
+        var terrain = new Terrain();
+        
         var gl, shaders;
-        var trees, water;
+        var mTrees, mWater, mTerrain;
         
-        trees = [];
+        mTrees = [];
         
-        engine.init(function(deferred) {
+        engine.init(function() {
+            var deferred = Q.defer();
             gl = engine.get();
             shaders = gl.shaders.get();
             
-            return Q.all([
-                gl.model.load('water').then(function(model) {
-                    water = model;
-                    water.shininess = 3.0;
-                    water.opacity = 0.75;
-                }),
-                gl.model.load('tree').then(function(model) {
-                    model.shininess = 6.0;
-                    
-                    for(var i = 0; i < 200; i ++) {
-                        var tree = gl.model.clone(model);
-                        
-                        tree.x = Math.random() * 20 - 10;
-                        tree.z = Math.random() * 20 - 10;
-                        gl.model.rotate(tree, Math.random() * Math.PI);
-                        
-                        trees.push(tree);
-                    }
+            
+            terrain.generatefromImage(gl, '/heightmaps/test-mid.jpg', 8, 1.5, 1)
+                .then(function(t) {
+                    mTerrain = t;
+                    mTerrain.model.shininess = 1.0;
+                    mTerrain.model.specularWeight = 0.15;  
+                    return Q(true);
                 })
-            ]);
+                .then(function() {
+                    var deferred = Q.defer();
+                    
+                    gl.model.load('water').then(function(model) {
+                        mWater = model;
+                        mWater.shininess = 3.0;
+                        mWater.opacity = 0.6;
+                        mWater.specularWeight = 1.0;
+                        deferred.resolve(true);
+                    });
+                    return deferred.promise;
+                })
+                .then(function(model) {
+                    var deferred = Q.defer();
+                    
+                    gl.model.load('tree').then(function(model) {
+                        model.shininess = 1.0;
+                        model.specularWeight = 1.0;
+                        
+                        while(mTrees.length < 3000) {
+                            var tree = gl.model.clone(model);
+                            
+                            tree.x = Math.random() * 94 - 47;
+                            tree.z = Math.random() * 94 - 47;
+                            tree.y = terrain.getElevationAtPoint(mTerrain, tree.x, tree.z);
+                            
+                            if(tree.y >= 0.2) {
+                                gl.model.rotate(tree, Math.random() * Math.PI);
+                                mTrees.push(tree);
+                            }
+                        }
+                        
+                        deferred.resolve(true);
+                    });
+                    return deferred.promise;
+                })
+                .done(function() {
+                    deferred.resolve(true);
+                })
+                
+             return deferred.promise;
         });
         
         engine.render(function() {
             
-            for(var i = 0; i < trees.length; i ++) {
-                gl.matrix.setIdentity()
-                gl.matrix.translate([trees[i].x, 0, trees[i].z]);
+            for(var i = 0; i < mTrees.length; i ++) {
+                gl.matrix.setIdentity();
+                gl.matrix.translate([mTrees[i].x, mTrees[i].y, mTrees[i].z]);
                 gl.matrix.setUniforms(shaders.default);
                 
-                gl.model.render(trees[i], shaders.default);
+                gl.model.render(mTrees[i], shaders.default);
             }
             
             gl.matrix.setIdentity();
             gl.matrix.setUniforms(shaders.default);
-            gl.model.render(water, shaders.default);
+            gl.model.render(mTerrain.model, shaders.default);
+            gl.model.render(mWater, shaders.default);
             
             keyboard();
             mouse();

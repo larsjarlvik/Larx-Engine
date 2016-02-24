@@ -1,4 +1,3 @@
-/* global mat4 */
 /* global Q */
 
 var Engine = (function () {
@@ -34,15 +33,14 @@ var Engine = (function () {
           .then(function () {
               console.log('ENGINE: Init');
               
-              var deferred = Q.defer();
-              
-              _initCallback(deferred).then(function () {
+              _initCallback().then(function () {
                   console.log('ENGINE: Render');
                   render();
-              });
+              })
+              .catch(function (e) { console.error(e); });
           })
           .catch(function(e) {
-              console.log(e);
+              console.error(e);
           })
           .done();
     }
@@ -88,7 +86,11 @@ var Engine = (function () {
         _shaders = new Shaders(_gl);
         _shaders.initShaders().then(function (shaderProgram) {   
             deferred.resolve();
-        });
+        })
+        .catch(function(e) {
+            console.error(e);
+        })
+        .done();
         
         return deferred.promise;
     }
@@ -110,7 +112,7 @@ var Engine = (function () {
         return degrees * Math.PI / 180;
     }
     
-    function render() {            
+    function render() {  
         _gl.viewport(0, 0, _gl.viewportWidth, _gl.viewportHeight);
         _gl.clear(_gl.COLOR_BUFFER_BIT | _gl.DEPTH_BUFFER_BIT);
         

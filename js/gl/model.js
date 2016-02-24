@@ -115,12 +115,35 @@ Model.prototype.load = function (name) {
         .then(function (mesh) {
             mesh.shininess = 0;
             mesh.opacity = 1.0;
+            
+            console.log("RESOLVE:" + name);
             deferred.resolve(mesh); 
         })
         .catch(function(error) {
             console.error(error); 
             deferred.reject();
-        });
+        })
+        .done();
+    
+    return deferred.promise;
+};
+
+Model.prototype.build = function (rawData) {
+    var deferred = Q.defer();
+    
+    this.bindBuffers(rawData)
+        .then(function (mesh) {
+            mesh.shininess = 0;
+            mesh.opacity = 1.0;
+            mesh.specularWeight = 1.0;
+            
+            deferred.resolve(mesh); 
+        })
+        .catch(function(error) {
+            console.error(error); 
+            deferred.reject();
+        })
+        .done();
     
     return deferred.promise;
 };
@@ -153,6 +176,7 @@ Model.prototype.clone = function (sourceMesh) {
 Model.prototype.render = function (mesh, shaderProgram) {
     this.gl.uniform1f(shaderProgram.shininess, mesh.shininess); 
     this.gl.uniform1f(shaderProgram.opacity, mesh.opacity); 
+    this.gl.uniform1f(shaderProgram.specularWeight, mesh.specularWeight);
     
     this.gl.bindBuffer(this.gl.ARRAY_BUFFER, mesh.vertexBuffer);
     this.gl.vertexAttribPointer(shaderProgram.vertexPositionAttribute, mesh.vertexBuffer.itemSize, this.gl.FLOAT, false, 0, 0);
