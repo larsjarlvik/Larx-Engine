@@ -92,31 +92,29 @@ var Water = (function () {
         return rawMesh;
     }
     
-    Water.prototype.generate = function (waterShader, tiles, tileSize) {
+    Water.prototype.generate = function (ctx, waterShader, tiles, tileSize) {
         var deferred = Q.defer();
         var rawMesh = buildMesh(tiles, tileSize);
         
-        gl.model.build(rawMesh).then(function(model) {
-            model.shininess = 2.0;
+        ctx.model.build(rawMesh).then(function(model) {
+            model.shininess = 3.0;
             model.opacity = 0.6;
-            model.specularWeight = 1.0;
+            model.specularWeight = 1.2;
             
             waterShader.use();
             waterShader.setColor([0.359, 0.781, 0.800]);
             
-            console.log(model);
-            
             deferred.resolve({
                model: model,
                size: tiles * tileSize,
-               waveHeight: 0.15
+               waveHeight: 0.25
             });
         });
         
         return deferred.promise;
     };
     
-    Water.prototype.update = function (water, time) {
+    Water.prototype.update = function (ctx, water, time) {
         var tx = time * 0.001;
         
         for(var i = 0; i < water.model.vertices.length; i += 3) {
@@ -127,8 +125,8 @@ var Water = (function () {
                 Math.sin(tx + x * 0.6) * Math.cos(tx + z * 0.6) * water.waveHeight;
         }
 
-        gl.model.calculateNormals(water.model);
-        gl.model.bindBuffers(water.model);
+        ctx.model.calculateNormals(water.model);
+        ctx.model.bindBuffers(water.model);
     };
     
     return Water;

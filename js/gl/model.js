@@ -33,8 +33,8 @@ Model.prototype.parseHeader = function(mesh, lines) {
     for(var i = 0; i < lines.length; i ++) {
         var line = lines[i].trim();
         
-        if(line.indexOf('element vertex', 0)) { mesh.vertexCount = this.parseHeaderValue(line); }
-        if(line.indexOf('element face', 0)) { mesh.faceCount = this.parseHeaderValue(line); }
+        if(line.indexOf('element vertex') == 0) { mesh.vertexCount = this.parseHeaderValue(line); }
+        if(line.indexOf('element face') == 0) { mesh.faceCount = this.parseHeaderValue(line); }
         
         if(line === 'end_header') { return i + 1; }
     }

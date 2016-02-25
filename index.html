@@ -46,7 +46,7 @@
         var engine = new Engine(vp, init);
         var gameLoop = new GameLoop();
         var defaultShader, waterShader;
-        var gl;
+        var ctx;
         
         var terrain = new Terrain();
         var water = new Water();
@@ -68,21 +68,21 @@
         }
         
         function initShaders() {
-            gl = engine.get();
+            ctx = engine.get();
             
-            defaultShader = new DefaultShader(gl);
-            waterShader = new WaterShader(gl);
+            defaultShader = new DefaultShader(ctx);
+            waterShader = new WaterShader(ctx);
             
             return Q.all([
-                defaultShader.load(gl),
-                waterShader.load(gl)
+                defaultShader.load(ctx),
+                waterShader.load(ctx)
             ]);            
         }
         
         function initTerrain() {
             var deferred = Q.defer();
             
-            terrain.generatefromImage(gl, '/heightmaps/test.jpg', 6, 1.0, 1)              
+            terrain.generatefromImage(ctx, '/maps/test', 9.0, 1.5, 1)              
                 .then(function(t) {
                     mTerrain = t;
                     mTerrain.model.shininess = 4.0;
@@ -99,7 +99,7 @@
             var deferred = Q.defer();
             var tiles = Math.floor((mTerrain.size - 2) / quality);
             
-            water.generate(waterShader, tiles, quality).then(function(w) {
+            water.generate(ctx, waterShader, tiles, quality).then(function(w) {
                 mWater = w;
                 deferred.resolve(true);
             });
@@ -109,21 +109,20 @@
         
         function initTrees() {
             var deferred = Q.defer();
-            
-            gl.model.load('tree').then(function(model) {
-                model.shininess = 3.0;
-                model.specularWeight = 0.8;
-                
+                        
+            ctx.model.load('tree').then(function(model) {
+                model.shininess = 1.0;
+                model.specularWeight = 1.0;
                 
                 while(mTrees.length < 500) {
-                    var tree = gl.model.clone(model);
+                    var tree = ctx.model.clone(model);
                     
                     tree.x = Math.random() * (mTerrain.size - 2) - ((mTerrain.size - 2) / 2);
                     tree.z = Math.random() * (mTerrain.size - 2) - ((mTerrain.size - 2) / 2);
                     tree.y = terrain.getElevationAtPoint(mTerrain, tree.x, tree.z);
                     
-                    if(tree.y >= 0.2) {
-                        gl.model.rotate(tree, Math.random() * Math.PI);
+                    if(tree.y >= 1.8 && tree.y < 4.5) {
+                        ctx.model.rotate(tree, Math.random() * Math.PI);
                         mTrees.push(tree);
                     }
                 }
@@ -138,7 +137,7 @@
             keyboard();
             mouse();
             
-            water.update(mWater, time);
+            water.update(ctx, mWater, time);
         }
         
         function render() {
@@ -146,38 +145,38 @@
                 defaultShader.use();
                 
                 for(var i = 0; i < mTrees.length; i ++) {
-                    gl.matrix.setIdentity();
-                    gl.matrix.translate([mTrees[i].x, mTrees[i].y, mTrees[i].z]);
-                    gl.matrix.setUniforms(defaultShader);
+                    ctx.matrix.setIdentity();
+                    ctx.matrix.translate([mTrees[i].x, mTrees[i].y, mTrees[i].z]);
+                    ctx.matrix.setUniforms(defaultShader);
                     
-                    gl.model.render(mTrees[i], defaultShader);
+                    ctx.model.render(mTrees[i], defaultShader);
                 }
                 
-                gl.matrix.setIdentity();
-                gl.matrix.setUniforms(defaultShader);
-                gl.model.render(mTerrain.model, defaultShader);
+                ctx.matrix.setIdentity();
+                ctx.matrix.setUniforms(defaultShader);
+                ctx.model.render(mTerrain.model, defaultShader);
                 
                 waterShader.use();
-                gl.matrix.setIdentity();
-                gl.matrix.setUniforms(waterShader);
-                gl.model.render(mWater.model, waterShader);
+                ctx.matrix.setIdentity();
+                ctx.matrix.setUniforms(waterShader);
+                ctx.model.render(mWater.model, waterShader);
             });
         }
         
         function keyboard() {
-            if(vp.keyDown('W')) { gl.camera.move( 0.0,  0.5); }
-            if(vp.keyDown('S')) { gl.camera.move( 0.0, -0.5); }
-            if(vp.keyDown('A')) { gl.camera.move(-0.5,  0.0); }
-            if(vp.keyDown('D')) { gl.camera.move( 0.5,  0.0); }
+            if(vp.keyDown('W')) { ctx.camera.move( 0.0,  0.5); }
+            if(vp.keyDown('S')) { ctx.camera.move( 0.0, -0.5); }
+            if(vp.keyDown('A')) { ctx.camera.move(-0.5,  0.0); }
+            if(vp.keyDown('D')) { ctx.camera.move( 0.5,  0.0); }
         }
         
         function mouse() {
             if(vp.mouse.buttons.right || vp.mouse.touchDown) {               
-                gl.camera.rotate(vp.mouse.deltaX / 3.0, vp.mouse.deltaY / 3.0);
+                ctx.camera.rotate(vp.mouse.deltaX / 3.0, vp.mouse.deltaY / 3.0);
             }
             
             if(vp.mouse.wheelDelta !== 0) {
-                gl.camera.zoom(-vp.mouse.wheelDelta * 2);
+                ctx.camera.zoom(-vp.mouse.wheelDelta * 2);
             }
             
             vp.resetDelta();

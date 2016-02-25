@@ -18,15 +18,15 @@ var Terrain = (function () {
         return heights[x][z] - waterLevel;
     }
     
-    function appendToMesh(mesh, vec) {
+    function appendToMesh(mesh, vec, color) {
         mesh.vertices.push(vec[0]);
         mesh.vertices.push(vec[1]);
         mesh.vertices.push(vec[2]);
         
         if(vec[1] > -7.0) {
-            mesh.colors.push(0.468);
-            mesh.colors.push(0.621);
-            mesh.colors.push(0.226);
+            mesh.colors.push(color[0]); 
+            mesh.colors.push(color[1]); 
+            mesh.colors.push(color[2]); 
         } else {
             mesh.colors.push(0.0);
             mesh.colors.push(0.0);
@@ -46,9 +46,9 @@ var Terrain = (function () {
         mesh.indices.push(start + 5);
     }
     
-    function buildMesh (image, elevation) {
-        size = image.width;
-        heights = getImageHeights(image, elevation);
+    function buildMesh (heightmap, colormap, elevation) {
+        size = heightmap.size;
+        heights = getImageHeights(heightmap, elevation);
         
         var rawMesh = {
             vertices: [],
@@ -82,14 +82,16 @@ var Terrain = (function () {
                     vecs.push(vec3.fromValues(vx,     getHeight(x, z),         vz));
                     vecs.push(vec3.fromValues(vx + 1, getHeight(x + 1, z + 1), vz + 1));
                 }
-                    
-                appendToMesh(rawMesh, vecs[0]);
-                appendToMesh(rawMesh, vecs[1]);
-                appendToMesh(rawMesh, vecs[2]);
                 
-                appendToMesh(rawMesh, vecs[3]);
-                appendToMesh(rawMesh, vecs[4]);
-                appendToMesh(rawMesh, vecs[5]);
+                var color = getColor(colormap, x, z);
+                    
+                appendToMesh(rawMesh, vecs[0], color);
+                appendToMesh(rawMesh, vecs[1], color);
+                appendToMesh(rawMesh, vecs[2], color);
+                
+                appendToMesh(rawMesh, vecs[3], color);
+                appendToMesh(rawMesh, vecs[4], color);
+                appendToMesh(rawMesh, vecs[5], color);
                 
                 setIndices(rawMesh, x, z, size);
             } 
@@ -98,25 +100,16 @@ var Terrain = (function () {
         return rawMesh;
     }
     
-    function getImageHeights (image, elevation) {
-        var canvas = document.createElement('canvas');
-        
-        canvas.setAttribute('width', size);
-        canvas.setAttribute('height', size);
-        
-        var ctx = canvas.getContext('2d');
-        ctx.drawImage(image, 0, 0);
-       
-        var pixels = ctx.getImageData(0, 0, size, size).data;
+    function getImageHeights (heightmap, elevation) {
+        var heights = new Array(size);
         var parsed = [];
         
-        for(var i = 0; i < pixels.length; i += 4) {
-            parsed.push(pixels[i]);
+        for(var i = 0; i < heightmap.data.length; i += 4) {
+            parsed.push(heightmap.data[i]);
         }
-       
-        var heights = new Array(size);
-        for(var z = 0; z < size; z++) { 
-            heights[z] = new Array(size); 
+        
+        for(var x = 0; x < size; x++) { 
+            heights[x] = new Array(size); 
         }
        
         for(var z = 0; z < size; z++) {
@@ -124,8 +117,42 @@ var Terrain = (function () {
                 heights[x][z] = parsed[z * size + x] / 255 * elevation;
             }
         }
-            
+        
         return heights;
+    }
+    
+    function getColor(colormap, x, y) {
+        var xy = (y * colormap.size + x) * 4;
+        return [
+            colormap.data[xy] / 255,
+            colormap.data[xy + 1] / 255,
+            colormap.data[xy + 2] / 255,
+            colormap.data[xy + 3] / 255];
+    }
+    
+    function getImage(url) {    
+        var image = new Image();
+        var deferred = Q.defer();
+        
+        image.onload = function () {
+            size = image.width;
+            
+            var canvas = document.createElement('canvas');
+            canvas.setAttribute('width', size);
+            canvas.setAttribute('height', size);
+            
+            var ctx = canvas.getContext('2d');
+            ctx.drawImage(image, 0, 0);
+            
+            deferred.resolve({
+                size: size,
+                data: ctx.getImageData(0, 0, size, size).data
+            });
+        };
+        
+        image.src = url;
+        
+        return deferred.promise;
     }
     
     function  barryCentric(p1, p2, p3, pos) {
@@ -139,28 +166,32 @@ var Terrain = (function () {
 
     
     Terrain.prototype.generatefromImage = function(gl, url, elevation, water) {
-        var deferred = Q.defer();       
-        var image = new Image();
+        var deferred = Q.defer();   
         
         waterLevel = water;
         
-        image.onload = function () {
-            var rawMesh = buildMesh(image, elevation); 
-            
-            gl.model.build(rawMesh).then(function(model) {
-                gl.model.calculateNormals(model);
-                gl.model.bindBuffers(model);
+        getImage(url + '/heightmap.jpg').then(function (imgHeightmap) {
+            getImage(url + '/colormap.jpg').then(function (imgColormap) {
+                try {
+                var rawMesh = buildMesh(imgHeightmap, imgColormap, elevation); 
                 
-                deferred.resolve({
-                    model: model,
-                    size: size,
-                    heights: heights,
-                    waterLevel: waterLevel
-                }); 
-            });          
-        };
+                gl.model.build(rawMesh).then(function(model) {
+                    gl.model.calculateNormals(model);
+                    gl.model.bindBuffers(model);
+                                        
+                    deferred.resolve({
+                        model: model,
+                        size: size,
+                        heights: heights,
+                        waterLevel: waterLevel
+                    }); 
+                });  
+                }catch(e) {
+                    console.error(e);
+                }
+            });       
+        });
         
-        image.src = url;
         return deferred.promise;
     };
     
