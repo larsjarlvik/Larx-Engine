@@ -37,7 +37,6 @@ var Water = (function () {
         mesh.indices.push(start + 5);
     }
 
-    // TODO: Support detail
     function buildMesh (tiles, tileSize) {
         var rawMesh = {
             vertices: [],

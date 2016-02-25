@@ -198,30 +198,52 @@ var Terrain = (function () {
         return deferred.promise;
     };
     
-    Terrain.prototype.getElevationAtPoint = function (t, x, z) {      
+    function getPoint(t, x, z) {
         x = x + (t.size / 2);
         z = z + (t.size / 2);
          
-        var gridX = Math.floor(x);
-        var gridZ = Math.floor(z);
-        
-        var xCoord = x % 1;
-        var zCoord = z % 1;
-        var pos = vec2.fromValues(xCoord, zCoord);
+        return {
+            gx: Math.floor(x),
+            gz: Math.floor(z),
+            xc: x % 1,
+            zc: z % 1
+        };
+    }
+    
+    Terrain.prototype.getElevationAtPoint = function (t, x, z) {
+        var p = getPoint(t, x, z);      
+        var pos = vec2.fromValues(p.xc, p.zc);
         
         var v1, v2, v3;
-        if(xCoord <= (1 - zCoord)) {
-            v1 = vec3.fromValues(0, getHeight(gridX, gridZ), 0);
-            v2 = vec3.fromValues(1, getHeight(gridX + 1, gridZ), 0);
-            v3 = vec3.fromValues(0, getHeight(gridX, gridZ + 1), 1);
+        if(p.xc <= (1 - p.zc)) {
+            v1 = vec3.fromValues(0, getHeight(p.gx, p.gz), 0);
+            v2 = vec3.fromValues(1, getHeight(p.gx + 1, p.gz), 0);
+            v3 = vec3.fromValues(0, getHeight(p.gx, p.gz + 1), 1);
         } else {
-            v1 = vec3.fromValues(1, getHeight(gridX + 1, gridZ), 0);
-            v2 = vec3.fromValues(0, getHeight(gridX, gridZ + 1), 1);
-            v3 = vec3.fromValues(1, getHeight(gridX + 1, gridZ + 1), 1);
+            v1 = vec3.fromValues(1, getHeight(p.gx + 1, p.gz), 0);
+            v2 = vec3.fromValues(0, getHeight(p.gx, p.gz + 1), 1);
+            v3 = vec3.fromValues(1, getHeight(p.gx + 1, p.gz + 1), 1);
         }
     
         return barryCentric(v1, v2, v3, pos);
     };
+    
+    Terrain.prototype.getAngle = function(t, cx, cz, size) {
+        var rad = size / 2;
+        
+        var x1 = this.getElevationAtPoint(t, cx + rad, cz);
+        var x2 = this.getElevationAtPoint(t, cx - rad, cz);
+        
+        var z1 = this.getElevationAtPoint(t, cx, cz + rad);
+        var z2 = this.getElevationAtPoint(t, cx, cz - rad);
+        
+        var xA = 0, zA = 0;
+        
+        zA = Math.atan2(x1 - x2, 0.3);
+        xA = Math.atan2(z2 - z1, 0.3);
+        
+        return [xA, 0, zA];
+    }
     
     return Terrain;
     

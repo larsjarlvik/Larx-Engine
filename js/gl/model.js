@@ -180,27 +180,41 @@ Model.prototype.translate = function (mesh, pos) {
     }
 };
 
-Model.prototype.rotate = function (mesh, angle) {
-    var cosTheta = Math.cos(angle);
-    var sinTheta = Math.sin(angle);
-        
+
+function rotate(mesh, angle, a, b) {
     for(var i = 0; i < mesh.vertices.length; i += 3) {
-        var x = cosTheta * (mesh.vertices[i]) - sinTheta*(mesh.vertices[i + 2]);
-        var z = sinTheta * (mesh.vertices[i]) + cosTheta*(mesh.vertices[i + 2]);
+        var cosTheta = Math.cos(angle);
+        var sinTheta = Math.sin(angle);  
         
-        mesh.vertices[i] = x;
-        mesh.vertices[i + 2] = z;
+        var av = cosTheta * (mesh.vertices[i + a]) - sinTheta*(mesh.vertices[i + b]);
+        var bv = sinTheta * (mesh.vertices[i + a]) + cosTheta*(mesh.vertices[i + b]);
         
-        var nx = cosTheta * (mesh.normals[i]) - sinTheta*(mesh.normals[i + 2]);
-        var nz = sinTheta * (mesh.normals[i]) + cosTheta*(mesh.normals[i + 2]);
+        var an = cosTheta * (mesh.normals[i + a]) - sinTheta*(mesh.normals[i + b]);
+        var bn = sinTheta * (mesh.normals[i + a]) + cosTheta*(mesh.normals[i + b]);
         
-        mesh.normals[i] = nx;
-        mesh.normals[i + 2] = nz;
+        mesh.vertices[i + a] = av;
+        mesh.vertices[i + b] = bv;
+        mesh.normals[i + a] = an;
+        mesh.normals[i + b] = bn;
     }
+}
+
+
+Model.prototype.rotate = function (mesh, angle) {
+    rotate(mesh, angle[0], 1, 2);
+    rotate(mesh, angle[1], 0, 2);
+    rotate(mesh, angle[2], 0, 1);
 };
 
+
 Model.prototype.clone = function (sourceMesh) {
-    return  JSON.parse(JSON.stringify(sourceMesh));
+    var target = JSON.parse(JSON.stringify(sourceMesh));
+    target.vertexBuffer = undefined;
+    target.colorBuffer = undefined;
+    target.normalBuffer = undefined;
+    target.indexBuffer = undefined;
+    
+    return target;
 };
 
 Model.prototype.push = function(targetMesh, sourceMesh) {
