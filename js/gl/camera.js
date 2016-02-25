@@ -1,9 +1,9 @@
 var Camera = (function () {
     
     var _camera = {
-        zoom: 15,
-        look: { x: 0, y: 0, z: 0 },
-        rot: { v: 45, h:0 }
+        zoom: 75,
+        look: { x: -20, y: 0, z: -20 },
+        rot: { v: 35, h:45 }
     }
     
     function Camera() { }

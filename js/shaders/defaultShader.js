@@ -32,15 +32,11 @@ DefaultShader.prototype.load = function(engine) {
         
         self.shader.vertexNormalAttribute = self.gl.getAttribLocation(self.shader, 'aVertexNormal');
         self.gl.enableVertexAttribArray(self.shader.vertexNormalAttribute);
-
-        self.shader.pMatrixUniform = self.gl.getUniformLocation(self.shader, 'uPMatrix');
-        self.shader.mvMatrixUniform = self.gl.getUniformLocation(self.shader, 'uMVMatrix');
-        self.shader.nMatrixUniform  = self.gl.getUniformLocation(self.shader, 'uNMatrix');
         
         self.shader.opacity = self.gl.getUniformLocation(self.shader, 'uOpacity');
         // END BUFFERS
         
-        self.shaders.setLighting(self.shader);
+        self.shaders.setDefaults(self.shader);
         
         deferred.resolve();
     }).catch(function (e) {

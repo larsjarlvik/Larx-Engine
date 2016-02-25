@@ -33,8 +33,8 @@ Model.prototype.parseHeader = function(mesh, lines) {
     for(var i = 0; i < lines.length; i ++) {
         var line = lines[i].trim();
         
-        if(line.startsWith('element vertex')) { mesh.vertexCount = this.parseHeaderValue(line); }
-        if(line.startsWith('element face')) { mesh.faceCount = this.parseHeaderValue(line); }
+        if(line.indexOf('element vertex', 0)) { mesh.vertexCount = this.parseHeaderValue(line); }
+        if(line.indexOf('element face', 0)) { mesh.faceCount = this.parseHeaderValue(line); }
         
         if(line === 'end_header') { return i + 1; }
     }
@@ -76,7 +76,7 @@ Model.prototype.parseFaces = function(mesh, lines, start) {
 };
 
 Model.prototype.parseHeaderValue = function(line) {
-    var n = line.split(" ");
+    var n = line.split(' ');
     return parseInt(n[n.length - 1]);
 };
 
@@ -180,21 +180,41 @@ Model.prototype.clone = function (sourceMesh) {
     return Object.create(sourceMesh);
 };
 
+function calcNormal(a, b, c, out) {
+    var x,  y,  z,
+        x1, y1, z1,
+        x2, y2, z2,
+        x3, y3, z3,
+        len;
+
+    x1 = c[0] - b[0];   y1 = c[1] - b[1];   z1 = c[2] - b[2];
+    x2 = a[0] - b[0];   y2 = a[1] - b[1];   z2 = a[2] - b[2];
+    
+    x3 = y1 * z2 - z1 * y2;
+    y3 = z1 * x2 - x1 * z2;
+    z3 = x1 * y2 - y1 * x2;
+    
+    len = 1 / Math.sqrt(x3*x3 + y3*y3 + z3*z3);
+    x = x3 * len;
+    y = y3 * len;
+    z = z3 * len;
+    
+    out[0] = x * len;
+    out[1] = y * len;
+    out[2] = z * len;
+}
+
 Model.prototype.calculateNormals = function (mesh) {
     mesh.normals = Array(mesh.vertices.length);
     
+    var v1 = [];
+    
     for (var i = 0; i < mesh.vertices.length; i += 9) {
-        var a = vec3.fromValues(mesh.vertices[i], mesh.vertices[i + 1], mesh.vertices[i + 2]);
-        var b = vec3.fromValues(mesh.vertices[i + 3], mesh.vertices[i + 4], mesh.vertices[i + 5]);
-        var c = vec3.fromValues(mesh.vertices[i + 6], mesh.vertices[i + 7], mesh.vertices[i + 8]);
-
-        var v1 = vec3.create(), v2 = vec3.create();
+        var a = [mesh.vertices[i], mesh.vertices[i + 1], mesh.vertices[i + 2]];
+        var b = [mesh.vertices[i + 3], mesh.vertices[i + 4], mesh.vertices[i + 5]];
+        var c = [mesh.vertices[i + 6], mesh.vertices[i + 7], mesh.vertices[i + 8]];
         
-        vec3.subtract(v1, c, b);
-        vec3.subtract(v2, a, b);
-        vec3.cross(v1, v1, v2);
-        vec3.normalize(v1, v1);
-        
+        calcNormal(a, b, c, v1);
         mesh.normals[i] = v1[0];
         mesh.normals[i + 1] = v1[1];
         mesh.normals[i + 2] = v1[2];

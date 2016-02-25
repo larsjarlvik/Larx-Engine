@@ -29,9 +29,10 @@ void main(void) {
         vec3 reflectionDirection = reflect(lightDirection, normal);
         float specularLightWeighting = pow(max(dot(reflectionDirection, eyeDirection), 0.0), uShininess);
     
-        vec3 specularColor = uSpecularColor * uSpecularWeight;
+        vec3 specularColor = vec3(1.0, 1.0, 1.0) * uSpecularWeight;
         lightWeighting += specularColor * specularLightWeighting;
     }
     
-    gl_FragColor = vec4(uColor * lightWeighting, uOpacity);
+    
+    gl_FragColor = vec4((uColor * lightWeighting), uOpacity);
 }

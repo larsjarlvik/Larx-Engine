@@ -8,7 +8,7 @@ var Shaders = (function () {
         ambient: [0.3, 0.3, 0.3],
         directional: [0.5, 0.5, 0.5],
         specular: [1.0, 1.0, 1.0],
-        direction: [-0.5, -0.25, -0.5]
+        direction: [-0.5, -0.7, -0.5]
     };
     
     function Shaders(gl) {
@@ -55,7 +55,6 @@ var Shaders = (function () {
 
         createShader(name, 'fs', _gl.FRAGMENT_SHADER).then(function (fs) {
             createShader(name, 'vs', _gl.VERTEX_SHADER).then(function (vs) {
-                
                 var program = _gl.createProgram();
                 
                 _gl.attachShader(program, vs);
@@ -68,7 +67,12 @@ var Shaders = (function () {
         return deferred.promise;      
     };
     
-    Shaders.prototype.setLighting = function (shader) {
+    Shaders.prototype.setDefaults = function (shader) {
+        shader.pMatrixUniform = _gl.getUniformLocation(shader, 'uPMatrix');
+        shader.mvMatrixUniform = _gl.getUniformLocation(shader, 'uMVMatrix');
+        shader.nMatrixUniform  = _gl.getUniformLocation(shader, 'uNMatrix');
+        
+        
         shader.ambientColor = _gl.getUniformLocation(shader, 'uAmbientColor');
         shader.directionalColor = _gl.getUniformLocation(shader, 'uDirectionalColor');
         shader.specularColor = _gl.getUniformLocation(shader, 'uSpecularColor');

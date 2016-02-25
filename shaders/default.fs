@@ -17,7 +17,6 @@ varying vec3 vColor;
 void main(void) {
     vec3 lightDirection = normalize(uLightingDirection - vPosition.xyz);
     vec3 normal = normalize(vTransformedNormal);
-            
     
     float directionalLightWeighting = max(dot(vNormal, uLightingDirection), 0.0);
     
@@ -34,5 +33,5 @@ void main(void) {
         lightWeighting += specularColor * specularLightWeighting;
     }
     
-    gl_FragColor = vec4(vColor * lightWeighting, uOpacity);
+    gl_FragColor = vec4((vColor * lightWeighting), uOpacity);
 }

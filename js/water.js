@@ -38,39 +38,40 @@ var Water = (function () {
     }
 
     // TODO: Support detail
-    function buildMesh (size, detail) {
+    function buildMesh (tiles, tileSize) {
         var rawMesh = {
             vertices: [],
             normals: [],
             indices: []   
         };
         
-        size = size / detail;
+        var size = tiles;
+        var ts = tileSize;
         
         var vecs;
         for(var z = 0; z < size; z++) {
-            var vz = (-(size / 2) * detail) + z * detail;
+            var vz = (-(size / 2) * ts) + z * ts;
                 
             for(var x = 0; x < size; x++) {
                 vecs = [];
-                var vx = (-(size / 2) * detail) + x * detail;
+                var vx = (-(size / 2) * ts) + x * ts;
                 
                 if((x%2 === 0 && z%2 === 0) || (x%2 === 1 && z%2 === 1)) {
-                    vecs.push(vec3.fromValues(vx + detail, 0, vz));
+                    vecs.push(vec3.fromValues(vx + ts, 0, vz));
                     vecs.push(vec3.fromValues(vx, 0, vz));
-                    vecs.push(vec3.fromValues(vx, 0, vz + detail));
+                    vecs.push(vec3.fromValues(vx, 0, vz + ts));
                     
-                    vecs.push(vec3.fromValues(vx + detail, 0, vz));
-                    vecs.push(vec3.fromValues(vx, 0, vz + detail));
-                    vecs.push(vec3.fromValues(vx + detail, 0, vz + detail));
+                    vecs.push(vec3.fromValues(vx + ts, 0, vz));
+                    vecs.push(vec3.fromValues(vx, 0, vz + ts));
+                    vecs.push(vec3.fromValues(vx + ts, 0, vz + ts));
                 } else {
-                    vecs.push(vec3.fromValues(vx + detail, 0, vz + detail));
+                    vecs.push(vec3.fromValues(vx + ts, 0, vz + ts));
                     vecs.push(vec3.fromValues(vx, 0, vz));
-                    vecs.push(vec3.fromValues(vx, 0, vz + detail));
+                    vecs.push(vec3.fromValues(vx, 0, vz + ts));
                     
-                    vecs.push(vec3.fromValues(vx + detail, 0, vz));
+                    vecs.push(vec3.fromValues(vx + ts, 0, vz));
                     vecs.push(vec3.fromValues(vx, 0, vz));
-                    vecs.push(vec3.fromValues(vx + detail, 0, vz + detail));
+                    vecs.push(vec3.fromValues(vx + ts, 0, vz + ts));
                 }
                 
                 var n1 = getNormals(vecs[0], vecs[1], vecs[2]);
@@ -91,13 +92,13 @@ var Water = (function () {
         return rawMesh;
     }
     
-    Water.prototype.generate = function (waterShader, size, detail) {
+    Water.prototype.generate = function (waterShader, tiles, tileSize) {
         var deferred = Q.defer();
-        var rawMesh = buildMesh(size, detail);
+        var rawMesh = buildMesh(tiles, tileSize);
         
         gl.model.build(rawMesh).then(function(model) {
-            model.shininess = 3.0;
-            model.opacity = 0.7;
+            model.shininess = 2.0;
+            model.opacity = 0.6;
             model.specularWeight = 1.0;
             
             waterShader.use();
@@ -107,9 +108,8 @@ var Water = (function () {
             
             deferred.resolve({
                model: model,
-               size: size,
-               waveHeight: 0.15,
-               detail: detail
+               size: tiles * tileSize,
+               waveHeight: 0.15
             });
         });
         
@@ -117,15 +117,15 @@ var Water = (function () {
     };
     
     Water.prototype.update = function (water, time) {
-        var tx = time * 0.002;
+        var tx = time * 0.001;
         
         for(var i = 0; i < water.model.vertices.length; i += 3) {
             var x = water.model.vertices[i];
             var z = water.model.vertices[i + 2];
             
-            water.model.vertices[i + 1] = Math.sin(tx + x) * Math.cos(tx + z) * water.waveHeight;
+            water.model.vertices[i + 1] =
+                Math.sin(tx + x * 0.6) * Math.cos(tx + z * 0.6) * water.waveHeight;
         }
-        
 
         gl.model.calculateNormals(water.model);
         gl.model.bindBuffers(water.model);

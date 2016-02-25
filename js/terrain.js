@@ -11,8 +11,8 @@ var Terrain = (function () {
     function Terrain() { }
     
     function getHeight(x, z) {
-        if(x < 0 || x >= size || z < 0 || z >= size) {
-            return 0;
+        if(x < 1 || x >= size || z < 1 || z >= size) {
+            return -10;
         }
         
         return heights[x][z] - waterLevel;
@@ -23,9 +23,15 @@ var Terrain = (function () {
         mesh.vertices.push(vec[1]);
         mesh.vertices.push(vec[2]);
         
-        mesh.colors.push(0.468);
-        mesh.colors.push(0.621);
-        mesh.colors.push(0.226);
+        if(vec[1] > -7.0) {
+            mesh.colors.push(0.468);
+            mesh.colors.push(0.621);
+            mesh.colors.push(0.226);
+        } else {
+            mesh.colors.push(0.0);
+            mesh.colors.push(0.0);
+            mesh.colors.push(0.0);
+        }
     }
     
     function setIndices(mesh, x, z) {
@@ -52,10 +58,10 @@ var Terrain = (function () {
         };
         
         var vecs;
-        for(var z = 0; z < size - 1; z++) {
+        for(var z = 0; z < size + 1; z++) {
             var vz = -(size / 2) + z;
                 
-            for(var x = 0; x < size - 1; x++) {
+            for(var x = 0; x < size; x++) {
                 vecs = [];
                 var vx = -(size / 2) + x;
                 

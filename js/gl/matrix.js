@@ -25,7 +25,6 @@ var Matrix = (function () {
     
     Matrix.prototype.setIdentity = function () {
         mat4.perspective(_pMatrix, 45, _gl.viewportWidth / _gl.viewportHeight, 0.1, 1000.0);
-
         mat4.identity(_mvMatrix);   
         
         var mat = _camera.getMatrix();

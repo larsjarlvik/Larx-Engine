@@ -2,7 +2,8 @@
 
 var Engine = (function () {
     var _gl, _viewport, _camera, _matrix, _model;
-        
+    
+    
     Engine.prototype = {
         get: function() {
             return {
@@ -37,6 +38,8 @@ var Engine = (function () {
             var canvas = _viewport.getCanvas();
             
             _gl = canvas.getContext('webgl');
+            if(!_gl) { _gl = canvas.getContext('experimental-webgl'); }
+            
             _gl.viewportWidth = canvas.width;
             _gl.viewportHeight = canvas.height;
             
@@ -44,6 +47,9 @@ var Engine = (function () {
             _gl.enable(_gl.BLEND);
             _gl.disable(_gl.DEPTH_TEST);
             
+            _gl.enable(_gl.CULL_FACE);
+            _gl.cullFace(_gl.BACK);
+
             _viewport.resize(function () {
                 var canvas = _viewport.getCanvas();
                 _gl.viewportWidth = canvas.width;

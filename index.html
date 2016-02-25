@@ -60,7 +60,7 @@
                 .then(initTrees)
                 .then(function() {
                     console.log('START')
-                    gameLoop.start(60, doLogic, render);
+                    gameLoop.start(40, doLogic, render);
                 })
                 .catch(function(err) {
                     console.error(err);
@@ -82,11 +82,12 @@
         function initTerrain() {
             var deferred = Q.defer();
             
-            terrain.generatefromImage(gl, '/heightmaps/test-mid.jpg', 8, 1.5, 1)              
+            terrain.generatefromImage(gl, '/heightmaps/test.jpg', 6, 1.0, 1)              
                 .then(function(t) {
                     mTerrain = t;
                     mTerrain.model.shininess = 4.0;
-                    mTerrain.model.specularWeight = 0.45;  
+                    mTerrain.model.specularWeight = 0.35;  
+                    
                     deferred.resolve(true);
                 });
                 
@@ -94,13 +95,15 @@
         }
         
         function initWater() {
+            var quality = 2;
             var deferred = Q.defer();
+            var tiles = Math.floor((mTerrain.size - 2) / quality);
             
-            water.generate(waterShader, mTerrain.size, 2).then(function(w) {
+            water.generate(waterShader, tiles, quality).then(function(w) {
                 mWater = w;
                 deferred.resolve(true);
             });
-
+            
             return deferred.promise;
         }
         
@@ -108,15 +111,15 @@
             var deferred = Q.defer();
             
             gl.model.load('tree').then(function(model) {
-                model.shininess = 1.0;
+                model.shininess = 3.0;
                 model.specularWeight = 0.8;
                 
                 
-                while(mTrees.length < 1000) {
+                while(mTrees.length < 500) {
                     var tree = gl.model.clone(model);
                     
-                    tree.x = Math.random() * 94 - 47;
-                    tree.z = Math.random() * 94 - 47;
+                    tree.x = Math.random() * (mTerrain.size - 2) - ((mTerrain.size - 2) / 2);
+                    tree.z = Math.random() * (mTerrain.size - 2) - ((mTerrain.size - 2) / 2);
                     tree.y = terrain.getElevationAtPoint(mTerrain, tree.x, tree.z);
                     
                     if(tree.y >= 0.2) {
@@ -174,7 +177,7 @@
             }
             
             if(vp.mouse.wheelDelta !== 0) {
-                gl.camera.zoom(-vp.mouse.wheelDelta);
+                gl.camera.zoom(-vp.mouse.wheelDelta * 2);
             }
             
             vp.resetDelta();
