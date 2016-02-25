@@ -48,17 +48,17 @@ Model.prototype.parseVertices = function(mesh, lines, start) {
     for(var i = start; i < start + mesh.vertexCount; i ++) {
         var values = lines[i].trim().split(' ');
         
-        mesh.vertices.push(values[0]);
-        mesh.vertices.push(values[1]);
-        mesh.vertices.push(values[2]);
+        mesh.vertices.push(parseFloat(values[0]));
+        mesh.vertices.push(parseFloat(values[1]));
+        mesh.vertices.push(parseFloat(values[2]));
         
-        mesh.normals.push(values[3]);
-        mesh.normals.push(values[4]);
-        mesh.normals.push(values[5]);
+        mesh.normals.push(parseFloat(values[3]));
+        mesh.normals.push(parseFloat(values[4]));
+        mesh.normals.push(parseFloat(values[5]));
         
-        mesh.colors.push(values[6] / 256);
-        mesh.colors.push(values[7] / 256);
-        mesh.colors.push(values[8] / 256);
+        mesh.colors.push(parseInt(values[6]) / 256);
+        mesh.colors.push(parseInt(values[7]) / 256);
+        mesh.colors.push(parseInt(values[8]) / 256);
     }
 };    
 
@@ -69,9 +69,9 @@ Model.prototype.parseFaces = function(mesh, lines, start) {
         var values = lines[i].trim().split(' ');
         if(values.length !== 4) { continue; }
         
-        mesh.indices.push(values[1]);
-        mesh.indices.push(values[2]);
-        mesh.indices.push(values[3]);
+        mesh.indices.push(parseInt(values[1]));
+        mesh.indices.push(parseInt(values[2]));
+        mesh.indices.push(parseInt(values[3]));
     }
 };
 
@@ -155,6 +155,31 @@ Model.prototype.build = function (rawData) {
     return deferred.promise;
 };
 
+Model.prototype.create = function () {
+    var mesh = {
+        vertices: [],
+        colors: [],
+        normals: [],
+        indices: [],
+        shininess: 0,
+        opacity: 1.0,
+        specularWeight: 1.0,
+        faceCount: 0,
+        vertexCount: 0
+    };
+    
+    return Q(mesh);
+};
+
+
+Model.prototype.translate = function (mesh, pos) {    
+    for(var i = 0; i < mesh.vertices.length; i += 3) {
+        mesh.vertices[i] += pos[0];
+        mesh.vertices[i + 1] += pos[1];
+        mesh.vertices[i + 2] += pos[2];
+    }
+};
+
 Model.prototype.rotate = function (mesh, angle) {
     var cosTheta = Math.cos(angle);
     var sinTheta = Math.sin(angle);
@@ -172,13 +197,25 @@ Model.prototype.rotate = function (mesh, angle) {
         mesh.normals[i] = nx;
         mesh.normals[i + 2] = nz;
     }
-    
-    this.bindBuffers(mesh);
 };
 
 Model.prototype.clone = function (sourceMesh) {
-    return Object.create(sourceMesh);
+    return  JSON.parse(JSON.stringify(sourceMesh));
 };
+
+Model.prototype.push = function(targetMesh, sourceMesh) {
+    for(var i = 0; i < sourceMesh.indices.length; i++) {
+        targetMesh.indices.push(sourceMesh.indices[i] + targetMesh.vertexCount );
+    }
+    
+    Array.prototype.push.apply(targetMesh.colors, sourceMesh.colors);
+    Array.prototype.push.apply(targetMesh.normals, sourceMesh.normals);
+    Array.prototype.push.apply(targetMesh.vertices, sourceMesh.vertices);
+    
+    
+    targetMesh.faceCount += sourceMesh.faceCount;
+    targetMesh.vertexCount += sourceMesh.vertexCount;
+}
 
 function calcNormal(a, b, c, out) {
     var x,  y,  z,

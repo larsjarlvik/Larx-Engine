@@ -23,7 +23,10 @@ var Terrain = (function () {
         mesh.vertices.push(vec[1]);
         mesh.vertices.push(vec[2]);
         
-        if(vec[1] > -7.0) {
+        var limit = size / 2 - 1;
+        
+        if(vec[0] <= limit && vec[0] >= -limit &&
+           vec[2] <= limit && vec[2] >= -limit) {
             mesh.colors.push(color[0]); 
             mesh.colors.push(color[1]); 
             mesh.colors.push(color[2]); 
