@@ -67,27 +67,28 @@ var Shaders = (function () {
         return deferred.promise;      
     };
     
-    Shaders.prototype.setDefaults = function (shader) {
+    Shaders.prototype.setDefaults = function (shader, useLights) {
         shader.pMatrixUniform = _gl.getUniformLocation(shader, 'uPMatrix');
         shader.mvMatrixUniform = _gl.getUniformLocation(shader, 'uMVMatrix');
         shader.nMatrixUniform  = _gl.getUniformLocation(shader, 'uNMatrix');
         
-        
-        shader.ambientColor = _gl.getUniformLocation(shader, 'uAmbientColor');
-        shader.directionalColor = _gl.getUniformLocation(shader, 'uDirectionalColor');
-        shader.specularColor = _gl.getUniformLocation(shader, 'uSpecularColor');
-        shader.lightDirection = _gl.getUniformLocation(shader, 'uLightingDirection');
-        shader.shininess = _gl.getUniformLocation(shader, 'uShininess');
-        shader.specularWeight = _gl.getUniformLocation(shader, 'uSpecularWeight');
-        
-        _gl.uniform3f(shader.ambientColor, light.ambient[0], light.ambient[1], light.ambient[2]);
-        _gl.uniform3f(shader.directionalColor, light.directional[0], light.directional[1], light.directional[2]);
-        _gl.uniform3f(shader.specularColor, light.specular[0], light.specular[1], light.specular[2]);
-        
-        var adjustedLightDir = vec3.create();      
-        vec3.normalize(adjustedLightDir, light.direction);
-        vec3.scale(adjustedLightDir, adjustedLightDir, -1);
-        _gl.uniform3fv(shader.lightDirection, adjustedLightDir);
+        if(useLights) {
+            shader.ambientColor = _gl.getUniformLocation(shader, 'uAmbientColor');
+            shader.directionalColor = _gl.getUniformLocation(shader, 'uDirectionalColor');
+            shader.specularColor = _gl.getUniformLocation(shader, 'uSpecularColor');
+            shader.lightDirection = _gl.getUniformLocation(shader, 'uLightingDirection');
+            shader.shininess = _gl.getUniformLocation(shader, 'uShininess');
+            shader.specularWeight = _gl.getUniformLocation(shader, 'uSpecularWeight');
+            
+            _gl.uniform3f(shader.ambientColor, light.ambient[0], light.ambient[1], light.ambient[2]);
+            _gl.uniform3f(shader.directionalColor, light.directional[0], light.directional[1], light.directional[2]);
+            _gl.uniform3f(shader.specularColor, light.specular[0], light.specular[1], light.specular[2]);
+            
+            var adjustedLightDir = vec3.create();      
+            vec3.normalize(adjustedLightDir, light.direction);
+            vec3.scale(adjustedLightDir, adjustedLightDir, -1);
+            _gl.uniform3fv(shader.lightDirection, adjustedLightDir);
+        }
     };
     
     

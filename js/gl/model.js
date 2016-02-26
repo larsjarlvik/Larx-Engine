@@ -100,7 +100,14 @@ Model.prototype.bindBuffers = function(mesh) {
         this.gl.bufferData(this.gl.ARRAY_BUFFER, new Float32Array(mesh.normals), this.gl.STATIC_DRAW);
         mesh.normalBuffer.itemSize = 3;
     }
-        
+    
+    if(mesh.depths) {
+        if(!mesh.waterDepthBuffer) { mesh.waterDepthBuffer = this.gl.createBuffer(); }
+        this.gl.bindBuffer(this.gl.ARRAY_BUFFER, mesh.waterDepthBuffer);
+        this.gl.bufferData(this.gl.ARRAY_BUFFER, new Float32Array(mesh.depths), this.gl.STATIC_DRAW);
+        mesh.waterDepthBuffer.itemSize = 1;
+    }
+    
     if(!mesh.indexBuffer) { mesh.indexBuffer = this.gl.createBuffer(); }
     this.gl.bindBuffer(this.gl.ELEMENT_ARRAY_BUFFER, mesh.indexBuffer);
     this.gl.bufferData(this.gl.ELEMENT_ARRAY_BUFFER, new Uint16Array(mesh.indices), this.gl.STATIC_DRAW);
@@ -181,7 +188,7 @@ Model.prototype.translate = function (mesh, pos) {
 };
 
 
-function rotate(mesh, angle, a, b) {
+function rot(mesh, angle, a, b) {
     for(var i = 0; i < mesh.vertices.length; i += 3) {
         var cosTheta = Math.cos(angle);
         var sinTheta = Math.sin(angle);  
@@ -201,9 +208,9 @@ function rotate(mesh, angle, a, b) {
 
 
 Model.prototype.rotate = function (mesh, angle) {
-    rotate(mesh, angle[0], 1, 2);
-    rotate(mesh, angle[1], 0, 2);
-    rotate(mesh, angle[2], 0, 1);
+    rot(mesh, angle[0], 1, 2);
+    rot(mesh, angle[1], 0, 2);
+    rot(mesh, angle[2], 0, 1);
 };
 
 
@@ -281,24 +288,32 @@ Model.prototype.calculateNormals = function (mesh) {
 Model.prototype.render = function (mesh, shaderProgram) {
     var sp = shaderProgram.get();
     
-    this.gl.uniform1f(sp.shininess, mesh.shininess); 
-    this.gl.uniform1f(sp.opacity, mesh.opacity); 
-    this.gl.uniform1f(sp.specularWeight, mesh.specularWeight);
+    if(sp.shininess) { this.gl.uniform1f(sp.shininess, mesh.shininess); }
+    if(sp.opacity) { this.gl.uniform1f(sp.opacity, mesh.opacity); }
+    if(sp.specularWeight) { this.gl.uniform1f(sp.specularWeight, mesh.specularWeight); }
     
     this.gl.bindBuffer(this.gl.ARRAY_BUFFER, mesh.vertexBuffer);
     this.gl.vertexAttribPointer(sp.vertexPositionAttribute, mesh.vertexBuffer.itemSize, this.gl.FLOAT, false, 0, 0);
 
-    if(mesh.colorBuffer) {
+    if(mesh.colorBuffer && sp.vertexColorAttribute) {
         this.gl.bindBuffer(this.gl.ARRAY_BUFFER, mesh.colorBuffer);
         this.gl.vertexAttribPointer(sp.vertexColorAttribute, mesh.colorBuffer.itemSize, this.gl.FLOAT, false, 0, 0);
-    }
+    } 
     
-    if(mesh.normalBuffer) {
+    if(mesh.normalBuffer && sp.vertexNormalAttribute) {
         this.gl.bindBuffer(this.gl.ARRAY_BUFFER, mesh.normalBuffer);
         this.gl.vertexAttribPointer(sp.vertexNormalAttribute, mesh.normalBuffer.itemSize, this.gl.FLOAT, false, 0, 0);
-    }
+    } 
+    
+    if(mesh.waterDepthBuffer && sp.vertexWaterDepthAttribute) {
+        this.gl.bindBuffer(this.gl.ARRAY_BUFFER, mesh.waterDepthBuffer);
+        this.gl.vertexAttribPointer(sp.vertexWaterDepthAttribute, mesh.waterDepthBuffer.itemSize, this.gl.FLOAT, false, 0, 0);
+    } 
     
     this.gl.bindBuffer(this.gl.ELEMENT_ARRAY_BUFFER, mesh.indexBuffer);
     this.gl.drawElements(this.gl.TRIANGLES, mesh.indexBuffer.numItems, this.gl.UNSIGNED_SHORT, 0);
+    
+    
+    
 };
     

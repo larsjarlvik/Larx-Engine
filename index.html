@@ -48,6 +48,8 @@
         var water = new Water();
         var mTrees, mCrates, mWater, mTerrain;
         
+        var waterColor = [0.359, 0.781, 0.800];
+        
         function init() {
             
             initShaders()
@@ -57,7 +59,7 @@
                 .then(initCrates)
                 .then(function() {
                     console.log('START')
-                    gameLoop.start(40, doLogic, render);
+                    gameLoop.start(60, doLogic, render);
                 })
                 .catch(function(err) {
                     console.error(err);
@@ -65,15 +67,23 @@
         }
         
         function initShaders() {
+            var deferred = Q.defer();
+            
             ctx = engine.get();
             
             defaultShader = new DefaultShader(ctx);
             waterShader = new WaterShader(ctx);
             
-            return Q.all([
+            Q.all([
                 defaultShader.load(ctx),
                 waterShader.load(ctx)
-            ]);            
+            ]).then(function() {
+                defaultShader.setWaterColor(waterColor);
+                waterShader.setWaterColor(waterColor);
+                deferred.resolve();
+            });
+            
+            return deferred.promise;         
         }
         
         function initTerrain() {
@@ -92,11 +102,10 @@
         }
         
         function initWater() {
-            var quality = 2;
+            var quality = 52;
             var deferred = Q.defer();
-            var tiles = Math.ceil((mTerrain.size - 2) / quality);
             
-            water.generate(ctx, waterShader, tiles, quality).then(function(w) {
+            water.generate(ctx, waterShader, mTerrain, quality).then(function(w) {
                 mWater = w;
                 deferred.resolve(true);
             });
@@ -146,7 +155,7 @@
         function initCrates() {
             var deferred = Q.defer();
             
-            ctx.model.load('bear').then(function(model) {
+            ctx.model.load('crate').then(function(model) {
                 var count = 0;
                 var bounds = (mTerrain.size / 2) - 2;
                 mCrates = [];
@@ -154,16 +163,16 @@
                 model.shininess = 5.0;
                 model.specularWeight = 0.6;
                     
-                while(count < 50) {
+                while(count < 200) {
                     var crate = ctx.model.clone(model);
                     var x = Math.random() * (mTerrain.size - 2) - ((mTerrain.size - 2) / 2);
                     var z = Math.random() * (mTerrain.size - 2) - ((mTerrain.size - 2) / 2);
                     var y = terrain.getElevationAtPoint(mTerrain, x, z);
                     
                     if(y >= 1.0 && y < 4.5 && x > -bounds && x < bounds && z > -bounds && z < bounds) {
-                        var angle = terrain.getAngle(mTerrain, x, z, 0.25, 0.5);
-                        angle[1] = Math.random() * Math.PI;
+                        var angle = terrain.getAngle(mTerrain, x, z, 0.3, 0.3);
                         
+                        ctx.model.rotate(crate, [0, Math.random() * Math.PI, 0]);
                         ctx.model.rotate(crate, angle);
                         ctx.model.translate(crate, [x, y, z]);
                         ctx.model.bindBuffers(crate); 
@@ -199,11 +208,7 @@
                 for(var i = 0; i < mCrates.length; i++) {
                     ctx.model.render(mCrates[i], defaultShader);
                 }
-                
-                waterShader.use();
-                ctx.matrix.setIdentity();
-                ctx.matrix.setUniforms(waterShader);
-                ctx.model.render(mWater.model, waterShader);
+                water.render(ctx, waterShader);
             });
         }
         

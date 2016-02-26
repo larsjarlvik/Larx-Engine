@@ -25,10 +25,13 @@ WaterShader.prototype.load = function(engine) {
         self.shader.vertexNormalAttribute = self.gl.getAttribLocation(self.shader, 'aVertexNormal');
         self.gl.enableVertexAttribArray(self.shader.vertexNormalAttribute);
         
+        self.shader.vertexWaterDepthAttribute = self.gl.getAttribLocation(self.shader, 'aWaterDepth');
+        self.gl.enableVertexAttribArray(self.shader.vertexWaterDepthAttribute);
+        
         self.shader.color = self.gl.getUniformLocation(self.shader, 'uColor');
         self.shader.opacity = self.gl.getUniformLocation(self.shader, 'uOpacity');
         
-        self.shaders.setDefaults(self.shader);
+        self.shaders.setDefaults(self.shader, true);
         
         deferred.resolve();
     }).catch(function (e) {
@@ -46,8 +49,7 @@ WaterShader.prototype.use = function() {
     this.gl.useProgram(this.shader);
 }; 
 
-WaterShader.prototype.setColor = function(color) {
+WaterShader.prototype.setWaterColor = function(color) {
     this.gl.useProgram(this.shader);
     this.gl.uniform3f(this.shader.color, color[0], color[1], color[2]);
 };
-

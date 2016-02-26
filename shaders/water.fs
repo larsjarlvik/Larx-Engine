@@ -13,8 +13,10 @@ uniform float uSpecularWeight;
 
 varying vec3 vTransformedNormal;
 varying vec3 vNormal;
+varying float vWaterDepth;
 
-void main(void) {
+
+void main(void) {    
     vec3 lightDirection = normalize(uLightingDirection - vPosition.xyz);
     vec3 normal = normalize(vTransformedNormal);
           
@@ -33,6 +35,8 @@ void main(void) {
         lightWeighting += specularColor * specularLightWeighting;
     }
     
+    float depth = -(vWaterDepth / 0.8);
+    depth = clamp(depth, 0.0, uOpacity);
     
-    gl_FragColor = vec4((uColor * lightWeighting), uOpacity);
+    gl_FragColor = vec4((uColor * lightWeighting), depth);
 }

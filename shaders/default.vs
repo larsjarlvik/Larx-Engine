@@ -11,6 +11,7 @@ varying vec3 vNormal;
 
 varying vec4 vPosition;
 varying vec3 vTransformedNormal;
+varying vec3 vVertexPosition;
 
 void main(void) {
     gl_Position = uPMatrix * uMVMatrix * vec4(aVertexPosition, 1.0);
@@ -19,4 +20,5 @@ void main(void) {
     vNormal = aVertexNormal;
     vTransformedNormal = uNMatrix * aVertexNormal;
     vPosition = uMVMatrix * vec4(aVertexPosition, 1.0);
+    vVertexPosition = aVertexPosition;
 }

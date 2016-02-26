@@ -18,11 +18,6 @@ DefaultShader.prototype.load = function(engine) {
         self.gl.linkProgram(self.shader);
         self.gl.useProgram(self.shader);
         
-        self.buffers = {
-            useColorBuffer: true,
-            useNormalBuffer: true
-        };
-        
         // START BUFFERS
         self.shader.vertexPositionAttribute = self.gl.getAttribLocation(self.shader, 'aVertexPosition');
         self.gl.enableVertexAttribArray(self.shader.vertexPositionAttribute);
@@ -32,11 +27,11 @@ DefaultShader.prototype.load = function(engine) {
         
         self.shader.vertexNormalAttribute = self.gl.getAttribLocation(self.shader, 'aVertexNormal');
         self.gl.enableVertexAttribArray(self.shader.vertexNormalAttribute);
-        
-        self.shader.opacity = self.gl.getUniformLocation(self.shader, 'uOpacity');
         // END BUFFERS
         
-        self.shaders.setDefaults(self.shader);
+        self.shader.opacity = self.gl.getUniformLocation(self.shader, 'uOpacity');
+        self.shader.waterColor = self.gl.getUniformLocation(self.shader, 'uWaterColor');
+        self.shaders.setDefaults(self.shader, true);
         
         deferred.resolve();
     }).catch(function (e) {
@@ -53,3 +48,8 @@ DefaultShader.prototype.get = function() {
 DefaultShader.prototype.use = function() {
     this.gl.useProgram(this.shader);
 }; 
+
+DefaultShader.prototype.setWaterColor = function(color) {
+    this.gl.useProgram(this.shader);
+    this.gl.uniform3f(this.shader.waterColor, color[0], color[1], color[2]);
+};

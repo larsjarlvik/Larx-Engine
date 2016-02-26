@@ -22,6 +22,8 @@ var GameLoop = (function () {
         }
 
         rc();
+        
+        if(catchUpFrameCount > 1) { console.log(catchUpFrameCount); }
 
         leftover = timeSinceLastDoLogic - (catchUpFrameCount * idealTimePerFrame);
         timeAtLastFrame = timeAtThisFrame;

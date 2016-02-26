@@ -49,6 +49,8 @@ var Engine = (function () {
             
             _gl.enable(_gl.CULL_FACE);
             _gl.cullFace(_gl.BACK);
+            
+            _gl.getExtension("WEBGL_depth_texture");
 
             _viewport.resize(function () {
                 var canvas = _viewport.getCanvas();

@@ -56,6 +56,10 @@ var Camera = (function () {
         _camera.zoom += zoomDelta;
     };
     
+    Camera.prototype.getZoom = function (zoomDelta) {
+        return _camera.zoom;
+    };
+    
     return Camera;
     
 })();

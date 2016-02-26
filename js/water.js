@@ -1,32 +1,23 @@
+/* global vec3 */
 
 var Water = (function () {
     
     function Water() { }
     
-    function getNormals(a, b, c) {
-        var v1 = vec3.create(), v2 = vec3.create();
-        
-        vec3.subtract(v1, c, b);
-        vec3.subtract(v2, a, b);
-        vec3.cross(v1, v1, v2);
-        
-        vec3.normalize(v1, v1);
-        
-        return v1;
-    }
-    
-    function appendToMesh(mesh, vec, normals) {
+    function appendToMesh(mesh, vec, depth) {
         mesh.vertices.push(vec[0]);
         mesh.vertices.push(vec[1]);
         mesh.vertices.push(vec[2]);
         
-        mesh.normals.push(normals[0]);
-        mesh.normals.push(normals[1]);
-        mesh.normals.push(normals[2]);
+        mesh.normals.push(0);
+        mesh.normals.push(1);
+        mesh.normals.push(0);
+        
+        mesh.depths.push(depth);
     }
 
-    function setIndices(mesh, x, z, size) {
-        var start = (z * (size) + x) * 6;
+    function setIndices(mesh, counter) {
+        var start = counter * 6;
 
         mesh.indices.push(start + 0);
         mesh.indices.push(start + 1);
@@ -37,23 +28,26 @@ var Water = (function () {
         mesh.indices.push(start + 5);
     }
 
-    function buildMesh (tiles, tileSize) {
+    function buildMesh (size, quality, terrain) {
         var rawMesh = {
             vertices: [],
             normals: [],
-            indices: []   
+            indices: [],
+            depths: []
         };
         
-        var size = tiles;
-        var ts = tileSize;
+        var ts = size / quality;
+        var t = new Terrain();
         
-        var vecs;
-        for(var z = 0; z < size; z++) {
-            var vz = (-(size / 2) * ts) + z * ts;
+        var counter = 0;
+        for(var z = 0; z < size; z += ts) {
+            var vz = z - (size / 2);
                 
-            for(var x = 0; x < size; x++) {
-                vecs = [];
-                var vx = (-(size / 2) * ts) + x * ts;
+            for(var x = 0; x < size; x += ts) {
+                var vecs = [],
+                    depths = [];
+                
+                var vx = x - (size / 2);
                 
                 if((x%2 === 0 && z%2 === 0) || (x%2 === 1 && z%2 === 1)) {
                     vecs.push(vec3.fromValues(vx + ts, 0, vz));
@@ -63,6 +57,15 @@ var Water = (function () {
                     vecs.push(vec3.fromValues(vx + ts, 0, vz));
                     vecs.push(vec3.fromValues(vx, 0, vz + ts));
                     vecs.push(vec3.fromValues(vx + ts, 0, vz + ts));
+                    
+                    
+                    depths.push(t.getElevationAtPoint(terrain, vx + ts, vz));
+                    depths.push(t.getElevationAtPoint(terrain, vx, vz));
+                    depths.push(t.getElevationAtPoint(terrain, vx, vz + ts));
+                    
+                    depths.push(t.getElevationAtPoint(terrain, vx + ts, vz));
+                    depths.push(t.getElevationAtPoint(terrain, vx, vz + ts));
+                    depths.push(t.getElevationAtPoint(terrain, vx + ts, vz + ts));
                 } else {
                     vecs.push(vec3.fromValues(vx + ts, 0, vz + ts));
                     vecs.push(vec3.fromValues(vx, 0, vz));
@@ -71,41 +74,55 @@ var Water = (function () {
                     vecs.push(vec3.fromValues(vx + ts, 0, vz));
                     vecs.push(vec3.fromValues(vx, 0, vz));
                     vecs.push(vec3.fromValues(vx + ts, 0, vz + ts));
+                    
+                    depths.push(t.getElevationAtPoint(terrain, vx + ts, vz + ts));
+                    depths.push(t.getElevationAtPoint(terrain, vx, vz));
+                    depths.push(t.getElevationAtPoint(terrain, vx, vz + ts));
+                    
+                    depths.push(t.getElevationAtPoint(terrain, vx + ts, vz));
+                    depths.push(t.getElevationAtPoint(terrain, vx, vz));
+                    depths.push(t.getElevationAtPoint(terrain, vx + ts, vz + ts));
                 }
                 
-                var n1 = getNormals(vecs[0], vecs[1], vecs[2]);
-                var n2 = getNormals(vecs[3], vecs[4], vecs[5]);
-                    
-                appendToMesh(rawMesh, vecs[0], n1);
-                appendToMesh(rawMesh, vecs[1], n1);
-                appendToMesh(rawMesh, vecs[2], n1);
+                if(depths[0] > 0 && depths[1] > 0 && depths[2] > 0 && 
+                   depths[3] > 0 && depths[4] > 0 && depths[5] > 0) {
+                       continue;
+                   }
+                   
+                console.log(depths[0], depths[1], depths[2], depths[3], depths[4], depths[5])
                 
-                appendToMesh(rawMesh, vecs[3], n2);
-                appendToMesh(rawMesh, vecs[4], n2);
-                appendToMesh(rawMesh, vecs[5], n2);
+                appendToMesh(rawMesh, vecs[0], depths[0]);
+                appendToMesh(rawMesh, vecs[1], depths[1]);
+                appendToMesh(rawMesh, vecs[2], depths[2]);
                 
-                setIndices(rawMesh, x, z, size);
+                appendToMesh(rawMesh, vecs[3], depths[3]);
+                appendToMesh(rawMesh, vecs[4], depths[4]);
+                appendToMesh(rawMesh, vecs[5], depths[5]);
+                
+                setIndices(rawMesh, counter, size);
+                counter++;
             } 
         }
         
+        console.log(rawMesh);
         return rawMesh;
     }
     
-    Water.prototype.generate = function (ctx, waterShader, tiles, tileSize) {
+    Water.prototype.generate = function (ctx, waterShader, terrain, quality) {
         var deferred = Q.defer();
-        var rawMesh = buildMesh(tiles, tileSize);
+        var size = terrain.size - 2;
+        var rawMesh = buildMesh(size, quality, terrain);
         
         ctx.model.build(rawMesh).then(function(model) {
+            model.depths = rawMesh.depths;
             model.shininess = 3.0;
-            model.opacity = 0.6;
+            model.opacity = 0.4;
             model.specularWeight = 1.2;
-            
             waterShader.use();
-            waterShader.setColor([0.359, 0.781, 0.800]);
             
             deferred.resolve({
                model: model,
-               size: tiles * tileSize,
+               size: size,
                waveHeight: 0.25
             });
         });
@@ -127,6 +144,14 @@ var Water = (function () {
         ctx.model.calculateNormals(water.model);
         ctx.model.bindBuffers(water.model);
     };
+    
+    
+    Water.prototype.render = function (ctx, waterShader) {
+        waterShader.use();
+        ctx.matrix.setIdentity();
+        ctx.matrix.setUniforms(waterShader);
+        ctx.model.render(mWater.model, waterShader);
+    }
     
     return Water;
     

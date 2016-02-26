@@ -228,19 +228,20 @@ var Terrain = (function () {
         return barryCentric(v1, v2, v3, pos);
     };
     
-    Terrain.prototype.getAngle = function(t, cx, cz, size) {
-        var rad = size / 2;
+    Terrain.prototype.getAngle = function(t, cx, cz, sx, sz) {
+        var rx = sx / 2;
+        var rz = sz / 2;
         
-        var x1 = this.getElevationAtPoint(t, cx + rad, cz);
-        var x2 = this.getElevationAtPoint(t, cx - rad, cz);
+        var x1 = this.getElevationAtPoint(t, cx + rx, cz);
+        var x2 = this.getElevationAtPoint(t, cx - rx, cz);
         
-        var z1 = this.getElevationAtPoint(t, cx, cz + rad);
-        var z2 = this.getElevationAtPoint(t, cx, cz - rad);
+        var z1 = this.getElevationAtPoint(t, cx, cz + rz);
+        var z2 = this.getElevationAtPoint(t, cx, cz - rz);
         
         var xA = 0, zA = 0;
         
-        zA = Math.atan2(x1 - x2, 0.3);
-        xA = Math.atan2(z2 - z1, 0.3);
+        zA = Math.atan2(x1 - x2, sx);
+        xA = Math.atan2(z2 - z1, sz);
         
         return [xA, 0, zA];
     }

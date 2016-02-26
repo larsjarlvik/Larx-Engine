@@ -9,10 +9,13 @@ uniform vec3 uAmbientColor;
 uniform vec3 uDirectionalColor;
 uniform vec3 uLightingDirection;
 uniform vec3 uSpecularColor;
+uniform vec3 uWaterColor;
+
 uniform float uShininess;
 uniform float uSpecularWeight;
     
 varying vec3 vColor;
+varying vec3 vVertexPosition;
 
 void main(void) {
     vec3 lightDirection = normalize(uLightingDirection - vPosition.xyz);
@@ -33,5 +36,19 @@ void main(void) {
         lightWeighting += specularColor * specularLightWeighting;
     }
     
-    gl_FragColor = vec4((vColor * lightWeighting), uOpacity);
+    vec3 terrainColor = (vColor * lightWeighting);
+    vec3 finalColor;
+    
+    if(vVertexPosition.y < 0.0) {
+        float waterMix = clamp(-vVertexPosition.y / 3.0, 0.0, 1.0);
+        float fadeMix = clamp(-(vVertexPosition.y + 3.0) / 1.0, 0.0, 1.0);
+        
+        finalColor = mix(terrainColor, uWaterColor, waterMix);
+        finalColor = mix(finalColor, vec3(0, 0, 0), fadeMix);
+        
+    } else {
+        finalColor = terrainColor;
+    }
+    
+    gl_FragColor = vec4(finalColor, uOpacity);
 }
