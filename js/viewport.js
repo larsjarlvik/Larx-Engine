@@ -1,11 +1,9 @@
 
-var Viewport = (function () {
-
-    var _viewport, _canvas;
-    var _pressedKeys = [];
-    var _resizeCallback;
+var Viewport = function (viewport) {
+    this.viewport = viewport;
+    this.canvas = viewport.getElementsByClassName('renderTarget')[0];
     
-    var _mouse = { 
+    this.mouse = { 
         buttons: {
             left: false, 
             middle: false, 
@@ -18,162 +16,153 @@ var Viewport = (function () {
         deltaY: 0,
         wheelDelta: 0
     };
+    
+    this.pressedKeys = [];
+    this.resizeCallback;
+    
+    this._init();
+};
 
-    function Viewport() {
-        _viewport = document.getElementById('viewport');
-        _canvas = _viewport.getElementsByClassName('renderTarget')[0];
-        
-        _viewport.oncontextmenu = function (event) {
-            event.preventDefault();
-        }
-        
-        setViewportSize.call();
-        
-        document.addEventListener('keydown', keyDown);
-        document.addEventListener('keyup', keyUp);
-        
-        document.addEventListener('mousedown', mouseDown);
-        document.addEventListener('mouseup', mouseUp);
-        document.addEventListener('mousemove', mouseMove);
-        document.addEventListener('mousewheel', mouseWheel);
-        document.addEventListener('DOMMouseScroll', mouseWheel);
-        
-        document.addEventListener('touchstart', touchStart);
-        document.addEventListener('touchend', touchEnd);
-        document.addEventListener('touchmove', touchMove);
-        
-        window.addEventListener('resize', setViewportSize);
-    }
-
-    function setViewportSize() {
-        var width = _viewport.offsetWidth;
-        var height = Math.round(width / 16 * 9);
-        
-        _canvas.setAttribute('width', width * window.devicePixelRatio);
-        _canvas.setAttribute('height', height * window.devicePixelRatio);
-        
-        _canvas.style.width  = width  + "px";
-        _canvas.style.height = height + "px";
-        
-        
-        if(_resizeCallback) { _resizeCallback(); }
-        
-    }
+Viewport.prototype._init = function() {
+    var self = this;
     
-    function keyDown(event) {
-        _pressedKeys[event.keyCode] = true;
-    }
-    
-    function keyUp(event) {
-        _pressedKeys[event.keyCode] = false;
-    }
-    
-    function mouseDown(event) {
-        switch(event.button) {
-            case 0: _mouse.buttons.left = true; break;
-            case 1: _mouse.buttons.middle = true; break;
-            case 2: _mouse.buttons.right = true; break;
-        }
-        
+    this.viewport.oncontextmenu = function (event) {
         event.preventDefault();
-        return false;
     }
     
-    function mouseUp(event) {
-        switch(event.button) {
-            case 0: _mouse.buttons.left = false; break;
-            case 1: _mouse.buttons.middle = false; break;
-            case 2: _mouse.buttons.right = false; break;
+    this.setViewportSize();
+    
+    document.addEventListener('keydown', function (e) { self._keyDown(e); });
+    document.addEventListener('keyup', function (e) { self._keyUp(e); });
+    
+    document.addEventListener('mousedown', function (e) { self._mouseDown(e); });
+    document.addEventListener('mouseup', function (e) { self._mouseUp(e); });
+    document.addEventListener('mousemove', function (e) { self._mouseMove(e); });
+    document.addEventListener('mousewheel', function (e) { self._mouseWheel(e); });
+    document.addEventListener('DOMMouseScroll', function (e) { self._mouseWheel(e); });
+    
+    document.addEventListener('touchstart', function (e) { self._touchStart(e) });
+    document.addEventListener('touchend', function (e) { self._touchEnd(e) });
+    document.addEventListener('touchmove', function (e) { self._touchMove(e) });
+    
+    window.addEventListener('resize',  function () { self.setViewportSize() });
+};
+   
+Viewport.prototype.setViewportSize = function() {
+    var width = this.viewport.offsetWidth;
+    var height = Math.round(width / 16 * 9);
+    
+    this.canvas.setAttribute('width', width * window.devicePixelRatio);
+    this.canvas.setAttribute('height', height * window.devicePixelRatio);
+    
+    this.canvas.style.width  = width  + "px";
+    this.canvas.style.height = height + "px";
+    
+    if(this.resizeCallback) { this.resizeCallback(); }
+};
+    
+Viewport.prototype._keyDown = function(event) {
+    this.pressedKeys[event.keyCode] = true;
+};
+    
+Viewport.prototype._keyUp = function(event) {
+    this.pressedKeys[event.keyCode] = false;
+};
+    
+Viewport.prototype._mouseDown = function(event) {
+    switch(event.button) {
+        case 0: this.mouse.buttons.left = true; break;
+        case 1: this.mouse.buttons.middle = true; break;
+        case 2: this.mouse.buttons.right = true; break;
+    }
+    
+    event.preventDefault();
+    return false;
+};
+    
+Viewport.prototype._mouseUp = function(event) {
+    switch(event.button) {
+        case 0: this.mouse.buttons.left = false; break;
+        case 1: this.mouse.buttons.middle = false; break;
+        case 2: this.mouse.buttons.right = false; break;
+    }
+    
+    event.preventDefault();
+    return false;
+};
+    
+Viewport.prototype._mouseMove = function(event) {
+    this.mouse.deltaX += event.screenX - this.mouse.x;
+    this.mouse.deltaY += event.screenY - this.mouse.y;
+    
+    this.mouse.x = event.screenX;
+    this.mouse.y = event.screenY;
+    
+    event.preventDefault();
+    return false;
+};
+    
+Viewport.prototype._mouseWheel = function(event) {
+    var delta = event.wheelDelta ? event.wheelDelta : -event.detail;
+    
+    if(delta > 0) {
+        this.mouse.wheelDelta ++;
+    } 
+    else if(delta < 0) {
+        this.mouse.wheelDelta --;
+    }
+};
+    
+Viewport.prototype._touchStart = function(event) {
+    this.mouse.x = event.touches[0].screenX;
+    this.mouse.y = event.touches[0].screenY;
+    this.mouse.touchDown = true;
+};
+    
+Viewport.prototype._touchEnd = function(event) {
+    this.mouse.touchDown = false;
+};
+    
+Viewport.prototype._touchMove = function(event) {
+    this.mouse.deltaX += event.touches[0].screenX - this.mouse.x;
+    this.mouse.deltaY += event.touches[0].screenY - this.mouse.y;
+    
+    this.mouse.x = event.touches[0].screenX;
+    this.mouse.y = event.touches[0].screenY;
+};
+    
+Viewport.prototype.resize = function (callback) {
+    this.resizeCallback = callback;
+};
+
+Viewport.prototype.keyDown = function (char) {
+    return this.pressedKeys[char.charCodeAt(0)] === true;
+};
+
+Viewport.prototype.resetDelta = function () {
+    this.mouse.deltaX = 0;
+    this.mouse.deltaY = 0;
+    this.mouse.wheelDelta = 0;
+};
+
+Viewport.prototype.toggleFullscreen = function () {
+    if (!document.fullscreenElement && 
+        !document.mozFullScreenElement && 
+        !document.webkitFullscreenElement) {  
+        if (document.documentElement.requestFullscreen) {
+            document.documentElement.requestFullscreen();
+        } else if (document.documentElement.mozRequestFullScreen) {
+            document.documentElement.mozRequestFullScreen();
+        } else if (document.documentElement.webkitRequestFullscreen) {
+            document.documentElement.webkitRequestFullscreen(Element.ALLOW_KEYBOARD_INPUT);
         }
-        
-        event.preventDefault();
-        return false;
-    }
-    
-    function mouseMove(event) {
-        _mouse.deltaX += event.screenX - _mouse.x;
-        _mouse.deltaY += event.screenY - _mouse.y;
-        
-        _mouse.x = event.screenX;
-        _mouse.y = event.screenY;
-        
-        event.preventDefault();
-        return false;
-    }
-    
-    function mouseWheel(event) {
-        var delta = event.wheelDelta ? event.wheelDelta : -event.detail;
-        
-        if(delta > 0) {
-            _mouse.wheelDelta ++;
-        } 
-        else if(delta < 0) {
-            _mouse.wheelDelta --;
+    } else {
+        if (document.exitFullscreen) {
+            document.exitFullscreen();
+        } else if (document.mozCancelFullScreen) {
+            document.mozCancelFullScreen();
+        } else if (document.webkitExitFullscreen) {
+            document.webkitExitFullscreen();
         }
     }
-    
-    function touchStart(event) {
-        _mouse.x = event.touches[0].screenX;
-        _mouse.y = event.touches[0].screenY;
-        _mouse.touchDown = true;
-    }
-    
-    function touchEnd(event) {
-        _mouse.touchDown = false;
-    }
-    
-    function touchMove(event) {
-        _mouse.deltaX += event.touches[0].screenX - _mouse.x;
-        _mouse.deltaY += event.touches[0].screenY - _mouse.y;
-        
-        _mouse.x = event.touches[0].screenX;
-        _mouse.y = event.touches[0].screenY;
-    }
-    
-    Viewport.prototype.resize = function (callback) {
-        _resizeCallback = callback;
-    };
-    
-
-    Viewport.prototype.getCanvas = function () {
-        return _canvas;
-    };
-    
-    Viewport.prototype.keyDown = function (char) {
-        return _pressedKeys[char.charCodeAt(0)] === true;
-    };
-    
-    Viewport.prototype.resetDelta = function () {
-        _mouse.deltaX = 0;
-        _mouse.deltaY = 0;
-        _mouse.wheelDelta = 0;
-    };
-    
-    Viewport.prototype.toggleFullscreen = function () {
-        if (!document.fullscreenElement && 
-            !document.mozFullScreenElement && 
-            !document.webkitFullscreenElement) {  
-            if (document.documentElement.requestFullscreen) {
-                document.documentElement.requestFullscreen();
-            } else if (document.documentElement.mozRequestFullScreen) {
-                document.documentElement.mozRequestFullScreen();
-            } else if (document.documentElement.webkitRequestFullscreen) {
-                document.documentElement.webkitRequestFullscreen(Element.ALLOW_KEYBOARD_INPUT);
-            }
-        } else {
-            if (document.exitFullscreen) {
-                document.exitFullscreen();
-            } else if (document.mozCancelFullScreen) {
-                document.mozCancelFullScreen();
-            } else if (document.webkitExitFullscreen) {
-                document.webkitExitFullscreen();
-            }
-        }
-    };
-    
-    Viewport.prototype.mouse = _mouse;
-
-
-    return Viewport;
-})();
-
+};

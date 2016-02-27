@@ -1,155 +1,135 @@
 /* global vec3 */
 
-var Water = (function () {
+var Water = function (ctx) {
+    this.ctx = ctx;
+    this.model;
+    this.size = undefined;
+    this.waveHeight = 0.25;
+};
     
-    function Water() { }
     
-    function appendToMesh(mesh, vec, depth) {
-        mesh.vertices.push(vec[0]);
-        mesh.vertices.push(vec[1]);
-        mesh.vertices.push(vec[2]);
-        
-        mesh.normals.push(0);
-        mesh.normals.push(1);
-        mesh.normals.push(0);
-        
-        mesh.depths.push(depth);
-    }
+Water.prototype._appendToModel = function(vec, depth) {
+    this.model.vertices.push(vec[0]);
+    this.model.vertices.push(vec[1]);
+    this.model.vertices.push(vec[2]);
+    
+    this.model.normals.push(0);
+    this.model.normals.push(1);
+    this.model.normals.push(0);
+    
+    this.model.depths.push(depth);
+};
 
-    function setIndices(mesh, counter) {
-        var start = counter * 6;
+Water.prototype._setIndices = function(counter) {
+    var start = counter * 6;
 
-        mesh.indices.push(start + 0);
-        mesh.indices.push(start + 1);
-        mesh.indices.push(start + 2);
+    this.model.indices.push(start + 0);
+    this.model.indices.push(start + 1);
+    this.model.indices.push(start + 2);
 
-        mesh.indices.push(start + 3);
-        mesh.indices.push(start + 4);
-        mesh.indices.push(start + 5);
-    }
+    this.model.indices.push(start + 3);
+    this.model.indices.push(start + 4);
+    this.model.indices.push(start + 5);
+};
 
-    function buildMesh (size, quality, terrain) {
-        var rawMesh = {
-            vertices: [],
-            normals: [],
-            indices: [],
-            depths: []
-        };
-        
-        var ts = size / quality;
-        var t = new Terrain();
-        
-        var counter = 0;
-        for(var z = 0; z < size - 0.001; z += ts) {
-            var vz = z - (size / 2);
+Water.prototype._build = function(terrain) {
+    var ts = this.size / this.quality;
+    
+    var counter = 0;
+    for(var z = 0; z < this.size - 0.001; z += ts) {
+        var vz = z - (this.size / 2);
+            
+        for(var x = 0; x < this.size - 0.001; x += ts) {
+            var vecs = [],
+                depths = [];
+            
+            var vx = x - (this.size / 2);
+            
+            if((x%2 === 0 && z%2 === 0) || (x%2 === 1 && z%2 === 1)) {
+                vecs.push(vec3.fromValues(vx + ts, 0, vz));
+                vecs.push(vec3.fromValues(vx, 0, vz));
+                vecs.push(vec3.fromValues(vx, 0, vz + ts));
                 
-            for(var x = 0; x < size - 0.001; x += ts) {
-                var vecs = [],
-                    depths = [];
+                vecs.push(vec3.fromValues(vx + ts, 0, vz));
+                vecs.push(vec3.fromValues(vx, 0, vz + ts));
+                vecs.push(vec3.fromValues(vx + ts, 0, vz + ts));
                 
-                var vx = x - (size / 2);
+                depths.push(terrain.getElevationAtPoint(vx + ts, vz));
+                depths.push(terrain.getElevationAtPoint(vx, vz));
+                depths.push(terrain.getElevationAtPoint(vx, vz + ts));
                 
-                if((x%2 === 0 && z%2 === 0) || (x%2 === 1 && z%2 === 1)) {
-                    vecs.push(vec3.fromValues(vx + ts, 0, vz));
-                    vecs.push(vec3.fromValues(vx, 0, vz));
-                    vecs.push(vec3.fromValues(vx, 0, vz + ts));
-                    
-                    vecs.push(vec3.fromValues(vx + ts, 0, vz));
-                    vecs.push(vec3.fromValues(vx, 0, vz + ts));
-                    vecs.push(vec3.fromValues(vx + ts, 0, vz + ts));
-                    
-                    
-                    depths.push(t.getElevationAtPoint(terrain, vx + ts, vz));
-                    depths.push(t.getElevationAtPoint(terrain, vx, vz));
-                    depths.push(t.getElevationAtPoint(terrain, vx, vz + ts));
-                    
-                    depths.push(t.getElevationAtPoint(terrain, vx + ts, vz));
-                    depths.push(t.getElevationAtPoint(terrain, vx, vz + ts));
-                    depths.push(t.getElevationAtPoint(terrain, vx + ts, vz + ts));
-                } else {
-                    vecs.push(vec3.fromValues(vx + ts, 0, vz + ts));
-                    vecs.push(vec3.fromValues(vx, 0, vz));
-                    vecs.push(vec3.fromValues(vx, 0, vz + ts));
-                    
-                    vecs.push(vec3.fromValues(vx + ts, 0, vz));
-                    vecs.push(vec3.fromValues(vx, 0, vz));
-                    vecs.push(vec3.fromValues(vx + ts, 0, vz + ts));
-                    
-                    depths.push(t.getElevationAtPoint(terrain, vx + ts, vz + ts));
-                    depths.push(t.getElevationAtPoint(terrain, vx, vz));
-                    depths.push(t.getElevationAtPoint(terrain, vx, vz + ts));
-                    
-                    depths.push(t.getElevationAtPoint(terrain, vx + ts, vz));
-                    depths.push(t.getElevationAtPoint(terrain, vx, vz));
-                    depths.push(t.getElevationAtPoint(terrain, vx + ts, vz + ts));
+                depths.push(terrain.getElevationAtPoint(vx + ts, vz));
+                depths.push(terrain.getElevationAtPoint(vx, vz + ts));
+                depths.push(terrain.getElevationAtPoint(vx + ts, vz + ts));
+            } else {
+                vecs.push(vec3.fromValues(vx + ts, 0, vz + ts));
+                vecs.push(vec3.fromValues(vx, 0, vz));
+                vecs.push(vec3.fromValues(vx, 0, vz + ts));
+                
+                vecs.push(vec3.fromValues(vx + ts, 0, vz));
+                vecs.push(vec3.fromValues(vx, 0, vz));
+                vecs.push(vec3.fromValues(vx + ts, 0, vz + ts));
+                
+                depths.push(terrain.getElevationAtPoint(vx + ts, vz + ts));
+                depths.push(terrain.getElevationAtPoint(vx, vz));
+                depths.push(terrain.getElevationAtPoint(vx, vz + ts));
+                
+                depths.push(terrain.getElevationAtPoint(vx + ts, vz));
+                depths.push(terrain.getElevationAtPoint(vx, vz));
+                depths.push(terrain.getElevationAtPoint(vx + ts, vz + ts));
+            }
+            
+            if(depths[0] > 0 && depths[1] > 0 && depths[2] > 0 && 
+                depths[3] > 0 && depths[4] > 0 && depths[5] > 0) {
+                    continue;
                 }
                 
-                if(depths[0] > 0 && depths[1] > 0 && depths[2] > 0 && 
-                   depths[3] > 0 && depths[4] > 0 && depths[5] > 0) {
-                       continue;
-                   }
-                   
-                appendToMesh(rawMesh, vecs[0], depths[0]);
-                appendToMesh(rawMesh, vecs[1], depths[1]);
-                appendToMesh(rawMesh, vecs[2], depths[2]);
-                
-                appendToMesh(rawMesh, vecs[3], depths[3]);
-                appendToMesh(rawMesh, vecs[4], depths[4]);
-                appendToMesh(rawMesh, vecs[5], depths[5]);
-                
-                setIndices(rawMesh, counter, size);
-                counter++;
-            } 
-        }
-        
-        return rawMesh;
+            this._appendToModel(vecs[0], depths[0]);
+            this._appendToModel(vecs[1], depths[1]);
+            this._appendToModel(vecs[2], depths[2]);
+            
+            this._appendToModel(vecs[3], depths[3]);
+            this._appendToModel(vecs[4], depths[4]);
+            this._appendToModel(vecs[5], depths[5]);
+            
+            this._setIndices(counter);
+            counter++;
+        } 
     }
-    
-    Water.prototype.generate = function (ctx, waterShader, terrain, quality) {
-        var deferred = Q.defer();
-        var size = terrain.size - 2;
-        var rawMesh = buildMesh(size, quality, terrain);
-        
-        ctx.model.build(rawMesh).then(function(model) {
-            model.depths = rawMesh.depths;
-            model.shininess = 3.0;
-            model.opacity = 0.55;
-            model.specularWeight = 1.2;
-            waterShader.use();
-            
-            deferred.resolve({
-               model: model,
-               size: size,
-               waveHeight: 0.25
-            });
-        });
-        
-        return deferred.promise;
-    };
-    
-    Water.prototype.update = function (ctx, water, time) {
-        var tx = time * 0.001;
-        
-        for(var i = 0; i < water.model.vertices.length; i += 3) {
-            var x = water.model.vertices[i];
-            var z = water.model.vertices[i + 2];
-            
-            water.model.vertices[i + 1] =
-                Math.sin(tx + x * 0.4) * Math.cos(tx + z * 0.6) * water.waveHeight;
-        }
+};
 
-        ctx.model.calculateNormals(water.model);
-        ctx.model.bindBuffers(water.model);
-    };
+Water.prototype.generate = function (terrain, quality) {
+    this.quality = quality;
+    this.size = terrain.size - 2;
     
+    this.model = new Model(this.ctx, 'water');
+    this.model.depths = [];
+    this.model.shininess = 3.0;
+    this.model.opacity = 0.55;
+    this.model.specularWeight = 1.2;
+    this._build(terrain);
     
-    Water.prototype.render = function (ctx, waterShader) {
-        waterShader.use();
-        ctx.matrix.setIdentity();
-        ctx.matrix.setUniforms(waterShader);
-        ctx.model.render(mWater.model, waterShader);
+    return Q(true);
+};
+    
+Water.prototype.update = function (time) {
+    var tx = time * 0.001;
+    
+    for(var i = 0; i < this.model.vertices.length; i += 3) {
+        var x = this.model.vertices[i];
+        var z = this.model.vertices[i + 2];
+        
+        this.model.vertices[i + 1] =
+            Math.sin(tx + x * 0.4) * Math.cos(tx + z * 0.6) * this.waveHeight;
     }
-    
-    return Water;
-    
-})();
+
+    this.model.calculateNormals();
+    this.model.bindBuffers();
+};
+
+
+Water.prototype.render = function (shader) {
+    this.ctx.matrix.setIdentity();
+    this.ctx.matrix.setUniforms(shader);
+    this.model.render(shader);
+};

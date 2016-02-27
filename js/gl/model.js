@@ -1,10 +1,21 @@
 
 
-var Model = function (gl) {
-    this.gl = gl;
+var Model = function (ctx, name) {
+    this.ctx = ctx;
+    this.name = name;
+    
+    this.vertices = [];
+    this.colors = [];
+    this.normals = [];
+    this.indices = [];
+    this.shininess = 0;
+    this.opacity = 1.0;
+    this.specularWeight = 1.0;
+    this.faceCount = 0;
+    this.vertexCount = 0;
 };
 
-Model.prototype.download = function(name) {
+Model.prototype._download = function() {
     var deferred = Q.defer();
     var http = new XMLHttpRequest();
     
@@ -14,231 +25,186 @@ Model.prototype.download = function(name) {
         }
     };
     
-    http.open('GET', '/models/' + name + '.ply?rnd=' + Math.random() * 1000);
+    http.open('GET', '/models/' + this.name + '.ply?rnd=' + Math.random() * 1000);
     http.send();
     
     return deferred.promise;
 } 
 
-Model.prototype.parse = function(data) {
+Model.prototype._parse = function(data) {
     var lines = data.split('\n');
-    var mesh = {};
-    var bodyStart = this.parseHeader(mesh, lines);
+    var bodyStart = this._parseHeader(lines);
     
-    this.parseVertices(mesh, lines, bodyStart);
-    this.parseFaces(mesh, lines, bodyStart + mesh.vertexCount);
-    
-    return Q(mesh);
+    this._parseVertices(lines, bodyStart);
+    this._parseFaces(lines, bodyStart + this.vertexCount);
 };
     
-Model.prototype.parseHeader = function(mesh, lines) {
+Model.prototype._parseHeader = function(lines) {
     for(var i = 0; i < lines.length; i ++) {
         var line = lines[i].trim();
         
-        if(line.indexOf('element vertex') == 0) { mesh.vertexCount = this.parseHeaderValue(line); }
-        if(line.indexOf('element face') == 0) { mesh.faceCount = this.parseHeaderValue(line); }
+        if(line.indexOf('element vertex') == 0) { this.vertexCount = this._parseHeaderValue(line); }
+        if(line.indexOf('element face') == 0) { this.faceCount = this._parseHeaderValue(line); }
         
         if(line === 'end_header') { return i + 1; }
     }
 }; 
 
-Model.prototype.parseVertices = function(mesh, lines, start) {
-    mesh.vertices = [];
-    mesh.colors = [];
-    mesh.normals = [];
+Model.prototype._parseVertices = function(lines, start) {
+    this.vertices = [];
+    this.colors = [];
+    this.normals = [];
 
-    for(var i = start; i < start + mesh.vertexCount; i ++) {
+    for(var i = start; i < start + this.vertexCount; i ++) {
         var values = lines[i].trim().split(' ');
         
-        mesh.vertices.push(parseFloat(values[0]));
-        mesh.vertices.push(parseFloat(values[1]));
-        mesh.vertices.push(parseFloat(values[2]));
+        this.vertices.push(parseFloat(values[0]));
+        this.vertices.push(parseFloat(values[1]));
+        this.vertices.push(parseFloat(values[2]));
         
-        mesh.normals.push(parseFloat(values[3]));
-        mesh.normals.push(parseFloat(values[4]));
-        mesh.normals.push(parseFloat(values[5]));
+        this.normals.push(parseFloat(values[3]));
+        this.normals.push(parseFloat(values[4]));
+        this.normals.push(parseFloat(values[5]));
         
-        mesh.colors.push(parseInt(values[6]) / 256);
-        mesh.colors.push(parseInt(values[7]) / 256);
-        mesh.colors.push(parseInt(values[8]) / 256);
+        this.colors.push(parseInt(values[6]) / 256);
+        this.colors.push(parseInt(values[7]) / 256);
+        this.colors.push(parseInt(values[8]) / 256);
     }
 };    
 
-Model.prototype.parseFaces = function(mesh, lines, start) {
-    mesh.indices = [];
+Model.prototype._parseFaces = function(lines, start) {
+    this.indices = [];
 
     for(var i = start; i < lines.length; i ++) {
         var values = lines[i].trim().split(' ');
         if(values.length !== 4) { continue; }
         
-        mesh.indices.push(parseInt(values[1]));
-        mesh.indices.push(parseInt(values[2]));
-        mesh.indices.push(parseInt(values[3]));
+        this.indices.push(parseInt(values[1]));
+        this.indices.push(parseInt(values[2]));
+        this.indices.push(parseInt(values[3]));
     }
 };
 
-Model.prototype.parseHeaderValue = function(line) {
+Model.prototype._parseHeaderValue = function(line) {
     var n = line.split(' ');
     return parseInt(n[n.length - 1]);
 };
 
-Model.prototype.bindBuffers = function(mesh) {
+Model.prototype.bindBuffers = function() {
+    var gl = this.ctx.gl;
     
-    if(!mesh.vertexBuffer) { mesh.vertexBuffer = this.gl.createBuffer(); }
-    this.gl.bindBuffer(this.gl.ARRAY_BUFFER, mesh.vertexBuffer);
-    this.gl.bufferData(this.gl.ARRAY_BUFFER, new Float32Array(mesh.vertices), this.gl.STATIC_DRAW);
-    mesh.vertexBuffer.itemSize = 3;
+    if(!this.vertexBuffer) { this.vertexBuffer = gl.createBuffer(); }
+    gl.bindBuffer(gl.ARRAY_BUFFER, this.vertexBuffer);
+    gl.bufferData(gl.ARRAY_BUFFER, new Float32Array(this.vertices), gl.STATIC_DRAW);
+    this.vertexBuffer.itemSize = 3;
     
-    if(mesh.colors) {
-        if(!mesh.colorBuffer) { mesh.colorBuffer = this.gl.createBuffer(); }
-        this.gl.bindBuffer(this.gl.ARRAY_BUFFER, mesh.colorBuffer);
-        this.gl.bufferData(this.gl.ARRAY_BUFFER, new Float32Array(mesh.colors), this.gl.STATIC_DRAW);
-        mesh.colorBuffer.itemSize = 3;
+    if(this.colors) {
+        if(!this.colorBuffer) { this.colorBuffer = gl.createBuffer(); }
+        gl.bindBuffer(gl.ARRAY_BUFFER, this.colorBuffer);
+        gl.bufferData(gl.ARRAY_BUFFER, new Float32Array(this.colors), gl.STATIC_DRAW);
+        this.colorBuffer.itemSize = 3;
     }
     
-    if(mesh.normals) {
-        if(!mesh.normalBuffer) { mesh.normalBuffer = this.gl.createBuffer(); }
-        this.gl.bindBuffer(this.gl.ARRAY_BUFFER, mesh.normalBuffer);
-        this.gl.bufferData(this.gl.ARRAY_BUFFER, new Float32Array(mesh.normals), this.gl.STATIC_DRAW);
-        mesh.normalBuffer.itemSize = 3;
+    if(this.normals) {
+        if(!this.normalBuffer) { this.normalBuffer = gl.createBuffer(); }
+        gl.bindBuffer(gl.ARRAY_BUFFER, this.normalBuffer);
+        gl.bufferData(gl.ARRAY_BUFFER, new Float32Array(this.normals), gl.STATIC_DRAW);
+        this.normalBuffer.itemSize = 3;
     }
     
-    if(mesh.depths) {
-        if(!mesh.waterDepthBuffer) { mesh.waterDepthBuffer = this.gl.createBuffer(); }
-        this.gl.bindBuffer(this.gl.ARRAY_BUFFER, mesh.waterDepthBuffer);
-        this.gl.bufferData(this.gl.ARRAY_BUFFER, new Float32Array(mesh.depths), this.gl.STATIC_DRAW);
-        mesh.waterDepthBuffer.itemSize = 1;
+    if(this.depths) {
+        if(!this.waterDepthBuffer) { this.waterDepthBuffer = gl.createBuffer(); }
+        gl.bindBuffer(gl.ARRAY_BUFFER, this.waterDepthBuffer);
+        gl.bufferData(gl.ARRAY_BUFFER, new Float32Array(this.depths), gl.STATIC_DRAW);
+        this.waterDepthBuffer.itemSize = 1;
     }
     
-    if(!mesh.indexBuffer) { mesh.indexBuffer = this.gl.createBuffer(); }
-    this.gl.bindBuffer(this.gl.ELEMENT_ARRAY_BUFFER, mesh.indexBuffer);
-    this.gl.bufferData(this.gl.ELEMENT_ARRAY_BUFFER, new Uint16Array(mesh.indices), this.gl.STATIC_DRAW);
-    mesh.indexBuffer.numItems = mesh.indices.length;
-    
-    return Q(mesh);
+    if(!this.indexBuffer) { this.indexBuffer = gl.createBuffer(); }
+    gl.bindBuffer(gl.ELEMENT_ARRAY_BUFFER, this.indexBuffer);
+    gl.bufferData(gl.ELEMENT_ARRAY_BUFFER, new Uint16Array(this.indices), gl.STATIC_DRAW);
+    this.indexBuffer.numItems = this.indices.length;
 };
     
-Model.prototype.load = function (name) {
+Model.prototype.load = function () {
     var deferred = Q.defer();
     var self = this;
     
-    this.download(name)
-        .then(this.parse.bind(this))
-        .then(function(rawData) {
-            return self.bindBuffers(rawData);
-        })
-        .then(function (mesh) {
-            mesh.shininess = 0;
-            mesh.opacity = 1.0;
-            
-            console.log('RESOLVE: ' + name);
-            deferred.resolve(mesh); 
-        })
-        .catch(function(error) {
-            console.error(error); 
-            deferred.reject();
-        })
-        .done();
-    
+    self._download(self.name).then(function (data) {
+        self._parse(data);
+        self.bindBuffers();
+        deferred.resolve(); 
+    })
+    .catch(function(e) {
+        console.error(e); 
+        deferred.reject();
+    });
+
     return deferred.promise;
 };
 
-Model.prototype.build = function (rawData) {
-    var deferred = Q.defer();
-    
-    this.bindBuffers(rawData)
-        .then(function (mesh) {
-            mesh.shininess = 0;
-            mesh.opacity = 1.0;
-            mesh.specularWeight = 1.0;
-            
-            console.log('RESOLVE: raw');
-            deferred.resolve(mesh); 
-        })
-        .catch(function(error) {
-            console.error(error); 
-            deferred.reject();
-        })
-        .done();
-    
-    return deferred.promise;
-};
-
-Model.prototype.create = function () {
-    return {
-        vertices: [],
-        colors: [],
-        normals: [],
-        indices: [],
-        shininess: 0,
-        opacity: 1.0,
-        specularWeight: 1.0,
-        faceCount: 0,
-        vertexCount: 0
-    };
-};
-
-
-Model.prototype.translate = function (mesh, pos) {    
-    for(var i = 0; i < mesh.vertices.length; i += 3) {
-        mesh.vertices[i] += pos[0];
-        mesh.vertices[i + 1] += pos[1];
-        mesh.vertices[i + 2] += pos[2];
+Model.prototype.translate = function (pos) {    
+    for(var i = 0; i < this.vertices.length; i += 3) {
+        this.vertices[i] += pos[0];
+        this.vertices[i + 1] += pos[1];
+        this.vertices[i + 2] += pos[2];
     }
 };
 
-
-function rot(mesh, angle, a, b) {
-    for(var i = 0; i < mesh.vertices.length; i += 3) {
+Model.prototype._doRotate = function(angle, a, b) {
+    for(var i = 0; i < this.vertices.length; i += 3) {
         var cosTheta = Math.cos(angle);
         var sinTheta = Math.sin(angle);  
         
-        var av = cosTheta * (mesh.vertices[i + a]) - sinTheta*(mesh.vertices[i + b]);
-        var bv = sinTheta * (mesh.vertices[i + a]) + cosTheta*(mesh.vertices[i + b]);
+        var av = cosTheta * (this.vertices[i + a]) - sinTheta*(this.vertices[i + b]);
+        var bv = sinTheta * (this.vertices[i + a]) + cosTheta*(this.vertices[i + b]);
         
-        var an = cosTheta * (mesh.normals[i + a]) - sinTheta*(mesh.normals[i + b]);
-        var bn = sinTheta * (mesh.normals[i + a]) + cosTheta*(mesh.normals[i + b]);
+        var an = cosTheta * (this.normals[i + a]) - sinTheta*(this.normals[i + b]);
+        var bn = sinTheta * (this.normals[i + a]) + cosTheta*(this.normals[i + b]);
         
-        mesh.vertices[i + a] = av;
-        mesh.vertices[i + b] = bv;
-        mesh.normals[i + a] = an;
-        mesh.normals[i + b] = bn;
+        this.vertices[i + a] = av;
+        this.vertices[i + b] = bv;
+        this.normals[i + a] = an;
+        this.normals[i + b] = bn;
     }
 }
 
-
-Model.prototype.rotate = function (mesh, angle) {
-    rot(mesh, angle[0], 1, 2);
-    rot(mesh, angle[1], 0, 2);
-    rot(mesh, angle[2], 0, 1);
+Model.prototype.rotate = function (angle) {
+    this._doRotate(angle[0], 1, 2);
+    this._doRotate(angle[1], 0, 2);
+    this._doRotate(angle[2], 0, 1);
 };
 
-
-Model.prototype.clone = function (sourceMesh) {
-    var target = JSON.parse(JSON.stringify(sourceMesh));
-    target.vertexBuffer = undefined;
-    target.colorBuffer = undefined;
-    target.normalBuffer = undefined;
-    target.indexBuffer = undefined;
+Model.prototype.clone = function () {
+    var target = new Model(this.ctx, this.name);
+    
+    Array.prototype.push.apply(target.colors, this.colors);
+    Array.prototype.push.apply(target.normals, this.normals);
+    Array.prototype.push.apply(target.vertices, this.vertices);
+    Array.prototype.push.apply(target.indices, this.indices);
+    
+    target.shininess = this.shininess;
+    target.opacity = this.opacity;
+    target.specularWeight = this.specularWeight;
+    target.faceCount = this.faceCount;
+    target.vertexCount = this.vertexCount;
     
     return target;
 };
 
-Model.prototype.push = function(targetMesh, sourceMesh) {
-    for(var i = 0; i < sourceMesh.indices.length; i++) {
-        targetMesh.indices.push(sourceMesh.indices[i] + targetMesh.vertexCount );
+Model.prototype.push = function(source) {
+    for(var i = 0; i < source.indices.length; i++) {
+        this.indices.push(source.indices[i] + this.vertexCount );
     }
     
-    Array.prototype.push.apply(targetMesh.colors, sourceMesh.colors);
-    Array.prototype.push.apply(targetMesh.normals, sourceMesh.normals);
-    Array.prototype.push.apply(targetMesh.vertices, sourceMesh.vertices);
+    Array.prototype.push.apply(this.colors, source.colors);
+    Array.prototype.push.apply(this.normals, source.normals);
+    Array.prototype.push.apply(this.vertices, source.vertices);
     
-    
-    targetMesh.faceCount += sourceMesh.faceCount;
-    targetMesh.vertexCount += sourceMesh.vertexCount;
-}
+    this.faceCount += source.faceCount;
+    this.vertexCount += source.vertexCount;
+};
 
-function calcNormal(a, b, c, out) {
+Model.prototype._calcNormal = function(a, b, c, out) {
     var x,  y,  z,
         x1, y1, z1,
         x2, y2, z2,
@@ -260,60 +226,58 @@ function calcNormal(a, b, c, out) {
     out[0] = x * len;
     out[1] = y * len;
     out[2] = z * len;
-}
+};
 
-Model.prototype.calculateNormals = function (mesh) {
-    mesh.normals = Array(mesh.vertices.length);
+Model.prototype.calculateNormals = function () {
+    this.normals = Array(this.vertices.length);
     
     var v1 = [];
     
-    for (var i = 0; i < mesh.vertices.length; i += 9) {
-        var a = [mesh.vertices[i], mesh.vertices[i + 1], mesh.vertices[i + 2]];
-        var b = [mesh.vertices[i + 3], mesh.vertices[i + 4], mesh.vertices[i + 5]];
-        var c = [mesh.vertices[i + 6], mesh.vertices[i + 7], mesh.vertices[i + 8]];
+    for (var i = 0; i < this.vertices.length; i += 9) {
+        var a = [this.vertices[i], this.vertices[i + 1], this.vertices[i + 2]];
+        var b = [this.vertices[i + 3], this.vertices[i + 4], this.vertices[i + 5]];
+        var c = [this.vertices[i + 6], this.vertices[i + 7], this.vertices[i + 8]];
         
-        calcNormal(a, b, c, v1);
-        mesh.normals[i] = v1[0];
-        mesh.normals[i + 1] = v1[1];
-        mesh.normals[i + 2] = v1[2];
-        mesh.normals[i + 3] = v1[0];
-        mesh.normals[i + 4] = v1[1];
-        mesh.normals[i + 5] = v1[2];
-        mesh.normals[i + 6] = v1[0];
-        mesh.normals[i + 7] = v1[1];
-        mesh.normals[i + 8] = v1[2];
+        this._calcNormal(a, b, c, v1);
+        this.normals[i] = v1[0];
+        this.normals[i + 1] = v1[1];
+        this.normals[i + 2] = v1[2];
+        this.normals[i + 3] = v1[0];
+        this.normals[i + 4] = v1[1];
+        this.normals[i + 5] = v1[2];
+        this.normals[i + 6] = v1[0];
+        this.normals[i + 7] = v1[1];
+        this.normals[i + 8] = v1[2];
     }
 };
 
-Model.prototype.render = function (mesh, shaderProgram) {
+Model.prototype.render = function (shaderProgram) {
     var sp = shaderProgram.get();
+    var gl = this.ctx.gl;
     
-    if(sp.shininess) { this.gl.uniform1f(sp.shininess, mesh.shininess); }
-    if(sp.opacity) { this.gl.uniform1f(sp.opacity, mesh.opacity); }
-    if(sp.specularWeight) { this.gl.uniform1f(sp.specularWeight, mesh.specularWeight); }
+    if(sp.shininess) { gl.uniform1f(sp.shininess, this.shininess); }
+    if(sp.opacity) { gl.uniform1f(sp.opacity, this.opacity); }
+    if(sp.specularWeight) { gl.uniform1f(sp.specularWeight, this.specularWeight); }
     
-    this.gl.bindBuffer(this.gl.ARRAY_BUFFER, mesh.vertexBuffer);
-    this.gl.vertexAttribPointer(sp.vertexPositionAttribute, mesh.vertexBuffer.itemSize, this.gl.FLOAT, false, 0, 0);
+    gl.bindBuffer(gl.ARRAY_BUFFER, this.vertexBuffer);
+    gl.vertexAttribPointer(sp.vertexPositionAttribute, this.vertexBuffer.itemSize, gl.FLOAT, false, 0, 0);
 
-    if(mesh.colorBuffer && sp.vertexColorAttribute) {
-        this.gl.bindBuffer(this.gl.ARRAY_BUFFER, mesh.colorBuffer);
-        this.gl.vertexAttribPointer(sp.vertexColorAttribute, mesh.colorBuffer.itemSize, this.gl.FLOAT, false, 0, 0);
+    if(this.colorBuffer && sp.vertexColorAttribute) {
+        gl.bindBuffer(gl.ARRAY_BUFFER, this.colorBuffer);
+        gl.vertexAttribPointer(sp.vertexColorAttribute, this.colorBuffer.itemSize, gl.FLOAT, false, 0, 0);
     } 
     
-    if(mesh.normalBuffer && sp.vertexNormalAttribute) {
-        this.gl.bindBuffer(this.gl.ARRAY_BUFFER, mesh.normalBuffer);
-        this.gl.vertexAttribPointer(sp.vertexNormalAttribute, mesh.normalBuffer.itemSize, this.gl.FLOAT, false, 0, 0);
+    if(this.normalBuffer && sp.vertexNormalAttribute) {
+        gl.bindBuffer(gl.ARRAY_BUFFER, this.normalBuffer);
+        gl.vertexAttribPointer(sp.vertexNormalAttribute, this.normalBuffer.itemSize, gl.FLOAT, false, 0, 0);
     } 
     
-    if(mesh.waterDepthBuffer && sp.vertexWaterDepthAttribute) {
-        this.gl.bindBuffer(this.gl.ARRAY_BUFFER, mesh.waterDepthBuffer);
-        this.gl.vertexAttribPointer(sp.vertexWaterDepthAttribute, mesh.waterDepthBuffer.itemSize, this.gl.FLOAT, false, 0, 0);
+    if(this.waterDepthBuffer && sp.vertexWaterDepthAttribute) {
+        gl.bindBuffer(gl.ARRAY_BUFFER, this.waterDepthBuffer);
+        gl.vertexAttribPointer(sp.vertexWaterDepthAttribute, this.waterDepthBuffer.itemSize, gl.FLOAT, false, 0, 0);
     } 
     
-    this.gl.bindBuffer(this.gl.ELEMENT_ARRAY_BUFFER, mesh.indexBuffer);
-    this.gl.drawElements(this.gl.TRIANGLES, mesh.indexBuffer.numItems, this.gl.UNSIGNED_SHORT, 0);
-    
-    
-    
+    gl.bindBuffer(gl.ELEMENT_ARRAY_BUFFER, this.indexBuffer);
+    gl.drawElements(gl.TRIANGLES, this.indexBuffer.numItems, gl.UNSIGNED_SHORT, 0);
 };
     

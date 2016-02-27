@@ -1,44 +1,43 @@
 
-var GameLoop = (function () {
+var GameLoop = function() {
     
-    function GameLoop() { }
+    this.fps = 0;
+    this.timeAtLastFrame = new Date().getTime();
+    this.leftover = 0.0;
+    this.frames = 0;
     
-    var fps;
-    var timeAtLastFrame = new Date().getTime();
-    var leftover = 0.0;
-    var frames = 0;
-    
-    var lc, rc;
+    this.logicCallback;
+    this.renderCallback;
+};
 
-    function tick() {
-        var idealTimePerFrame = 1000 / fps;
-        var timeAtThisFrame = new Date().getTime();
-        var timeSinceLastDoLogic = (timeAtThisFrame - timeAtLastFrame) + leftover;
-        var catchUpFrameCount = Math.floor(timeSinceLastDoLogic / idealTimePerFrame);
+GameLoop.prototype._tick = function() {
+    var idealTimePerFrame = 1000 / this.fps;
+    var timeAtThisFrame = new Date().getTime();
+    var timeSinceLastDoLogic = (timeAtThisFrame - this.timeAtLastFrame) + this.leftover;
+    var catchUpFrameCount = Math.floor(timeSinceLastDoLogic / idealTimePerFrame);
 
-        for(var i = 0 ; i < catchUpFrameCount; i++){
-            lc(new Date().getTime());
-            frames++;
-        }
-
-        rc();
-        
-        if(catchUpFrameCount > 2) { 
-            console.warn('LAG: ' + catchUpFrameCount); 
-        }
-
-        leftover = timeSinceLastDoLogic - (catchUpFrameCount * idealTimePerFrame);
-        timeAtLastFrame = timeAtThisFrame;
+    for(var i = 0 ; i < catchUpFrameCount; i++){
+        this.logicCallback(new Date().getTime());
+        this.frames++;
     }
-    
-    GameLoop.prototype.start = function (framesPerSecond, logicCallback, renderCallback) {
-        fps = framesPerSecond;
-        lc = logicCallback;
-        rc = renderCallback;
-        
-        setInterval(tick, 1000 / fps);
-    };
-    
-    return GameLoop;
 
-})();
+    this.renderCallback();
+    
+    if(catchUpFrameCount > 2) { 
+        console.warn('LAG: ' + catchUpFrameCount); 
+    }
+
+    this.leftover = timeSinceLastDoLogic - (catchUpFrameCount * idealTimePerFrame);
+    this.timeAtLastFrame = timeAtThisFrame;
+};
+
+GameLoop.prototype.start = function (framesPerSecond, logicCallback, renderCallback) {
+    this.fps = framesPerSecond;
+    this.logicCallback = logicCallback;
+    this.renderCallback = renderCallback;
+    
+    var self = this;
+    
+    setInterval(function() { self._tick(); }, 1000 / this.fps);
+};
+    

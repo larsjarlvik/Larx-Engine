@@ -4,6 +4,8 @@ html, body {
     padding: 0;
     font: 1em arial;
     overflow: hidden;
+    color: #eee;
+    font: 1em Arial, Helvetica;
 }
 
 body {
@@ -14,7 +16,6 @@ body {
 #viewport {
     width: 100%;
     background: #000;
-    position: absolute;
     top: 0;
     line-height: 0;
 }
@@ -29,13 +30,22 @@ body {
     left: 1em;
     padding: 10px 15px;
     border-radius: 5px;
-    background: rgba(0, 0, 0, 0.3);
-    color: #fff;
+    background: rgba(50, 50, 50, 0.5);
     cursor: pointer;
     z-index: 1000;
     line-height: 1;
 }
 
 #fullscreen:hover {
-    background: rgba(0, 0, 0, 0.6);
+    background: rgba(50, 50, 50, 0.8);
+}
+
+.interactions {
+    padding: 1em;
+}
+
+ul {
+    list-style: none;
+    font-weight: bold;
+    padding: 0;
 }
