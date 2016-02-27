@@ -46,7 +46,7 @@
         
         var terrain = new Terrain();
         var water = new Water();
-        var mTrees, mCrates, mWater, mTerrain;
+        var mTrees, mObjects, mWater, mTerrain;
         
         var waterColor = [0.359, 0.781, 0.800];
         
@@ -56,7 +56,7 @@
                 .then(initTerrain)
                 .then(initWater)
                 .then(initTrees)
-                .then(initCrates)
+                .then(initObjects)
                 .then(function() {
                     console.log('START')
                     gameLoop.start(60, doLogic, render);
@@ -102,7 +102,7 @@
         }
         
         function initWater() {
-            var quality = 52;
+            var quality = 48;
             var deferred = Q.defer();
             
             water.generate(ctx, waterShader, mTerrain, quality).then(function(w) {
@@ -117,33 +117,31 @@
             var deferred = Q.defer();
                         
             ctx.model.load('tree').then(function(model) {
-                ctx.model.create().then(function(target) {
-                    var count = 0;
-                    var bounds = (mTerrain.size / 2) - 2;
-                    mTrees = target;
+                var count = 0;
+                var bounds = (mTerrain.size / 2) - 2;
+                mTrees = ctx.model.create();
+                
+                while(count < 800) {
+                    var tree = ctx.model.clone(model);
+                    var x = Math.random() * (mTerrain.size - 2) - ((mTerrain.size - 2) / 2);
+                    var z = Math.random() * (mTerrain.size - 2) - ((mTerrain.size - 2) / 2);
+                    var y = terrain.getElevationAtPoint(mTerrain, x, z) - 0.02;
                     
-                    while(count < 800) {
-                        var tree = ctx.model.clone(model);
-                        var x = Math.random() * (mTerrain.size - 2) - ((mTerrain.size - 2) / 2);
-                        var z = Math.random() * (mTerrain.size - 2) - ((mTerrain.size - 2) / 2);
-                        var y = terrain.getElevationAtPoint(mTerrain, x, z) - 0.02;
+                    var tx = (Math.random() - 0.5) * Math.PI / 12.0;
+                    var ty = (Math.random() - 0.5) * Math.PI / 12.0;
+                    
+                    if(y >= 1.0 && y < 4.0 && x > -bounds && x < bounds && z > -bounds && z < bounds) {
+                        ctx.model.rotate(tree, [tx, Math.random() * Math.PI, ty]);
+                        ctx.model.translate(tree, [x, y, z]);
+                        ctx.model.push(mTrees, tree);
                         
-                        var tx = (Math.random() - 0.5) * Math.PI / 12.0;
-                        var ty = (Math.random() - 0.5) * Math.PI / 12.0;
-                        
-                        if(y >= 1.0 && y < 4.0 && x > -bounds && x < bounds && z > -bounds && z < bounds) {
-                            ctx.model.rotate(tree, [tx, Math.random() * Math.PI, ty]);
-                            ctx.model.translate(tree, [x, y, z]);
-                            ctx.model.push(mTrees, tree);
-                            
-                            count++;
-                        }
+                        count++;
                     }
-                    
-                    mTrees.shininess = 1.0;
-                    mTrees.specularWeight = 1.0;
-                    ctx.model.bindBuffers(mTrees);
-                });
+                }
+                
+                mTrees.shininess = 1.0;
+                mTrees.specularWeight = 1.0;
+                ctx.model.bindBuffers(mTrees);
                 
                 deferred.resolve(true);
             });
@@ -152,38 +150,43 @@
         }
         
 
-        function initCrates() {
+        function initObjects() {
             var deferred = Q.defer();
             
-            ctx.model.load('crate').then(function(model) {
+            Q.all([
+                ctx.model.load('rock-1'), 
+                ctx.model.load('rock-2'), 
+                ctx.model.load('crate')]).then(function(models) {
                 var count = 0;
                 var bounds = (mTerrain.size / 2) - 2;
-                mCrates = [];
-            
-                model.shininess = 5.0;
-                model.specularWeight = 0.6;
-                    
-                while(count < 200) {
-                    var crate = ctx.model.clone(model);
+                mObjects = ctx.model.create();
+                
+                
+                while(count < 150) {
+                    var rock = ctx.model.clone(models[Math.floor(Math.random() * models.length)]);
                     var x = Math.random() * (mTerrain.size - 2) - ((mTerrain.size - 2) / 2);
                     var z = Math.random() * (mTerrain.size - 2) - ((mTerrain.size - 2) / 2);
                     var y = terrain.getElevationAtPoint(mTerrain, x, z);
                     
-                    if(y >= 1.0 && y < 4.5 && x > -bounds && x < bounds && z > -bounds && z < bounds) {
+                    if(y >= -2.0 && y < 3.5 && x > -bounds && x < bounds && z > -bounds && z < bounds) {
                         var angle = terrain.getAngle(mTerrain, x, z, 0.3, 0.3);
                         
-                        ctx.model.rotate(crate, [0, Math.random() * Math.PI, 0]);
-                        ctx.model.rotate(crate, angle);
-                        ctx.model.translate(crate, [x, y, z]);
-                        ctx.model.bindBuffers(crate); 
+                        ctx.model.rotate(rock, [0, Math.random() * Math.PI, 0]);
+                        ctx.model.rotate(rock, angle);
+                        ctx.model.translate(rock, [x, y, z]);
+                        ctx.model.bindBuffers(rock); 
                         
-                        mCrates.push(crate);
+                        ctx.model.push(mObjects, rock);
                         count ++;
                     }
                 }
                 
+                mObjects.shininess = 1.0;
+                mObjects.specularWeight = 0.7;
+                ctx.model.bindBuffers(mObjects);
                 deferred.resolve(true);
             });
+            
             
             return deferred.promise;
         }
@@ -204,10 +207,8 @@
                 
                 ctx.model.render(mTerrain.model, defaultShader);
                 ctx.model.render(mTrees, defaultShader);
-                
-                for(var i = 0; i < mCrates.length; i++) {
-                    ctx.model.render(mCrates[i], defaultShader);
-                }
+                ctx.model.render(mObjects, defaultShader);
+                    
                 water.render(ctx, waterShader);
             });
         }

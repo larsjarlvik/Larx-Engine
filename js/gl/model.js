@@ -1,3 +1,5 @@
+
+
 var Model = function (gl) {
     this.gl = gl;
 };
@@ -163,7 +165,7 @@ Model.prototype.build = function (rawData) {
 };
 
 Model.prototype.create = function () {
-    var mesh = {
+    return {
         vertices: [],
         colors: [],
         normals: [],
@@ -174,8 +176,6 @@ Model.prototype.create = function () {
         faceCount: 0,
         vertexCount: 0
     };
-    
-    return Q(mesh);
 };
 
 

@@ -40,10 +40,10 @@ var Water = (function () {
         var t = new Terrain();
         
         var counter = 0;
-        for(var z = 0; z < size; z += ts) {
+        for(var z = 0; z < size - 0.001; z += ts) {
             var vz = z - (size / 2);
                 
-            for(var x = 0; x < size; x += ts) {
+            for(var x = 0; x < size - 0.001; x += ts) {
                 var vecs = [],
                     depths = [];
                 
@@ -89,8 +89,6 @@ var Water = (function () {
                        continue;
                    }
                    
-                console.log(depths[0], depths[1], depths[2], depths[3], depths[4], depths[5])
-                
                 appendToMesh(rawMesh, vecs[0], depths[0]);
                 appendToMesh(rawMesh, vecs[1], depths[1]);
                 appendToMesh(rawMesh, vecs[2], depths[2]);
@@ -104,7 +102,6 @@ var Water = (function () {
             } 
         }
         
-        console.log(rawMesh);
         return rawMesh;
     }
     
@@ -116,7 +113,7 @@ var Water = (function () {
         ctx.model.build(rawMesh).then(function(model) {
             model.depths = rawMesh.depths;
             model.shininess = 3.0;
-            model.opacity = 0.4;
+            model.opacity = 0.55;
             model.specularWeight = 1.2;
             waterShader.use();
             
@@ -138,7 +135,7 @@ var Water = (function () {
             var z = water.model.vertices[i + 2];
             
             water.model.vertices[i + 1] =
-                Math.sin(tx + x * 0.6) * Math.cos(tx + z * 0.6) * water.waveHeight;
+                Math.sin(tx + x * 0.4) * Math.cos(tx + z * 0.6) * water.waveHeight;
         }
 
         ctx.model.calculateNormals(water.model);

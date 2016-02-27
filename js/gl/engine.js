@@ -1,3 +1,5 @@
+/* global Camera */
+/* global Matrix */
 /* global Q */
 
 var Engine = (function () {

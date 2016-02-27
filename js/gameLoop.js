@@ -23,7 +23,9 @@ var GameLoop = (function () {
 
         rc();
         
-        if(catchUpFrameCount > 1) { console.log(catchUpFrameCount); }
+        if(catchUpFrameCount > 2) { 
+            console.warn('LAG: ' + catchUpFrameCount); 
+        }
 
         leftover = timeSinceLastDoLogic - (catchUpFrameCount * idealTimePerFrame);
         timeAtLastFrame = timeAtThisFrame;
