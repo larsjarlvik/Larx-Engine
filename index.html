@@ -10,7 +10,8 @@
     
     <body> 
         <div id="viewport">
-            <div id="fullscreen">Fullscreen</div>
+            <div id="fullscreen" class="box">Fullscreen</div>
+            <div id="info" class="box"></div>
             <canvas class="renderTarget"></canvas>
         </div>
         <div class="interactions">
@@ -24,25 +25,27 @@
     </body>
     
     <!-- DIST -->
-    <script src="/js/dist/q.js"></script>
-    <script src="/js/dist/gl-matrix.js"></script>
+    <script src="js/dist/q.js"></script>
+    <script src="js/dist/gl-matrix.js"></script>
     
     <!-- ENGINE -->
-    <script src="/js/viewport.js"></script>
+    <script src="js/viewport.js"></script>
     
-    <script src="/js/gl/larx.js"></script>
-    <script src="/js/gl/matrix.js"></script>
-    <script src="/js/gl/shaders.js"></script>
-    <script src="/js/gl/camera.js"></script>
-    <script src="/js/gl/model.js"></script>
+    <script src="js/gl/larx.js"></script>
+    <script src="js/gl/matrix.js"></script>
+    <script src="js/gl/shaders.js"></script>
+    <script src="js/gl/camera.js"></script>
+    <script src="js/gl/model.js"></script>
     
-    <script src="/js/gameLoop.js"></script>
-    <script src="/js/terrain.js"></script>
-    <script src="/js/water.js"></script>
+    <script src="js/game/gameLoop.js"></script>
+    <script src="js/game/mousePicker.js"></script>
+    <script src="js/game/terrain.js"></script>
+    <script src="js/game/water.js"></script>
     
-    <script src="/js/shaders/defaultShader.js"></script>
-    <script src="/js/shaders/waterShader.js"></script>
+    <script src="js/shaders/defaultShader.js"></script>
+    <script src="js/shaders/waterShader.js"></script>
+    <script src="js/shaders/mouseShader.js"></script>
     
     <!-- DEMO -->
-    <script src="/demo.js"></script>
+    <script src="demo.js"></script>
 </html>

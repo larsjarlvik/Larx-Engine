@@ -24,20 +24,29 @@ body {
     width: 100%;
 }
 
-#fullscreen {
+.box {
     position: absolute;
-    top: 1em;
-    left: 1em;
     padding: 10px 15px;
     border-radius: 5px;
     background: rgba(50, 50, 50, 0.5);
-    cursor: pointer;
     z-index: 1000;
     line-height: 1;
 }
 
+#fullscreen {
+    top: 1em;
+    left: 1em;
+    cursor: pointer;
+}
+
 #fullscreen:hover {
     background: rgba(50, 50, 50, 0.8);
+}
+
+#info {
+    top: 1em;
+    right: 1em;
+    display: none;
 }
 
 .interactions {

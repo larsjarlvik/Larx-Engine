@@ -13,7 +13,7 @@ var Terrain = function(ctx) {
 
 Terrain.prototype._getHeight = function(x, z) {
     if(x < 1 || x >= this.size || z < 1 || z >= this.size) {
-        return -10;
+        return -4.0;
     }
     
     return this.heights[x][z] - this.waterLevel;
@@ -158,7 +158,6 @@ Terrain.prototype._baryCentric = function(p1, p2, p3, pos) {
     return l1 * p1[1] + l2 * p2[1] + l3 * p3[1];
 };
 
-    
 Terrain.prototype.generate = function(url, elevation, water) {
     var deferred = Q.defer();   
     var self = this;
@@ -172,6 +171,8 @@ Terrain.prototype.generate = function(url, elevation, water) {
             self.colormap = imgColormap;
             self.elevation = elevation;
             self.model = new Model(self.ctx, 'terrain');
+            self.model.colors = [];
+            self.model.normals = [];
             
             self._build(); 
             

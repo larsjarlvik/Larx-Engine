@@ -7,7 +7,6 @@ var Larx = function (viewport) {
     this.camera;
     this.matrix;
     this.model;
-    this.gameLoop;
     
     this.viewport = viewport;
     this._init();
@@ -19,6 +18,8 @@ Larx.prototype._init = function() {
 
     this.gl = canvas.getContext('webgl');
     if(!this.gl) { this.gl = canvas.getContext('experimental-webgl'); }
+    
+    this.gl.getExtension("OES_texture_float");
 
     this.gl.viewportWidth = canvas.width;
     this.gl.viewportHeight = canvas.height;
@@ -29,8 +30,6 @@ Larx.prototype._init = function() {
 
     this.gl.enable(this.gl.CULL_FACE);
     this.gl.cullFace(this.gl.BACK);
-
-    this.gl.getExtension("WEBGL_depth_texture");
 
     this.viewport.resize(function () {
         self.gl.viewportWidth = canvas.width;

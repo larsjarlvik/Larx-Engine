@@ -92,11 +92,14 @@ Viewport.prototype._mouseUp = function(event) {
 };
     
 Viewport.prototype._mouseMove = function(event) {
-    this.mouse.deltaX += event.screenX - this.mouse.x;
-    this.mouse.deltaY += event.screenY - this.mouse.y;
+    var cx = event.clientX * window.devicePixelRatio,
+        cy = event.clientY * window.devicePixelRatio;
     
-    this.mouse.x = event.screenX;
-    this.mouse.y = event.screenY;
+    this.mouse.deltaX += cx - this.mouse.x;
+    this.mouse.deltaY += cy - this.mouse.y;
+    
+    this.mouse.x = cx;
+    this.mouse.y = cy;
     
     event.preventDefault();
     return false;
@@ -114,8 +117,8 @@ Viewport.prototype._mouseWheel = function(event) {
 };
     
 Viewport.prototype._touchStart = function(event) {
-    this.mouse.x = event.touches[0].screenX;
-    this.mouse.y = event.touches[0].screenY;
+    this.mouse.x = event.touches[0].clientX * window.devicePixelRatio;
+    this.mouse.y = event.touches[0].clientY * window.devicePixelRatio;
     this.mouse.touchDown = true;
 };
     
@@ -124,11 +127,11 @@ Viewport.prototype._touchEnd = function(event) {
 };
     
 Viewport.prototype._touchMove = function(event) {
-    this.mouse.deltaX += event.touches[0].screenX - this.mouse.x;
-    this.mouse.deltaY += event.touches[0].screenY - this.mouse.y;
+    this.mouse.deltaX += event.touches[0].clientX - this.mouse.x;
+    this.mouse.deltaY += event.touches[0].clientY - this.mouse.y;
     
-    this.mouse.x = event.touches[0].screenX;
-    this.mouse.y = event.touches[0].screenY;
+    this.mouse.x = event.touches[0].clientX * window.devicePixelRatio;
+    this.mouse.y = event.touches[0].clientY * window.devicePixelRatio;
 };
     
 Viewport.prototype.resize = function (callback) {

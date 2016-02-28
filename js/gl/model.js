@@ -5,8 +5,8 @@ var Model = function (ctx, name) {
     this.name = name;
     
     this.vertices = [];
-    this.colors = [];
-    this.normals = [];
+    this.colors;
+    this.normals;
     this.indices = [];
     this.shininess = 0;
     this.opacity = 1.0;
@@ -177,10 +177,18 @@ Model.prototype.rotate = function (angle) {
 Model.prototype.clone = function () {
     var target = new Model(this.ctx, this.name);
     
-    Array.prototype.push.apply(target.colors, this.colors);
-    Array.prototype.push.apply(target.normals, this.normals);
     Array.prototype.push.apply(target.vertices, this.vertices);
     Array.prototype.push.apply(target.indices, this.indices);
+    
+    if(this.colors) {
+        target.colors = [];
+        Array.prototype.push.apply(target.colors, this.colors);
+    }
+    
+    if(this.normals) {
+        target.normals = [];
+        Array.prototype.push.apply(target.normals, this.normals);
+    }
     
     target.shininess = this.shininess;
     target.opacity = this.opacity;
@@ -193,11 +201,19 @@ Model.prototype.clone = function () {
 
 Model.prototype.push = function(source) {
     for(var i = 0; i < source.indices.length; i++) {
-        this.indices.push(source.indices[i] + this.vertexCount );
+        this.indices.push(source.indices[i] + this.vertexCount);
     }
     
-    Array.prototype.push.apply(this.colors, source.colors);
-    Array.prototype.push.apply(this.normals, source.normals);
+    if(source.colors) { 
+        if(!this.colors) { this.colors = []; }
+        Array.prototype.push.apply(this.colors, source.colors); 
+    }
+    
+    if(source.normals) { 
+        if(!this.normals) { this.normals = []; }
+        Array.prototype.push.apply(this.normals, source.normals); 
+    }
+    
     Array.prototype.push.apply(this.vertices, source.vertices);
     
     this.faceCount += source.faceCount;
@@ -249,6 +265,29 @@ Model.prototype.calculateNormals = function () {
         this.normals[i + 7] = v1[1];
         this.normals[i + 8] = v1[2];
     }
+};
+
+Model.prototype.getBounds = function() {
+    var minX, minY, minZ,
+        maxX, maxY, maxZ;
+    
+    for(var i = 0; i < this.vertices.length; i+=3) {
+        if(minX === undefined || this.vertices[i] < minX) { minX = this.vertices[i]; } 
+        if(maxX === undefined || this.vertices[i] > maxX) { maxX = this.vertices[i]; }
+        
+        if(minY === undefined || this.vertices[i + 1] < minY) { minY = this.vertices[i + 1]; } 
+        if(maxY === undefined || this.vertices[i + 1] > maxY) { maxY = this.vertices[i + 1]; }
+        
+        if(minZ === undefined || this.vertices[i + 2] < minZ) { minZ = this.vertices[i + 2]; } 
+        if(maxZ === undefined || this.vertices[i + 2] > maxZ) { maxZ = this.vertices[i + 2]; }
+    }  
+    
+    return [minX, maxX, minY, maxY, minZ, maxZ];
+};
+
+Model.prototype.getSize = function() {
+    var b = this.getBounds();
+    return [b[1] - b[0], b[3] - b[2], b[5] - b[4]];
 };
 
 Model.prototype.render = function (shaderProgram) {

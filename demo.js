@@ -1,9 +1,14 @@
 (function() {
     var renderTarget = document.getElementById('viewport');
+    var infoBox = document.getElementById('info');
+    
     var viewport = new Viewport(renderTarget);
     var larx = new Larx(viewport);
     var gameLoop = new GameLoop(60);
-    var defaultShader, waterShader;
+    var mousePicker = new MousePicker(larx, 0.5);
+    var pickObjects = [];
+    
+    var defaultShader, waterShader, mouseShader;
 
     var mTrees, mObjects, mWater, mTerrain;
     var waterColor = [0.359, 0.781, 0.800];
@@ -25,10 +30,12 @@
         
         defaultShader = new DefaultShader(larx);
         waterShader = new WaterShader(larx);
+        mouseShader = new MouseShader(larx);
         
         Q.all([
             defaultShader.load(),
-            waterShader.load()
+            waterShader.load(),
+            mouseShader.load()
         ]).then(function() {
             defaultShader.setWaterColor(waterColor);
             waterShader.setWaterColor(waterColor);
@@ -47,6 +54,8 @@
         mTerrain = new Terrain(larx);
         mTerrain.generate('/maps/test', 9.0, 1.5, 1)              
             .then(function(t) {
+                mTerrain.colors = undefined;
+                mTerrain.normals = undefined;
                 mTerrain.shininess = 4.0;
                 mTerrain.specularWeight = 0.35;  
                 
@@ -58,7 +67,7 @@
     }
 
     function initWater() {
-        var quality = 48;
+        var quality = 32;
         var deferred = Q.defer();
         
         mWater = new Water(larx, gameLoop);
@@ -78,7 +87,7 @@
             var count = 0;
             var bounds = (mTerrain.size / 2) - 2;
             mTrees = new Model(larx, 'trees');
-            
+                        
             while(count < 800) {
                 var tree = model.clone();
                 var x = Math.random() * (mTerrain.size - 2) - ((mTerrain.size - 2) / 2);
@@ -129,11 +138,21 @@
                 var y = mTerrain.getElevationAtPoint(x, z);
                 
                 if(y >= -2.0 && y < 3.5 && x > -bounds && x < bounds && z > -bounds && z < bounds) {
-                    var angle = mTerrain.getAngle(x, z, 0.3, 0.3);
+                    var size = object.getSize();
+                    var angle = mTerrain.getAngle(x, z, size[0], size[1]);
                     
                     object.rotate([0, Math.random() * Math.PI, 0]);
                     object.rotate(angle);
                     object.translate([x, y, z]);
+                    object.pickId = count;
+                    
+                    var pickObject = {
+                        id: count,
+                        type: object.name
+                    };
+                    
+                    mousePicker.addObject(object, pickObject.id);
+                    pickObjects.push(pickObject);
                     
                     mObjects.push(object);
                     count ++;
@@ -155,7 +174,7 @@
         keyboard();
         mouse();
         
-        mWater.update(frameCount);
+        mWater.update();
     }
 
     function render() {
@@ -167,6 +186,9 @@
             
             waterShader.use();
             mWater.render(waterShader);
+            
+            mouseShader.use();
+            mousePicker.render(mouseShader, mTerrain);
         });
     }
 
@@ -178,6 +200,8 @@
     }
 
     function mouse() {
+        mousePicker.updateMouse(viewport.mouse.x, viewport.mouse.y);
+        
         if(viewport.mouse.buttons.right || viewport.mouse.touchDown) {  
             var dX = viewport.mouse.deltaX / 3.0,
                 dY = viewport.mouse.deltaY / 3.0;
@@ -192,6 +216,23 @@
             } else {
                 if(cMatrix.rotV + dYRad > 0.2) { larx.camera.rotate(0, dY); }
             }
+        }
+        
+        if(viewport.mouse.buttons.left) {
+            var coords = mousePicker.getCoordinates(viewport.mouse.x, viewport.mouse.y);
+            infoBox.style.display = 'none';
+            
+            if(coords) {
+                infoBox.innerHTML = 'Coordinates, x: ' + coords[0].toFixed(2) + ' y: ' + coords[1].toFixed(2) + ' z: ' + coords[2].toFixed(2);
+                infoBox.style.display = 'block';
+            }
+                        
+            var id = mousePicker.getObjectId(viewport.mouse.x, viewport.mouse.y);
+            if(id) {
+                var pickObject = pickObjects.filter(function (obj) { return obj.id == id })[0];
+                infoBox.innerHTML = 'Selected: ' + pickObject.type + ' (ID: ' + pickObject.id + ')';
+                infoBox.style.display = 'block';
+            } 
         }
         
         if(viewport.mouse.wheelDelta !== 0) {

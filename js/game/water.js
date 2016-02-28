@@ -131,6 +131,8 @@ Water.prototype.generate = function (terrain, quality) {
     this.size = terrain.size - 2;
     
     this.model = new Model(this.ctx, 'water');
+    this.model.colors = [];
+    this.model.normals = [];
     this.model.depths = [];
     this.model.shininess = 3.0;
     this.model.opacity = 0.55;
@@ -141,12 +143,12 @@ Water.prototype.generate = function (terrain, quality) {
     return Q(true);
 };
 
-Water.prototype.update = function (frameCount) {
+Water.prototype.update = function () {
     this.model.vertices = this.frames[this.currentFrame].vertices;
     this.model.normals = this.frames[this.currentFrame].normals;
     
     this.model.bindBuffers();
-    this.currentFrame += frameCount;
+    this.currentFrame ++;
     
     if(this.currentFrame >= this.frames.length) {
         this.currentFrame = 0;
