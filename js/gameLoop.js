@@ -1,7 +1,7 @@
 
-var GameLoop = function() {
+var GameLoop = function(fps) {
     
-    this.fps = 0;
+    this.fps = fps;
     this.timeAtLastFrame = new Date().getTime();
     this.leftover = 0.0;
     this.frames = 0;
@@ -17,7 +17,7 @@ GameLoop.prototype._tick = function() {
     var catchUpFrameCount = Math.floor(timeSinceLastDoLogic / idealTimePerFrame);
 
     for(var i = 0 ; i < catchUpFrameCount; i++){
-        this.logicCallback(new Date().getTime());
+        this.logicCallback(new Date().getTime(), catchUpFrameCount);
         this.frames++;
     }
 
@@ -31,8 +31,7 @@ GameLoop.prototype._tick = function() {
     this.timeAtLastFrame = timeAtThisFrame;
 };
 
-GameLoop.prototype.start = function (framesPerSecond, logicCallback, renderCallback) {
-    this.fps = framesPerSecond;
+GameLoop.prototype.start = function (logicCallback, renderCallback) {
     this.logicCallback = logicCallback;
     this.renderCallback = renderCallback;
     

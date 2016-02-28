@@ -1,10 +1,15 @@
 /* global vec3 */
 
-var Water = function (ctx) {
+var Water = function (ctx, gameLoop) {
     this.ctx = ctx;
+    this.gameLoop = gameLoop;
     this.model;
     this.size = undefined;
     this.waveHeight = 0.25;
+    this.speed = 0.5;
+    this.frames = [];
+    this.waveIntensity = 0.5;
+    this.currentFrame = 0;
 };
     
     
@@ -98,6 +103,29 @@ Water.prototype._build = function(terrain) {
     }
 };
 
+Water.prototype._generateLoop = function() {
+    var frameTime = (Math.PI / this.gameLoop.fps);
+    
+    for(var i = 0; i < Math.PI / this.speed; i += frameTime) {
+        var tx = i * this.speed % Math.PI;
+            
+        for(var n = 0; n < this.model.vertices.length; n += 3) {
+            var x = this.model.vertices[n];
+            var z = this.model.vertices[n + 2];
+            
+            this.model.vertices[n + 1] =
+                Math.sin(tx + x * this.waveIntensity) * Math.cos(tx + z * this.waveIntensity) * this.waveHeight;
+        }
+
+        this.model.calculateNormals();
+        this.frames.push({
+            vertices: this.model.vertices,
+            normals: this.model.normals
+        });
+    }
+};
+    
+
 Water.prototype.generate = function (terrain, quality) {
     this.quality = quality;
     this.size = terrain.size - 2;
@@ -108,23 +136,21 @@ Water.prototype.generate = function (terrain, quality) {
     this.model.opacity = 0.55;
     this.model.specularWeight = 1.2;
     this._build(terrain);
+    this._generateLoop();
     
     return Q(true);
 };
-    
-Water.prototype.update = function (time) {
-    var tx = time * 0.001;
-    
-    for(var i = 0; i < this.model.vertices.length; i += 3) {
-        var x = this.model.vertices[i];
-        var z = this.model.vertices[i + 2];
-        
-        this.model.vertices[i + 1] =
-            Math.sin(tx + x * 0.4) * Math.cos(tx + z * 0.6) * this.waveHeight;
-    }
 
-    this.model.calculateNormals();
+Water.prototype.update = function (frameCount) {
+    this.model.vertices = this.frames[this.currentFrame].vertices;
+    this.model.normals = this.frames[this.currentFrame].normals;
+    
     this.model.bindBuffers();
+    this.currentFrame += frameCount;
+    
+    if(this.currentFrame >= this.frames.length) {
+        this.currentFrame = 0;
+    }
 };
 
 

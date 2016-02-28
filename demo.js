@@ -2,7 +2,7 @@
     var renderTarget = document.getElementById('viewport');
     var viewport = new Viewport(renderTarget);
     var larx = new Larx(viewport);
-    var gameLoop = new GameLoop();
+    var gameLoop = new GameLoop(60);
     var defaultShader, waterShader;
 
     var mTrees, mObjects, mWater, mTerrain;
@@ -14,7 +14,7 @@
         .then(initTrees)
         .then(initObjects)
         .then(function() {
-            gameLoop.start(60, doLogic, render);
+            gameLoop.start(doLogic, render);
         })
         .catch(function(err) {
             console.error(err);
@@ -61,7 +61,7 @@
         var quality = 48;
         var deferred = Q.defer();
         
-        mWater = new Water(larx);
+        mWater = new Water(larx, gameLoop);
         mWater.generate(mTerrain, quality).then(function(w) {
             deferred.resolve(true);
         })
@@ -151,11 +151,11 @@
         return deferred.promise;
     }
         
-    function doLogic(time) {
+    function doLogic(time, frameCount) {
         keyboard();
         mouse();
         
-        mWater.update(time);
+        mWater.update(frameCount);
     }
 
     function render() {

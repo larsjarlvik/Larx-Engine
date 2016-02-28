@@ -7,6 +7,7 @@ var Larx = function (viewport) {
     this.camera;
     this.matrix;
     this.model;
+    this.gameLoop;
     
     this.viewport = viewport;
     this._init();
