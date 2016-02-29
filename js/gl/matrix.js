@@ -10,9 +10,9 @@ var Matrix = function(ctx) {
 
     
 Matrix.prototype.push = function () {
-    var copy = mat4.create();
-    mat4.copy(copy, this.mvMatrix);
-    this.mvStack.push(copy);
+    this._copy = mat4.create();
+    mat4.copy(this._copy, this.mvMatrix);
+    this.mvStack.push(this._copy);
 };
 
 Matrix.prototype.pop = function () {
@@ -23,27 +23,31 @@ Matrix.prototype.setIdentity = function () {
     mat4.perspective(this.pMatrix, 45, this.ctx.gl.viewportWidth / this.ctx.gl.viewportHeight, 0.1, 1000.0);
     mat4.identity(this.mvMatrix);   
     
-    var mat = this.ctx.camera.getMatrix();
+    this._cMat = this.ctx.camera.getMatrix();
     
-    mat4.rotate(this.mvMatrix, this.mvMatrix, mat.rotV, [1, 0, 0]);
-    mat4.rotate(this.mvMatrix, this.mvMatrix, mat.rotH, [0, 1, 0]);
-    mat4.translate(this.mvMatrix, this.mvMatrix, [mat.x, mat.y, mat.z]);
+    mat4.rotate(this.mvMatrix, this.mvMatrix, this._cMat.rotV, [1, 0, 0]);
+    mat4.rotate(this.mvMatrix, this.mvMatrix, this._cMat.rotH, [0, 1, 0]);
+    mat4.translate(this.mvMatrix, this.mvMatrix, [this._cMat.x, this._cMat.y, this._cMat.z]);
 };
 
 Matrix.prototype.setUniforms = function (shaderProgram) {
-    var sp = shaderProgram.get();
+    this._sp = shaderProgram.get();
     
-    this.ctx.gl.uniformMatrix4fv(sp.pMatrixUniform, false, this.pMatrix);
-    this.ctx.gl.uniformMatrix4fv(sp.mvMatrixUniform, false, this.mvMatrix);
+    this.ctx.gl.uniformMatrix4fv(this._sp.pMatrixUniform, false, this.pMatrix);
+    this.ctx.gl.uniformMatrix4fv(this._sp.mvMatrixUniform, false, this.mvMatrix);
     
-    var normalMatrix = mat3.create();
-    mat3.fromMat4(normalMatrix, this.mvMatrix);
-    mat3.invert(normalMatrix, normalMatrix);
-    mat3.transpose(normalMatrix, normalMatrix);
+    this._nMatrix = mat3.create();
+    mat3.fromMat4(this._nMatrix, this.mvMatrix);
+    mat3.invert(this._nMatrix, this._nMatrix);
+    mat3.transpose(this._nMatrix, this._nMatrix);
     
-    this.ctx.gl.uniformMatrix3fv(sp.nMatrixUniform, false, normalMatrix);
+    this.ctx.gl.uniformMatrix3fv(this._sp.nMatrixUniform, false, this._nMatrix);
 };
 
 Matrix.prototype.translate = function (vec) {
     mat4.translate(this.mvMatrix, this.mvMatrix, vec);
+};
+
+Matrix.prototype.rotate = function (vec) {
+    mat4.rotate(this.mvMatrix, this.mvMatrix, vec);
 };

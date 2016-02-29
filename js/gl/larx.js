@@ -7,33 +7,33 @@ var Larx = function (viewport) {
     this.camera;
     this.matrix;
     this.model;
+    this.canvas;
     
     this.viewport = viewport;
     this._init();
 };
 
 Larx.prototype._init = function() {
-    var canvas = this.viewport.canvas;
     var self = this;
+    this.canvas = this.viewport.canvas;
 
-    this.gl = canvas.getContext('webgl');
-    if(!this.gl) { this.gl = canvas.getContext('experimental-webgl'); }
+    this.gl = this.canvas.getContext('webgl');
+    if(!this.gl) { this.gl = this.canvas.getContext('experimental-webgl'); }
     
     this.gl.getExtension("OES_texture_float");
 
-    this.gl.viewportWidth = canvas.width;
-    this.gl.viewportHeight = canvas.height;
+    this.gl.viewportWidth = this.canvas.width;
+    this.gl.viewportHeight = this.canvas.height;
 
     this.gl.blendFunc(this.gl.SRC_ALPHA, this.gl.ONE_MINUS_SRC_ALPHA);
-    this.gl.enable(this.gl.BLEND);
     this.gl.disable(this.gl.DEPTH_TEST);
 
     this.gl.enable(this.gl.CULL_FACE);
     this.gl.cullFace(this.gl.BACK);
 
     this.viewport.resize(function () {
-        self.gl.viewportWidth = canvas.width;
-        self.gl.viewportHeight = canvas.height;
+        self.gl.viewportWidth = this.canvas.width;
+        self.gl.viewportHeight = this.canvas.height;
     });
     
     this.gl.clearColor(0.0, 0.0, 0.0, 1.0);
@@ -43,10 +43,7 @@ Larx.prototype._init = function() {
     this.matrix = new Matrix(this);
 };
 
-Larx.prototype.render = function(callback) {  
-    this.gl.viewport(0, 0, this.gl.viewportWidth, this.gl.viewportHeight);
-    this.gl.clear(this.gl.COLOR_BUFFER_BIT | this.gl.DEPTH_BUFFER_BIT);
-    
+Larx.prototype.render = function(callback) {      
     this.matrix.setIdentity();
     this.matrix.push();
     
@@ -54,4 +51,9 @@ Larx.prototype.render = function(callback) {
     
     this.matrix.pop();
 };
+
+Larx.prototype.clear = function() {
+    this.gl.viewport(0, 0, this.gl.viewportWidth, this.gl.viewportHeight);
+    this.gl.clear(this.gl.COLOR_BUFFER_BIT | this.gl.DEPTH_BUFFER_BIT);
+}
 

@@ -104,7 +104,7 @@ Water.prototype._build = function(terrain) {
 };
 
 Water.prototype._generateLoop = function() {
-    var frameTime = (Math.PI / this.gameLoop.fps);
+    var frameTime = (Math.PI / this.gameLoop.targetFps);
     
     for(var i = 0; i < Math.PI / this.speed; i += frameTime) {
         var tx = i * this.speed % Math.PI;
@@ -157,7 +157,11 @@ Water.prototype.update = function () {
 
 
 Water.prototype.render = function (shader) {
+    this.ctx.gl.enable(this.ctx.gl.BLEND);
+    
     this.ctx.matrix.setIdentity();
     this.ctx.matrix.setUniforms(shader);
     this.model.render(shader);
+    
+    this.ctx.gl.disable(this.ctx.gl.BLEND);
 };

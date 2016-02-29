@@ -2,10 +2,20 @@ html, body {
     height: 100%;
     margin: 0;
     padding: 0;
-    font: 1em arial;
     overflow: hidden;
     color: #eee;
-    font: 1em Arial, Helvetica;
+    font: 1vw Arial, Helvetica;
+    
+    text-align: center;
+}
+
+@media only screen and (-webkit-min-device-pixel-ratio: 1.5),
+    only screen and (min--moz-device-pixel-ratio: 1.5),
+    only screen and (-o-device-pixel-ratio: 3/2), 
+    only screen and (min-device-pixel-ratio: 1.5) {
+    html, body {
+        font-size: 2.0vw;
+    }
 }
 
 body {
@@ -14,20 +24,17 @@ body {
 }
 
 #viewport {
-    width: 100%;
-    background: #000;
-    top: 0;
     line-height: 0;
-}
-
-#viewport .renderTarget {
-    width: 100%;
+    position: relative;
+    margin: 0 auto;
+    display: inline-block;
+    background: #000;
 }
 
 .box {
     position: absolute;
-    padding: 10px 15px;
-    border-radius: 5px;
+    padding: 1em 1.5em;
+    border-radius: 0.5em;
     background: rgba(50, 50, 50, 0.5);
     z-index: 1000;
     line-height: 1;
@@ -49,12 +56,25 @@ body {
     display: none;
 }
 
-.interactions {
-    padding: 1em;
+#fps {
+    bottom: 1em;
+    left: 1em;
 }
 
-ul {
+.interactions {
+    
+    text-align: left;
+    bottom: 1em;
+    right: 1em;
+}
+
+.interactions h2 {
+    margin: 0;
+}
+
+.interactions ul {
+    margin-bottom: 0;
     list-style: none;
-    font-weight: bold;
     padding: 0;
+    line-height: 1.4em;
 }

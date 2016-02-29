@@ -2,7 +2,6 @@ attribute vec3 aVertexPosition;
 
 uniform mat4 uMVMatrix;
 uniform mat4 uPMatrix;
-uniform mat3 uNMatrix;
 
 varying vec3 vVertexPosition;
 

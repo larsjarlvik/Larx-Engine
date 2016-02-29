@@ -35,22 +35,28 @@ Viewport.prototype._init = function() {
     document.addEventListener('keydown', function (e) { self._keyDown(e); });
     document.addEventListener('keyup', function (e) { self._keyUp(e); });
     
-    document.addEventListener('mousedown', function (e) { self._mouseDown(e); });
-    document.addEventListener('mouseup', function (e) { self._mouseUp(e); });
-    document.addEventListener('mousemove', function (e) { self._mouseMove(e); });
-    document.addEventListener('mousewheel', function (e) { self._mouseWheel(e); });
-    document.addEventListener('DOMMouseScroll', function (e) { self._mouseWheel(e); });
+    this.viewport.addEventListener('mousedown', function (e) { self._mouseDown(e); });
+    this.viewport.addEventListener('mouseup', function (e) { self._mouseUp(e); });
+    this.viewport.addEventListener('mousemove', function (e) { self._mouseMove(e); });
+    this.viewport.addEventListener('mousewheel', function (e) { self._mouseWheel(e); });
+    this.viewport.addEventListener('DOMMouseScroll', function (e) { self._mouseWheel(e); });
     
-    document.addEventListener('touchstart', function (e) { self._touchStart(e) });
-    document.addEventListener('touchend', function (e) { self._touchEnd(e) });
-    document.addEventListener('touchmove', function (e) { self._touchMove(e) });
+    this.viewport.addEventListener('touchstart', function (e) { self._touchStart(e) });
+    this.viewport.addEventListener('touchend', function (e) { self._touchEnd(e) });
+    this.viewport.addEventListener('touchmove', function (e) { self._touchMove(e) });
     
     window.addEventListener('resize',  function () { self.setViewportSize() });
 };
    
 Viewport.prototype.setViewportSize = function() {
-    var width = this.viewport.offsetWidth;
-    var height = Math.round(width / 16 * 9);
+    var width = window.innerWidth;
+    var height = window.innerHeight;
+    
+    if(Math.round(width / 16 * 9) > height) {
+        width = Math.round(height / 9 * 16);
+    } else {
+        height = Math.round(width / 16 * 9);
+    }
     
     this.canvas.setAttribute('width', width * window.devicePixelRatio);
     this.canvas.setAttribute('height', height * window.devicePixelRatio);
@@ -70,6 +76,7 @@ Viewport.prototype._keyUp = function(event) {
 };
     
 Viewport.prototype._mouseDown = function(event) {
+    console.log(event)
     switch(event.button) {
         case 0: this.mouse.buttons.left = true; break;
         case 1: this.mouse.buttons.middle = true; break;
@@ -91,9 +98,9 @@ Viewport.prototype._mouseUp = function(event) {
     return false;
 };
     
-Viewport.prototype._mouseMove = function(event) {
-    var cx = event.clientX * window.devicePixelRatio,
-        cy = event.clientY * window.devicePixelRatio;
+Viewport.prototype._mouseMove = function(event) {    
+    var cx = event.layerX * devicePixelRatio,
+        cy = event.layerY * devicePixelRatio;
     
     this.mouse.deltaX += cx - this.mouse.x;
     this.mouse.deltaY += cy - this.mouse.y;
@@ -117,8 +124,8 @@ Viewport.prototype._mouseWheel = function(event) {
 };
     
 Viewport.prototype._touchStart = function(event) {
-    this.mouse.x = event.touches[0].clientX * window.devicePixelRatio;
-    this.mouse.y = event.touches[0].clientY * window.devicePixelRatio;
+    this.mouse.x = event.touches[0].clientX;
+    this.mouse.y = event.touches[0].clientY;
     this.mouse.touchDown = true;
 };
     
@@ -130,8 +137,8 @@ Viewport.prototype._touchMove = function(event) {
     this.mouse.deltaX += event.touches[0].clientX - this.mouse.x;
     this.mouse.deltaY += event.touches[0].clientY - this.mouse.y;
     
-    this.mouse.x = event.touches[0].clientX * window.devicePixelRatio;
-    this.mouse.y = event.touches[0].clientY * window.devicePixelRatio;
+    this.mouse.x = event.touches[0].clientX;
+    this.mouse.y = event.touches[0].clientY;
 };
     
 Viewport.prototype.resize = function (callback) {

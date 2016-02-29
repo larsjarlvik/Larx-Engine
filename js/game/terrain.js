@@ -203,10 +203,9 @@ Terrain.prototype._getPoint = function(x, z) {
 };
 
 Terrain.prototype.getElevationAtPoint = function (x, z) {
-    var p = this._getPoint(x, z);      
-    var pos = vec2.fromValues(p.xc, p.zc);
-    
+    var p = this._getPoint(x, z);       
     var v1, v2, v3;
+    
     if(p.xc <= (1 - p.zc)) {
         v1 = vec3.fromValues(0, this._getHeight(p.gx, p.gz), 0);
         v2 = vec3.fromValues(1, this._getHeight(p.gx + 1, p.gz), 0);
@@ -217,25 +216,18 @@ Terrain.prototype.getElevationAtPoint = function (x, z) {
         v3 = vec3.fromValues(1, this._getHeight(p.gx + 1, p.gz + 1), 1);
     }
 
-    return this._baryCentric(v1, v2, v3, pos);
+    return this._baryCentric(v1, v2, v3, vec2.fromValues(p.xc, p.zc));
 };
     
 Terrain.prototype.getAngle = function(cx, cz, sx, sz) {
     var rx = sx / 2;
     var rz = sz / 2;
     
-    var x1 = this.getElevationAtPoint(cx + rx, cz);
-    var x2 = this.getElevationAtPoint(cx - rx, cz);
-    
-    var z1 = this.getElevationAtPoint(cx, cz + rz);
-    var z2 = this.getElevationAtPoint(cx, cz - rz);
-    
-    var xA = 0, zA = 0;
-    
-    zA = Math.atan2(x1 - x2, sx);
-    xA = Math.atan2(z2 - z1, sz);
-    
-    return [xA, 0, zA];
+    return [
+        Math.atan2(this.getElevationAtPoint(cx, cz - rz) - this.getElevationAtPoint(cx, cz + rz), sz),
+        0,
+        Math.atan2(this.getElevationAtPoint(cx + rx, cz) - this.getElevationAtPoint(cx - rx, cz), sx)
+    ];
 };
 
 Terrain.prototype.render = function (shader) {

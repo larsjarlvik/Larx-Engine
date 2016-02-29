@@ -12,15 +12,19 @@
         <div id="viewport">
             <div id="fullscreen" class="box">Fullscreen</div>
             <div id="info" class="box"></div>
+            <div id="fps" class="box"></div>
+            
+            <div class="box interactions">
+                <h2>Interactions</h2>
+                <ul>
+                    <li>MOUSE RIGHT > Rotate camera</li>
+                    <li>MOUSE SCROLL > Zoom In/Out</li>
+                    <li>W, A, S, D > Move Camera</li>
+                    <li>Rocks and crates are selectable</li>
+                </ul>
+            </div>
+            
             <canvas class="renderTarget"></canvas>
-        </div>
-        <div class="interactions">
-            <h2>Interactions</h2>
-            <ul>
-                <li>MOUSE RIGHT > Rotate camera</li>
-                <li>MOUSE SCROLL > Zoom In/Out</li>
-                <li>W, A, S, D > Move Camera</li>
-            </ul>
         </div>
     </body>
     
@@ -39,12 +43,14 @@
     
     <script src="js/game/gameLoop.js"></script>
     <script src="js/game/mousePicker.js"></script>
+    <script src="js/game/cursor.js"></script>
     <script src="js/game/terrain.js"></script>
     <script src="js/game/water.js"></script>
     
     <script src="js/shaders/defaultShader.js"></script>
     <script src="js/shaders/waterShader.js"></script>
     <script src="js/shaders/mouseShader.js"></script>
+    <script src="js/shaders/cursorShader.js"></script>
     
     <!-- DEMO -->
     <script src="demo.js"></script>

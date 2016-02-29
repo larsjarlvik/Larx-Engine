@@ -7,6 +7,7 @@ var Model = function (ctx, name) {
     this.vertices = [];
     this.colors;
     this.normals;
+    this.texCoords;
     this.indices = [];
     this.shininess = 0;
     this.opacity = 1.0;
@@ -112,6 +113,13 @@ Model.prototype.bindBuffers = function() {
         this.normalBuffer.itemSize = 3;
     }
     
+    if(this.texCoords) {
+        if(!this.texCoordBuffer) { this.texCoordBuffer = gl.createBuffer(); }
+        gl.bindBuffer(gl.ARRAY_BUFFER, this.texCoordBuffer);
+        gl.bufferData(gl.ARRAY_BUFFER, new Float32Array(this.texCoords), gl.STATIC_DRAW);
+        this.texCoordBuffer.itemSize = 2;
+    }
+    
     if(this.depths) {
         if(!this.waterDepthBuffer) { this.waterDepthBuffer = gl.createBuffer(); }
         gl.bindBuffer(gl.ARRAY_BUFFER, this.waterDepthBuffer);
@@ -150,21 +158,34 @@ Model.prototype.translate = function (pos) {
     }
 };
 
-Model.prototype._doRotate = function(angle, a, b) {
+
+Model.prototype.scale = function (value) {    
     for(var i = 0; i < this.vertices.length; i += 3) {
-        var cosTheta = Math.cos(angle);
-        var sinTheta = Math.sin(angle);  
-        
+        this.vertices[i] *= value;
+        this.vertices[i + 1] *= value;
+        this.vertices[i + 2] *= value;
+    }
+};
+
+
+Model.prototype._doRotate = function(angle, a, b) {
+    var cosTheta = Math.cos(angle);
+    var sinTheta = Math.sin(angle);
+     
+    for(var i = 0; i < this.vertices.length; i += 3) { 
         var av = cosTheta * (this.vertices[i + a]) - sinTheta*(this.vertices[i + b]);
         var bv = sinTheta * (this.vertices[i + a]) + cosTheta*(this.vertices[i + b]);
         
-        var an = cosTheta * (this.normals[i + a]) - sinTheta*(this.normals[i + b]);
-        var bn = sinTheta * (this.normals[i + a]) + cosTheta*(this.normals[i + b]);
-        
         this.vertices[i + a] = av;
         this.vertices[i + b] = bv;
-        this.normals[i + a] = an;
-        this.normals[i + b] = bn;
+        
+        if(this.normals) {
+            var an = cosTheta * (this.normals[i + a]) - sinTheta*(this.normals[i + b]);
+            var bn = sinTheta * (this.normals[i + a]) + cosTheta*(this.normals[i + b]);
+            
+            this.normals[i + a] = an;
+            this.normals[i + b] = bn;
+        }
     }
 }
 
@@ -248,11 +269,12 @@ Model.prototype.calculateNormals = function () {
     this.normals = Array(this.vertices.length);
     
     var v1 = [];
+    var a, b, c;
     
     for (var i = 0; i < this.vertices.length; i += 9) {
-        var a = [this.vertices[i], this.vertices[i + 1], this.vertices[i + 2]];
-        var b = [this.vertices[i + 3], this.vertices[i + 4], this.vertices[i + 5]];
-        var c = [this.vertices[i + 6], this.vertices[i + 7], this.vertices[i + 8]];
+        a = [this.vertices[i], this.vertices[i + 1], this.vertices[i + 2]];
+        b = [this.vertices[i + 3], this.vertices[i + 4], this.vertices[i + 5]];
+        c = [this.vertices[i + 6], this.vertices[i + 7], this.vertices[i + 8]];
         
         this._calcNormal(a, b, c, v1);
         this.normals[i] = v1[0];
@@ -286,37 +308,41 @@ Model.prototype.getBounds = function() {
 };
 
 Model.prototype.getSize = function() {
-    var b = this.getBounds();
-    return [b[1] - b[0], b[3] - b[2], b[5] - b[4]];
+    this._bounds = this.getBounds();
+    return [this._bounds[1] - this._bounds[0], this._bounds[3] - this._bounds[2], this._bounds[5] - this._bounds[4]];
 };
 
 Model.prototype.render = function (shaderProgram) {
-    var sp = shaderProgram.get();
-    var gl = this.ctx.gl;
+    this._sp = shaderProgram.get();
     
-    if(sp.shininess) { gl.uniform1f(sp.shininess, this.shininess); }
-    if(sp.opacity) { gl.uniform1f(sp.opacity, this.opacity); }
-    if(sp.specularWeight) { gl.uniform1f(sp.specularWeight, this.specularWeight); }
+    if(this._sp.shininess) { this.ctx.gl.uniform1f(this._sp.shininess, this.shininess); }
+    if(this._sp.opacity) { this.ctx.gl.uniform1f(this._sp.opacity, this.opacity); }
+    if(this._sp.specularWeight) { this.ctx.gl.uniform1f(this._sp.specularWeight, this.specularWeight); }
     
-    gl.bindBuffer(gl.ARRAY_BUFFER, this.vertexBuffer);
-    gl.vertexAttribPointer(sp.vertexPositionAttribute, this.vertexBuffer.itemSize, gl.FLOAT, false, 0, 0);
+    this.ctx.gl.bindBuffer(this.ctx.gl.ARRAY_BUFFER, this.vertexBuffer);
+    this.ctx.gl.vertexAttribPointer(this._sp.vertexPositionAttribute, this.vertexBuffer.itemSize, this.ctx.gl.FLOAT, false, 0, 0);
 
-    if(this.colorBuffer && sp.vertexColorAttribute) {
-        gl.bindBuffer(gl.ARRAY_BUFFER, this.colorBuffer);
-        gl.vertexAttribPointer(sp.vertexColorAttribute, this.colorBuffer.itemSize, gl.FLOAT, false, 0, 0);
+    if(this.colorBuffer && this._sp.vertexColorAttribute) {
+        this.ctx.gl.bindBuffer(this.ctx.gl.ARRAY_BUFFER, this.colorBuffer);
+        this.ctx.gl.vertexAttribPointer(this._sp.vertexColorAttribute, this.colorBuffer.itemSize, this.ctx.gl.FLOAT, false, 0, 0);
     } 
     
-    if(this.normalBuffer && sp.vertexNormalAttribute) {
-        gl.bindBuffer(gl.ARRAY_BUFFER, this.normalBuffer);
-        gl.vertexAttribPointer(sp.vertexNormalAttribute, this.normalBuffer.itemSize, gl.FLOAT, false, 0, 0);
+    if(this.normalBuffer && this._sp.vertexNormalAttribute) {
+        this.ctx.gl.bindBuffer(this.ctx.gl.ARRAY_BUFFER, this.normalBuffer);
+        this.ctx.gl.vertexAttribPointer(this._sp.vertexNormalAttribute, this.normalBuffer.itemSize, this.ctx.gl.FLOAT, false, 0, 0);
     } 
     
-    if(this.waterDepthBuffer && sp.vertexWaterDepthAttribute) {
-        gl.bindBuffer(gl.ARRAY_BUFFER, this.waterDepthBuffer);
-        gl.vertexAttribPointer(sp.vertexWaterDepthAttribute, this.waterDepthBuffer.itemSize, gl.FLOAT, false, 0, 0);
+    if(this.texCoordBuffer && this._sp.textureCoordAttribute) {
+        this.ctx.gl.bindBuffer(this.ctx.gl.ARRAY_BUFFER, this.texCoordBuffer);
+        this.ctx.gl.vertexAttribPointer(this._sp.textureCoordAttribute, this.texCoordBuffer.itemSize, this.ctx.gl.FLOAT, false, 0, 0);
     } 
     
-    gl.bindBuffer(gl.ELEMENT_ARRAY_BUFFER, this.indexBuffer);
-    gl.drawElements(gl.TRIANGLES, this.indexBuffer.numItems, gl.UNSIGNED_SHORT, 0);
+    if(this.waterDepthBuffer && this._sp.vertexWaterDepthAttribute) {
+        this.ctx.gl.bindBuffer(this.ctx.gl.ARRAY_BUFFER, this.waterDepthBuffer);
+        this.ctx.gl.vertexAttribPointer(this._sp.vertexWaterDepthAttribute, this.waterDepthBuffer.itemSize, this.ctx.gl.FLOAT, false, 0, 0);
+    } 
+    
+    this.ctx.gl.bindBuffer(this.ctx.gl.ELEMENT_ARRAY_BUFFER, this.indexBuffer);
+    this.ctx.gl.drawElements(this.ctx.gl.TRIANGLES, this.indexBuffer.numItems, this.ctx.gl.UNSIGNED_SHORT, 0);
 };
     

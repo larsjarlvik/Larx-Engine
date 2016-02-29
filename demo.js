@@ -1,3 +1,9 @@
+/* global Terrain */
+/* global MouseShader */
+/* global WaterShader */
+/* global DefaultShader */
+/* global Q */
+
 (function() {
     var renderTarget = document.getElementById('viewport');
     var infoBox = document.getElementById('info');
@@ -6,14 +12,17 @@
     var larx = new Larx(viewport);
     var gameLoop = new GameLoop(60);
     var mousePicker = new MousePicker(larx, 0.5);
+    var cursor = new Cursor(larx);
+    var selectionCursor = new Cursor(larx);
     var pickObjects = [];
     
-    var defaultShader, waterShader, mouseShader;
+    var defaultShader, waterShader, mouseShader, cursorShader;
 
     var mTrees, mObjects, mWater, mTerrain;
     var waterColor = [0.359, 0.781, 0.800];
 
     initShaders()
+        .then(initCursors)
         .then(initTerrain)
         .then(initWater)
         .then(initTrees)
@@ -31,11 +40,13 @@
         defaultShader = new DefaultShader(larx);
         waterShader = new WaterShader(larx);
         mouseShader = new MouseShader(larx);
+        cursorShader = new CursorShader(larx);
         
         Q.all([
             defaultShader.load(),
             waterShader.load(),
-            mouseShader.load()
+            mouseShader.load(),
+            cursorShader.load()
         ]).then(function() {
             defaultShader.setWaterColor(waterColor);
             waterShader.setWaterColor(waterColor);
@@ -46,6 +57,12 @@
         });
         
         return deferred.promise;         
+    }
+    
+    function initCursors() {
+        cursor.color = [1.0, 1.0, 1.0];
+        selectionCursor.color = [0.0, 1.0, 0.0];
+        return Q(true);
     }
 
     function initTerrain() {
@@ -67,7 +84,7 @@
     }
 
     function initWater() {
-        var quality = 32;
+        var quality = 40;
         var deferred = Q.defer();
         
         mWater = new Water(larx, gameLoop);
@@ -138,17 +155,22 @@
                 var y = mTerrain.getElevationAtPoint(x, z);
                 
                 if(y >= -2.0 && y < 3.5 && x > -bounds && x < bounds && z > -bounds && z < bounds) {
+                    if(object.name !== 'crate') { object.scale(Math.random() * 1.2 + 0.5); }
                     var size = object.getSize();
-                    var angle = mTerrain.getAngle(x, z, size[0], size[1]);
                     
                     object.rotate([0, Math.random() * Math.PI, 0]);
+                    
+                    var angle = mTerrain.getAngle(x, z, size[0], size[1]);
+                    
                     object.rotate(angle);
                     object.translate([x, y, z]);
                     object.pickId = count;
                     
                     var pickObject = {
                         id: count,
-                        type: object.name
+                        type: object.name,
+                        pos: [x, y, z],
+                        size: size
                     };
                     
                     mousePicker.addObject(object, pickObject.id);
@@ -166,21 +188,56 @@
         })
         .catch(function(e) { console.error(e); });
         
-        
         return deferred.promise;
     }
         
-    function doLogic(time, frameCount) {
+    setInterval(function() {
+        document.getElementById('fps').innerHTML = 
+            'FPS: ' + gameLoop.fps +
+            '   AVG/MIN: ' + gameLoop.averageFpsMinute;
+    }, 1000);
+    
+    function doLogic(time) {
         keyboard();
         mouse();
         
         mWater.update();
     }
-
+    
     function render() {
-        larx.render(function() {
+        var cursorPos, cursorSize, cursorObject, pickObject;
+        
+        function drawCursor() {
+            cursorObject = mousePicker.getObjectId();
+            
+            if(cursorObject) {
+                pickObject = pickObjects.filter(function (obj) { return obj.id == cursorObject })[0];
+                cursorPos = pickObject.pos;
+                cursorSize = pickObject.size;
+                cursor.color = [1.0, 1.0, 0.0];
+            } else {
+                cursorPos = mousePicker.getCoordinates();
+                cursorSize = [0.5, 0.0, 0.5];
+                cursor.color = [1.0, 1.0, 1.0];
+            }
+            
+            cursorShader.use();
+            cursor.render(cursorShader, mTerrain, cursorPos, cursorSize);
+            
+            if(selectionCursor) {
+                selectionCursor.render(cursorShader, mTerrain, selectionCursor.pos, selectionCursor.size);
+            }
+        }
+    
+        larx.render(function() {            
+            larx.clear();
+            
             defaultShader.use();
             mTerrain.render(defaultShader);
+            
+            drawCursor();
+            
+            defaultShader.use();
             mTrees.render(defaultShader);
             mObjects.render(defaultShader);
             
@@ -199,15 +256,17 @@
         if(viewport.keyDown('D')) { larx.camera.move( 0.5,  0.0); }
     }
 
+
+    var dX, dY, cMatrix, dYRad, coords, id, pickObject;
     function mouse() {
         mousePicker.updateMouse(viewport.mouse.x, viewport.mouse.y);
         
         if(viewport.mouse.buttons.right || viewport.mouse.touchDown) {  
-            var dX = viewport.mouse.deltaX / 3.0,
-                dY = viewport.mouse.deltaY / 3.0;
+            dX = viewport.mouse.deltaX / 3.0;
+            dY = viewport.mouse.deltaY / 3.0;
                 
-            var cMatrix = larx.camera.getMatrix();
-            var dYRad = dY * Math.PI / 180;
+            cMatrix = larx.camera.getMatrix();
+            dYRad = dY * Math.PI / 180;
             
             larx.camera.rotate(dX, 0);
             
@@ -219,7 +278,7 @@
         }
         
         if(viewport.mouse.buttons.left) {
-            var coords = mousePicker.getCoordinates(viewport.mouse.x, viewport.mouse.y);
+            coords = mousePicker.getCoordinates(viewport.mouse.x, viewport.mouse.y);
             infoBox.style.display = 'none';
             
             if(coords) {
@@ -227,12 +286,19 @@
                 infoBox.style.display = 'block';
             }
                         
-            var id = mousePicker.getObjectId(viewport.mouse.x, viewport.mouse.y);
+            id = mousePicker.getObjectId(viewport.mouse.x, viewport.mouse.y);
             if(id) {
-                var pickObject = pickObjects.filter(function (obj) { return obj.id == id })[0];
-                infoBox.innerHTML = 'Selected: ' + pickObject.type + ' (ID: ' + pickObject.id + ')';
+                pickObject = pickObjects.filter(function (obj) { return obj.id == id })[0];
+                
+                infoBox.innerHTML = 'Selected: ' + pickObject.type + ' (ID: ' + pickObject.id + ')<br/>' + 'Size: ' + pickObject.size[0].toFixed(2) + ',' + pickObject.size[2].toFixed(2);
                 infoBox.style.display = 'block';
-            } 
+                
+                selectionCursor.show = true;
+                selectionCursor.pos = pickObject.pos;
+                selectionCursor.size = pickObject.size;
+            } else {
+                selectionCursor.show = false;
+            }
         }
         
         if(viewport.mouse.wheelDelta !== 0) {

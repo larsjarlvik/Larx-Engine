@@ -9,6 +9,7 @@ var MousePicker = function(ctx, precision) {
     this.precision = precision;
     this.width = ctx.gl.viewportWidth * this.precision;
     this.height = ctx.gl.viewportHeight * this.precision;
+    this.pixels = new Float32Array(4);
     
     this._initFramebuffer();
 };
@@ -41,6 +42,11 @@ MousePicker.prototype._initFramebuffer = function() {
 MousePicker.prototype.addObject = function(model, pickId) {
     var b = model.getBounds();
     var box = new Model(this.ctx, 'box');
+    
+    b[0] -= 0.4;
+    b[1] += 0.4;
+    b[4] -= 0.4;
+    b[5] += 0.4;
     
     box.vertices = [
         b[0], b[2], b[5],
@@ -85,14 +91,13 @@ MousePicker.prototype.addObject = function(model, pickId) {
     });
 };
 
+
 MousePicker.prototype.render = function(shader, model) {
-    var gl = this.ctx.gl;
+    this.ctx.gl.bindFramebuffer(this.ctx.gl.FRAMEBUFFER, this.framebuffer);
+    this.ctx.gl.clear(this.ctx.gl.COLOR_BUFFER_BIT | this.ctx.gl.DEPTH_BUFFER_BIT);
     
-    gl.bindFramebuffer(gl.FRAMEBUFFER, this.framebuffer);
-    
-    gl.viewport(0, 0, this.width, this.height);
-    gl.framebufferTexture2D(gl.FRAMEBUFFER, gl.COLOR_ATTACHMENT0, gl.TEXTURE_2D, this.texture, 0);
-    gl.clear(gl.COLOR_BUFFER_BIT | gl.DEPTH_BUFFER_BIT);
+    this.ctx.gl.viewport(0, 0, this.width, this.height);
+    this.ctx.gl.framebufferTexture2D(this.ctx.gl.FRAMEBUFFER, this.ctx.gl.COLOR_ATTACHMENT0, this.ctx.gl.TEXTURE_2D, this.texture, 0);
     
     this.ctx.matrix.setIdentity();
     this.ctx.matrix.setUniforms(shader);
@@ -105,12 +110,12 @@ MousePicker.prototype.render = function(shader, model) {
         this.objects[i].model.render(shader);
     }
     
-    if (this.mouse && gl.checkFramebufferStatus(gl.FRAMEBUFFER) == gl.FRAMEBUFFER_COMPLETE) {
-        this.pixels = new Float32Array(4);
-        gl.readPixels(this.mouse.x, this.mouse.y, 1, 1, gl.RGBA, gl.FLOAT, this.pixels);
+    if (this.mouse && this.ctx.gl.checkFramebufferStatus(this.ctx.gl.FRAMEBUFFER) == this.ctx.gl.FRAMEBUFFER_COMPLETE) {
+        this.ctx.gl.readPixels(this.mouse.x, this.mouse.y, 1, 1, this.ctx.gl.RGBA, this.ctx.gl.FLOAT, this.pixels);
     }
     
-    gl.bindFramebuffer(gl.FRAMEBUFFER, null)
+    this.ctx.gl.viewport(0, 0, this.ctx.canvas.width, this.ctx.canvas.height);
+    this.ctx.gl.bindFramebuffer(this.ctx.gl.FRAMEBUFFER, null)
 };
 
 MousePicker.prototype.updateMouse = function(mx, my) {
@@ -120,8 +125,9 @@ MousePicker.prototype.updateMouse = function(mx, my) {
     };
 };
 
-MousePicker.prototype.getCoordinates = function(mx, my) {
-    if(!this.pixels || this.pixels[3] > 0.9 || this.pixels[0] === -1) {
+MousePicker.prototype.getCoordinates = function() {
+    if(!this.pixels || this.pixels[0] === -1 || 
+      (this.pixels[0] === 0.0 && this.pixels[1] === 0.0 && this.pixels[2] === 0.0)) {
         return undefined;
     }
     
@@ -129,7 +135,7 @@ MousePicker.prototype.getCoordinates = function(mx, my) {
 };
 
 
-MousePicker.prototype.getObjectId = function(mx, my) {
+MousePicker.prototype.getObjectId = function() {
     if(!this.pixels || this.pixels[0] !== -1) {
         return undefined;
     }
