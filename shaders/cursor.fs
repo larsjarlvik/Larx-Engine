@@ -10,7 +10,7 @@ void main(void) {
     vec2 m = vTextureCoord - vec2(0.5, 0.5);
     float distance = sqrt(m.x * m.x + m.y * m.y);
     
-    float delta = 0.015 / uRadius;
+    float delta = 0.03 / uRadius;
     float start = 0.5 - (delta * 2.0);
     
     float alpha1 = smoothstep(start - delta, start, distance);

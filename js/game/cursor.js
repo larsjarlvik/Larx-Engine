@@ -20,9 +20,9 @@ var Cursor = function(ctx) {
 
 Cursor.prototype._buildCursor = function(terrain, size, pos) { 
     if(size[0] > size[2]) {
-        this.cursorSize = size[0] / 2.0 + 0.3;
+        this.cursorSize = size[0] / 2.0 + 0.5;
     } else {
-        this.cursorSize = size[2] / 2.0 + 0.3;
+        this.cursorSize = size[2] / 2.0 + 0.5;
     }
        
     this.model.vertices = [

@@ -5,7 +5,6 @@ html, body {
     overflow: hidden;
     color: #eee;
     font: 1vw Arial, Helvetica;
-    
     text-align: center;
 }
 
@@ -32,12 +31,13 @@ body {
 }
 
 .box {
+    text-align: left;
     position: absolute;
     padding: 1em 1.5em;
     border-radius: 0.5em;
     background: rgba(50, 50, 50, 0.5);
     z-index: 1000;
-    line-height: 1;
+    line-height: 1.4em;
 }
 
 #fullscreen {
@@ -62,8 +62,6 @@ body {
 }
 
 .interactions {
-    
-    text-align: left;
     bottom: 1em;
     right: 1em;
 }
@@ -76,5 +74,4 @@ body {
     margin-bottom: 0;
     list-style: none;
     padding: 0;
-    line-height: 1.4em;
 }

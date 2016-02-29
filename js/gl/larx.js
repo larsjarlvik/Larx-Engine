@@ -31,9 +31,9 @@ Larx.prototype._init = function() {
     this.gl.enable(this.gl.CULL_FACE);
     this.gl.cullFace(this.gl.BACK);
 
-    this.viewport.resize(function () {
-        self.gl.viewportWidth = this.canvas.width;
-        self.gl.viewportHeight = this.canvas.height;
+    this.viewport.onResize(function () {
+        self.gl.viewportWidth = self.canvas.width;
+        self.gl.viewportHeight = self.canvas.height;
     });
     
     this.gl.clearColor(0.0, 0.0, 0.0, 1.0);

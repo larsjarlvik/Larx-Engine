@@ -12,7 +12,16 @@ var MousePicker = function(ctx, precision) {
     this.pixels = new Float32Array(4);
     
     this._initFramebuffer();
+    
+    var self = this;
+    
+    this.ctx.viewport.onResize(function () {
+        self.width = ctx.gl.viewportWidth * self.precision;
+        self.height = ctx.gl.viewportHeight * self.precision;
+        self._initFramebuffer();
+    });
 };
+
 
 MousePicker.prototype._initFramebuffer = function() {
     var gl = this.ctx.gl;
