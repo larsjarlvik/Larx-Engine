@@ -1,3 +1,5 @@
+/* global Q */
+
 var MouseShader = function(ctx) {
     this.ctx = ctx;
     this.shaders = undefined;

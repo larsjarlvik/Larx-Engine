@@ -6,7 +6,9 @@ var Terrain = function(ctx) {
     this.heights;
     this.size;
     this.waterLevel;
+    
     this.model;
+    this.underwater;
     
     this.ctx = ctx;
 };
@@ -32,9 +34,9 @@ Terrain.prototype._appendToModel = function(vec, color) {
         this.model.colors.push(color[1]); 
         this.model.colors.push(color[2]); 
     } else {
-        this.model.colors.push(0.0);
-        this.model.colors.push(0.0);
-        this.model.colors.push(0.0);
+        this.model.colors.push(0.871);
+        this.model.colors.push(0.699);
+        this.model.colors.push(0.539);
     }
 };
 
@@ -60,6 +62,7 @@ Terrain.prototype._build = function() {
         var vz = -(this.size / 2) + z;
             
         for(var x = 0; x < this.size; x++) {
+            
             vecs = [];
             var vx = -(this.size / 2) + x;
             
@@ -235,5 +238,3 @@ Terrain.prototype.render = function (shader) {
     this.ctx.matrix.setUniforms(shader);
     this.model.render(shader);
 };
-
-    

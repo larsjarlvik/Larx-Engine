@@ -1,8 +1,8 @@
 
 
 var Camera = function () {
-    this.zoomLevel = 85,
-    this.look = { x: 0, y: 0, z: 0 },
+    this.zoomLevel = 45,
+    this.look = { x: -25, y: 0, z: -25 },
     this.rot = { v: 35, h: 45 }
 };
 

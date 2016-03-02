@@ -19,17 +19,15 @@ WaterShader.prototype.load = function() {
         
         self.buffers = {};
         
-        self.shader.vertexPositionAttribute = gl.getAttribLocation(self.shader, 'aVertexPosition');
-        gl.enableVertexAttribArray(self.shader.vertexPositionAttribute);
-        
         self.shader.vertexNormalAttribute = gl.getAttribLocation(self.shader, 'aVertexNormal');
-        gl.enableVertexAttribArray(self.shader.vertexNormalAttribute);
-        
-        self.shader.vertexWaterDepthAttribute = gl.getAttribLocation(self.shader, 'aWaterDepth');
-        gl.enableVertexAttribArray(self.shader.vertexWaterDepthAttribute);
         
         self.shader.color = gl.getUniformLocation(self.shader, 'uColor');
         self.shader.opacity = gl.getUniformLocation(self.shader, 'uOpacity');
+        self.shader.depthTexture = gl.getUniformLocation(self.shader, 'uDepthTexture');
+        
+        self.shader.fogDensity = gl.getUniformLocation(self.shader, 'uFogDensity');
+        self.shader.fogGradient = gl.getUniformLocation(self.shader, 'uFogGradient');
+        self.shader.fogColor = gl.getUniformLocation(self.shader, 'uFogColor');
         
         self.shaders.setDefaults(self.shader, true);
         
@@ -47,9 +45,28 @@ WaterShader.prototype.get = function() {
 
 WaterShader.prototype.use = function() {
     this.ctx.gl.useProgram(this.shader);
+    this.ctx.gl.enableVertexAttribArray(this.shader.vertexNormalAttribute);
 }; 
+
+WaterShader.prototype.cleanUp = function() {
+    this.ctx.gl.disableVertexAttribArray(this.shader.vertexNormalAttribute);
+};
 
 WaterShader.prototype.setWaterColor = function(color) {
     this.ctx.gl.useProgram(this.shader);
     this.ctx.gl.uniform3f(this.shader.color, color[0], color[1], color[2]);
+};
+
+WaterShader.prototype.setColorTexture = function() {
+    this.ctx.gl.uniform1i(this.shader.depthTexture, 0);  
+};
+
+WaterShader.prototype.setDepthTexture = function() {
+    this.ctx.gl.uniform1i(this.shader.depthTexture, 1);  
+};
+
+WaterShader.prototype.setFog = function(density, gradient, color) {
+    this.ctx.gl.uniform1f(this.shader.fogDensity, density);
+    this.ctx.gl.uniform1f(this.shader.fogGradient, gradient);
+    this.ctx.gl.uniform3f(this.shader.fogColor, color[0], color[1], color[2]);
 };

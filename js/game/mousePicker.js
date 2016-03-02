@@ -1,51 +1,28 @@
 var MousePicker = function(ctx, precision) {
     this.ctx = ctx;
-    this.framebuffer;
-    this.texture;
     this.capture;
     this.mouse;
     this.objects = [];
-    
     this.precision = precision;
+    
     this.width = ctx.gl.viewportWidth * this.precision;
     this.height = ctx.gl.viewportHeight * this.precision;
-    this.pixels = new Float32Array(4);
     
-    this._initFramebuffer();
+    this.buffer = new Framebuffer(ctx, this.width, this.height);
+    this.buffer.buildColorBuffer(ctx.gl.FLOAT);
+    
+    this.pixels = new Float32Array(4);
     
     var self = this;
     
     this.ctx.viewport.onResize(function () {
         self.width = ctx.gl.viewportWidth * self.precision;
         self.height = ctx.gl.viewportHeight * self.precision;
-        self._initFramebuffer();
-    });
-};
-
-
-MousePicker.prototype._initFramebuffer = function() {
-    var gl = this.ctx.gl;
-
-    this.framebuffer = gl.createFramebuffer();
-    gl.bindFramebuffer(gl.FRAMEBUFFER, this.framebuffer);
     
-    this.texture = gl.createTexture();
-    gl.bindTexture(gl.TEXTURE_2D, this.texture);
-    gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_MAG_FILTER, gl.NEAREST);
-    gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_MIN_FILTER, gl.NEAREST);
-
-    gl.texImage2D(gl.TEXTURE_2D, 0, gl.RGBA, this.width, this.height, 0, gl.RGBA, gl.FLOAT, null);
-
-    var renderbuffer = gl.createRenderbuffer();
-    gl.bindRenderbuffer(gl.RENDERBUFFER, renderbuffer);
-    gl.renderbufferStorage(gl.RENDERBUFFER, gl.DEPTH_COMPONENT16, this.width, this.height);
-
-    gl.framebufferTexture2D(gl.FRAMEBUFFER, gl.COLOR_ATTACHMENT0, gl.TEXTURE_2D, this.texture, 0);
-    gl.framebufferRenderbuffer(gl.FRAMEBUFFER, gl.DEPTH_ATTACHMENT, gl.RENDERBUFFER, renderbuffer);
-
-    gl.bindTexture(gl.TEXTURE_2D, null);
-    gl.bindRenderbuffer(gl.RENDERBUFFER, null);
-    gl.bindFramebuffer(gl.FRAMEBUFFER, null);
+        self.buffer.width = self.width;
+        self.buffer.height = self.height;
+        self.buffer.build();
+    });
 };
 
 MousePicker.prototype.addObject = function(model, pickId) {
@@ -100,14 +77,8 @@ MousePicker.prototype.addObject = function(model, pickId) {
     });
 };
 
-
 MousePicker.prototype.render = function(shader, model) {
-    this.ctx.gl.bindFramebuffer(this.ctx.gl.FRAMEBUFFER, this.framebuffer);
-    this.ctx.gl.clear(this.ctx.gl.COLOR_BUFFER_BIT | this.ctx.gl.DEPTH_BUFFER_BIT);
-    
-    this.ctx.gl.viewport(0, 0, this.width, this.height);
-    this.ctx.gl.framebufferTexture2D(this.ctx.gl.FRAMEBUFFER, this.ctx.gl.COLOR_ATTACHMENT0, this.ctx.gl.TEXTURE_2D, this.texture, 0);
-    
+    this.buffer.bind();
     this.ctx.matrix.setIdentity();
     this.ctx.matrix.setUniforms(shader);
     
@@ -123,8 +94,7 @@ MousePicker.prototype.render = function(shader, model) {
         this.ctx.gl.readPixels(this.mouse.x, this.mouse.y, 1, 1, this.ctx.gl.RGBA, this.ctx.gl.FLOAT, this.pixels);
     }
     
-    this.ctx.gl.viewport(0, 0, this.ctx.canvas.width, this.ctx.canvas.height);
-    this.ctx.gl.bindFramebuffer(this.ctx.gl.FRAMEBUFFER, null)
+    this.buffer.unbind();
 };
 
 MousePicker.prototype.updateMouse = function(mx, my) {

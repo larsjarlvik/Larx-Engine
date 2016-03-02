@@ -4,6 +4,7 @@ var Model = function (ctx, name) {
     this.ctx = ctx;
     this.name = name;
     
+    this.properties = [];
     this.vertices = [];
     this.colors;
     this.normals;
@@ -41,35 +42,72 @@ Model.prototype._parse = function(data) {
 };
     
 Model.prototype._parseHeader = function(lines) {
+    
+    this.properties = [];
+    var propertyIndex = 0;
+    
     for(var i = 0; i < lines.length; i ++) {
         var line = lines[i].trim();
         
-        if(line.indexOf('element vertex') == 0) { this.vertexCount = this._parseHeaderValue(line); }
-        if(line.indexOf('element face') == 0) { this.faceCount = this._parseHeaderValue(line); }
+        if(line.indexOf('property') == 0) {
+            var headerValue = this._parseHeaderValue(line);
+            
+            switch(headerValue) {
+                case 'x':
+                    this.properties['vertices'] = propertyIndex;
+                    break;
+                case 'nx':
+                    this.properties['normals'] = propertyIndex;
+                    break;
+                case 's':
+                    this.properties['texCoords'] = propertyIndex;
+                    break;
+                case 'red':
+                    this.properties['colors'] = propertyIndex;
+                    break;
+            }
+            propertyIndex ++;
+        }
+            
+        
+        if(line.indexOf('element vertex') == 0) { this.vertexCount = parseInt(this._parseHeaderValue(line)); }
+        if(line.indexOf('element face') == 0) { this.faceCount = parseInt(this._parseHeaderValue(line)); }
         
         if(line === 'end_header') { return i + 1; }
     }
 }; 
 
 Model.prototype._parseVertices = function(lines, start) {
-    this.vertices = [];
-    this.colors = [];
-    this.normals = [];
-
+    if(this.properties['vertices'] !== undefined) { this.vertices = []; }
+    if(this.properties['normals'] !== undefined) { this.normals = []; }
+    if(this.properties['colors'] !== undefined) { this.colors = []; }
+    if(this.properties['texCoords'] !== undefined) { this.texCoords = []; }
+    
     for(var i = start; i < start + this.vertexCount; i ++) {
         var values = lines[i].trim().split(' ');
         
-        this.vertices.push(parseFloat(values[0]));
-        this.vertices.push(parseFloat(values[1]));
-        this.vertices.push(parseFloat(values[2]));
+        if(this.properties['vertices'] !== undefined) {
+            this.vertices.push(parseFloat(values[this.properties['vertices']]));
+            this.vertices.push(parseFloat(values[this.properties['vertices'] + 1]));
+            this.vertices.push(parseFloat(values[this.properties['vertices'] + 2]));
+        }
         
-        this.normals.push(parseFloat(values[3]));
-        this.normals.push(parseFloat(values[4]));
-        this.normals.push(parseFloat(values[5]));
+        if(this.properties['normals'] !== undefined) {
+            this.normals.push(parseFloat(values[this.properties['normals']]));
+            this.normals.push(parseFloat(values[this.properties['normals'] + 1]));
+            this.normals.push(parseFloat(values[this.properties['normals'] + 2]));
+        }
         
-        this.colors.push(parseInt(values[6]) / 256);
-        this.colors.push(parseInt(values[7]) / 256);
-        this.colors.push(parseInt(values[8]) / 256);
+        if(this.properties['texCoords'] !== undefined) {
+            this.texCoords.push(parseFloat(values[this.properties['texCoords']]));
+            this.texCoords.push(parseFloat(values[this.properties['texCoords'] + 1]));
+        }
+        
+        if(this.properties['colors'] !== undefined) {
+            this.colors.push(parseFloat(values[this.properties['colors']]) / 256.0);
+            this.colors.push(parseFloat(values[this.properties['colors'] + 1]) / 256.0);
+            this.colors.push(parseFloat(values[this.properties['colors'] + 2]) / 256.0);
+        }
     }
 };    
 
@@ -88,7 +126,7 @@ Model.prototype._parseFaces = function(lines, start) {
 
 Model.prototype._parseHeaderValue = function(line) {
     var n = line.split(' ');
-    return parseInt(n[n.length - 1]);
+    return n[n.length - 1];
 };
 
 Model.prototype.bindBuffers = function() {
@@ -118,13 +156,6 @@ Model.prototype.bindBuffers = function() {
         gl.bindBuffer(gl.ARRAY_BUFFER, this.texCoordBuffer);
         gl.bufferData(gl.ARRAY_BUFFER, new Float32Array(this.texCoords), gl.STATIC_DRAW);
         this.texCoordBuffer.itemSize = 2;
-    }
-    
-    if(this.depths) {
-        if(!this.waterDepthBuffer) { this.waterDepthBuffer = gl.createBuffer(); }
-        gl.bindBuffer(gl.ARRAY_BUFFER, this.waterDepthBuffer);
-        gl.bufferData(gl.ARRAY_BUFFER, new Float32Array(this.depths), gl.STATIC_DRAW);
-        this.waterDepthBuffer.itemSize = 1;
     }
     
     if(!this.indexBuffer) { this.indexBuffer = gl.createBuffer(); }
@@ -335,11 +366,6 @@ Model.prototype.render = function (shaderProgram) {
     if(this.texCoordBuffer && this._sp.textureCoordAttribute) {
         this.ctx.gl.bindBuffer(this.ctx.gl.ARRAY_BUFFER, this.texCoordBuffer);
         this.ctx.gl.vertexAttribPointer(this._sp.textureCoordAttribute, this.texCoordBuffer.itemSize, this.ctx.gl.FLOAT, false, 0, 0);
-    } 
-    
-    if(this.waterDepthBuffer && this._sp.vertexWaterDepthAttribute) {
-        this.ctx.gl.bindBuffer(this.ctx.gl.ARRAY_BUFFER, this.waterDepthBuffer);
-        this.ctx.gl.vertexAttribPointer(this._sp.vertexWaterDepthAttribute, this.waterDepthBuffer.itemSize, this.ctx.gl.FLOAT, false, 0, 0);
     } 
     
     this.ctx.gl.bindBuffer(this.ctx.gl.ELEMENT_ARRAY_BUFFER, this.indexBuffer);

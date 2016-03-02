@@ -21,12 +21,13 @@ Larx.prototype._init = function() {
     if(!this.gl) { this.gl = this.canvas.getContext('experimental-webgl'); }
     
     this.gl.getExtension("OES_texture_float");
-
+    this.gl.getExtension("WEBGL_depth_texture");
+    
     this.gl.viewportWidth = this.canvas.width;
     this.gl.viewportHeight = this.canvas.height;
-
+    
+    this.gl.enable(this.gl.DEPTH_TEST);
     this.gl.blendFunc(this.gl.SRC_ALPHA, this.gl.ONE_MINUS_SRC_ALPHA);
-    this.gl.disable(this.gl.DEPTH_TEST);
 
     this.gl.enable(this.gl.CULL_FACE);
     this.gl.cullFace(this.gl.BACK);
@@ -36,8 +37,7 @@ Larx.prototype._init = function() {
         self.gl.viewportHeight = self.canvas.height;
     });
     
-    this.gl.clearColor(0.0, 0.0, 0.0, 1.0);
-    this.gl.enable(this.gl.DEPTH_TEST);
+    this.gl.clearColor(0.601, 0.816, 0.820, 1.0);
     
     this.camera = new Camera();
     this.matrix = new Matrix(this);

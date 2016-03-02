@@ -15,15 +15,17 @@
     var cursor = new Cursor(larx);
     var selectionCursor = new Cursor(larx);
     var pickObjects = [];
+    var depthBuffer;
     
-    var defaultShader, waterShader, mouseShader, cursorShader;
+    var defaultShader, waterShader, mouseShader, cursorShader, depthShader, skyShader;
 
-    var mTrees, mObjects, mWater, mTerrain;
-    var waterColor = [0.359, 0.781, 0.800];
+    var mTrees, mObjects, mSky, mWater, mTerrain;
+    var waterColor = [0.195, 0.805, 0.723];
 
     initShaders()
         .then(initCursors)
         .then(initTerrain)
+        .then(initSky)
         .then(initWater)
         .then(initTrees)
         .then(initObjects)
@@ -41,15 +43,32 @@
         waterShader = new WaterShader(larx);
         mouseShader = new MouseShader(larx);
         cursorShader = new CursorShader(larx);
+        depthShader = new DepthShader(larx);
+        skyShader = new SkyShader(larx);
         
         Q.all([
             defaultShader.load(),
             waterShader.load(),
             mouseShader.load(),
-            cursorShader.load()
+            cursorShader.load(),
+            depthShader.load(),
+            skyShader.load()
         ]).then(function() {
-            defaultShader.setWaterColor(waterColor);
+            skyShader.use();
+            skyShader.setColorStop1([0.601, 0.816, 0.820]);
+            skyShader.setColorStop2([0.601, 0.816, 0.820]);
+            skyShader.setColorStop3([0.250, 0.406, 0.488]);
+            skyShader.cleanUp();
+                    
+            defaultShader.use();
+            defaultShader.setFog(0.006, 8.0, [0.601, 0.816, 0.820]);
+            defaultShader.cleanUp();
+            
+            waterShader.use();
+            waterShader.setFog(0.006, 8.0, [0.601, 0.816, 0.820]);
             waterShader.setWaterColor(waterColor);
+            waterShader.cleanUp();
+            
             deferred.resolve();
         }).catch(function (e) { 
             console.error(e);
@@ -64,12 +83,23 @@
         selectionCursor.color = [0.0, 1.0, 0.0];
         return Q(true);
     }
+    
+    function initSky() {
+        var deferred = Q.defer();
+        
+        mSky = new Sky(larx, 700);
+        mSky.load('skydome').then(function () {
+            deferred.resolve();
+        });
+        
+        return deferred.promise;
+    }
 
     function initTerrain() {
         var deferred = Q.defer();
         
         mTerrain = new Terrain(larx);
-        mTerrain.generate('/maps/test', 9.0, 1.5, 1)              
+        mTerrain.generate('/maps/test', 8.0, 1.5, 1)              
             .then(function(t) {
                 mTerrain.colors = undefined;
                 mTerrain.normals = undefined;
@@ -79,6 +109,10 @@
                 deferred.resolve(true);
             })
             .catch(function(e) { console.error(e); });
+        
+        depthBuffer = new Framebuffer(larx, 1024, 1024);
+        depthBuffer.buildColorBuffer(larx.gl.UNSIGNED_BYTE, true);
+        depthBuffer.buildDepthBuffer();
             
         return deferred.promise;
     }
@@ -148,14 +182,14 @@
             var bounds = (mTerrain.size / 2) - 2;
             mObjects = new Model(larx, 'objects');
             
-            while(count < 150) {
+            while(count < 550) {
                 var object = models[Math.floor(Math.random() * models.length)].clone();
                 var x = Math.random() * (mTerrain.size - 2) - ((mTerrain.size - 2) / 2);
                 var z = Math.random() * (mTerrain.size - 2) - ((mTerrain.size - 2) / 2);
                 var y = mTerrain.getElevationAtPoint(x, z);
                 
                 if(y >= -2.0 && y < 3.5 && x > -bounds && x < bounds && z > -bounds && z < bounds) {
-                    if(object.name !== 'crate') { object.scale(Math.random() * 1.2 + 0.5); }
+                    if(object.name !== 'crate') { object.scale(Math.random() * 1.5 + 0.5); }
                     var size = object.getSize();
                     
                     object.rotate([0, Math.random() * Math.PI, 0]);
@@ -227,25 +261,44 @@
             if(selectionCursor) {
                 selectionCursor.render(cursorShader, mTerrain, selectionCursor.pos, selectionCursor.size);
             }
+            
+            cursorShader.cleanUp();
         }
     
         larx.render(function() {            
             larx.clear();
+                        
+            skyShader.use();
+            mSky.render(skyShader);
+            skyShader.cleanUp();
+            
+            depthBuffer.bind();
+            defaultShader.use();
+            mTerrain.render(defaultShader);
+            mObjects.render(defaultShader);
+            defaultShader.cleanUp();
+            depthBuffer.unbind();
+            
+            mouseShader.use();
+            mousePicker.render(mouseShader, mTerrain);
+            
             
             defaultShader.use();
             mTerrain.render(defaultShader);
+            defaultShader.cleanUp();
             
             drawCursor();
             
             defaultShader.use();
             mTrees.render(defaultShader);
             mObjects.render(defaultShader);
+            defaultShader.cleanUp();
+            
             
             waterShader.use();
-            mWater.render(waterShader);
+            mWater.render(waterShader, depthBuffer);
+            waterShader.cleanUp();
             
-            mouseShader.use();
-            mousePicker.render(mouseShader, mTerrain);
         });
     }
 

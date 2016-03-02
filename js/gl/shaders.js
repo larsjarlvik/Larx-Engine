@@ -73,6 +73,9 @@ Shaders.prototype.setDefaults = function (shader, useLights) {
     shader.mvMatrixUniform = gl.getUniformLocation(shader, 'uMVMatrix');
     shader.nMatrixUniform  = gl.getUniformLocation(shader, 'uNMatrix');
     
+    shader.vertexPositionAttribute = gl.getAttribLocation(shader, 'aVertexPosition');
+    gl.enableVertexAttribArray(shader.vertexPositionAttribute);
+    
     if(useLights) {
         shader.ambientColor = gl.getUniformLocation(shader, 'uAmbientColor');
         shader.directionalColor = gl.getUniformLocation(shader, 'uDirectionalColor');

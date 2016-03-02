@@ -13,7 +13,7 @@ var Water = function (ctx, gameLoop) {
 };
     
     
-Water.prototype._appendToModel = function(vec, depth) {
+Water.prototype._appendToModel = function(vec) {
     this.model.vertices.push(vec[0]);
     this.model.vertices.push(vec[1]);
     this.model.vertices.push(vec[2]);
@@ -21,8 +21,6 @@ Water.prototype._appendToModel = function(vec, depth) {
     this.model.normals.push(0);
     this.model.normals.push(1);
     this.model.normals.push(0);
-    
-    this.model.depths.push(depth);
 };
 
 Water.prototype._setIndices = function(counter) {
@@ -45,9 +43,7 @@ Water.prototype._build = function(terrain) {
         var vz = z - (this.size / 2);
             
         for(var x = 0; x < this.size - 0.001; x += ts) {
-            var vecs = [],
-                depths = [];
-            
+            var vecs = [];
             var vx = x - (this.size / 2);
             
             if((x%2 === 0 && z%2 === 0) || (x%2 === 1 && z%2 === 1)) {
@@ -58,14 +54,6 @@ Water.prototype._build = function(terrain) {
                 vecs.push(vec3.fromValues(vx + ts, 0, vz));
                 vecs.push(vec3.fromValues(vx, 0, vz + ts));
                 vecs.push(vec3.fromValues(vx + ts, 0, vz + ts));
-                
-                depths.push(terrain.getElevationAtPoint(vx + ts, vz));
-                depths.push(terrain.getElevationAtPoint(vx, vz));
-                depths.push(terrain.getElevationAtPoint(vx, vz + ts));
-                
-                depths.push(terrain.getElevationAtPoint(vx + ts, vz));
-                depths.push(terrain.getElevationAtPoint(vx, vz + ts));
-                depths.push(terrain.getElevationAtPoint(vx + ts, vz + ts));
             } else {
                 vecs.push(vec3.fromValues(vx + ts, 0, vz + ts));
                 vecs.push(vec3.fromValues(vx, 0, vz));
@@ -74,28 +62,15 @@ Water.prototype._build = function(terrain) {
                 vecs.push(vec3.fromValues(vx + ts, 0, vz));
                 vecs.push(vec3.fromValues(vx, 0, vz));
                 vecs.push(vec3.fromValues(vx + ts, 0, vz + ts));
-                
-                depths.push(terrain.getElevationAtPoint(vx + ts, vz + ts));
-                depths.push(terrain.getElevationAtPoint(vx, vz));
-                depths.push(terrain.getElevationAtPoint(vx, vz + ts));
-                
-                depths.push(terrain.getElevationAtPoint(vx + ts, vz));
-                depths.push(terrain.getElevationAtPoint(vx, vz));
-                depths.push(terrain.getElevationAtPoint(vx + ts, vz + ts));
             }
             
-            if(depths[0] > 0 && depths[1] > 0 && depths[2] > 0 && 
-                depths[3] > 0 && depths[4] > 0 && depths[5] > 0) {
-                    continue;
-                }
-                
-            this._appendToModel(vecs[0], depths[0]);
-            this._appendToModel(vecs[1], depths[1]);
-            this._appendToModel(vecs[2], depths[2]);
+            this._appendToModel(vecs[0]);
+            this._appendToModel(vecs[1]);
+            this._appendToModel(vecs[2]);
             
-            this._appendToModel(vecs[3], depths[3]);
-            this._appendToModel(vecs[4], depths[4]);
-            this._appendToModel(vecs[5], depths[5]);
+            this._appendToModel(vecs[3]);
+            this._appendToModel(vecs[4]);
+            this._appendToModel(vecs[5]);
             
             this._setIndices(counter);
             counter++;
@@ -105,26 +80,28 @@ Water.prototype._build = function(terrain) {
 
 Water.prototype._generateLoop = function() {
     var frameTime = (Math.PI / this.gameLoop.targetFps);
+    var target;
     
     for(var i = 0; i < Math.PI / this.speed; i += frameTime) {
         var tx = i * this.speed % Math.PI;
+        target = this.model.clone();
             
-        for(var n = 0; n < this.model.vertices.length; n += 3) {
-            var x = this.model.vertices[n];
-            var z = this.model.vertices[n + 2];
+        for(var n = 0; n < target.vertices.length; n += 3) {
+            var x = target.vertices[n];
+            var z = target.vertices[n + 2];
             
-            this.model.vertices[n + 1] =
+            target.vertices[n + 1] =
                 Math.sin(tx + x * this.waveIntensity) * Math.cos(tx + z * this.waveIntensity) * this.waveHeight;
         }
-
-        this.model.calculateNormals();
+        
+        target.calculateNormals();
+        
         this.frames.push({
-            vertices: this.model.vertices,
-            normals: this.model.normals
+            vertices: target.vertices,
+            normals: target.normals
         });
     }
 };
-    
 
 Water.prototype.generate = function (terrain, quality) {
     this.quality = quality;
@@ -133,10 +110,9 @@ Water.prototype.generate = function (terrain, quality) {
     this.model = new Model(this.ctx, 'water');
     this.model.colors = [];
     this.model.normals = [];
-    this.model.depths = [];
-    this.model.shininess = 3.0;
-    this.model.opacity = 0.55;
-    this.model.specularWeight = 1.2;
+    this.model.shininess = 1.0;
+    this.model.opacity = 0.9;
+    this.model.specularWeight = 0.6;
     this._build(terrain);
     this._generateLoop();
     
@@ -156,7 +132,12 @@ Water.prototype.update = function () {
 };
 
 
-Water.prototype.render = function (shader) {
+Water.prototype.render = function (shader, depthBuffer) {
+    depthBuffer.bindColorTexture();
+    depthBuffer.bindDepthTexture();
+    shader.setColorTexture(depthBuffer.colorTexture);
+    shader.setDepthTexture(depthBuffer.depthTexture);
+    
     this.ctx.gl.enable(this.ctx.gl.BLEND);
     
     this.ctx.matrix.setIdentity();
@@ -164,4 +145,9 @@ Water.prototype.render = function (shader) {
     this.model.render(shader);
     
     this.ctx.gl.disable(this.ctx.gl.BLEND);
+    depthBuffer.unbindTextures();
+};
+
+Water.prototype.setReflectionCamera = function() {
+    
 };

@@ -20,7 +20,7 @@ GameLoop.prototype._tick = function() {
     this.timeSinceLastDoLogic = (this.timeAtThisFrame - this.timeAtLastFrame) + this.leftover;
     this.catchUpFrameCount = Math.floor(this.timeSinceLastDoLogic / this.idealTimePerFrame);
 
-    for(var i = 0 ; i < this.catchUpFrameCount; i++){
+    for(var i = 0 ; i < this.catchUpFrameCount && i < 180; i++){
         this.logicCallback(new Date().getTime());
     }
 
