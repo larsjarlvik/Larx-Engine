@@ -43,7 +43,6 @@ Cursor.prototype.render = function(shader, terrain, pos, size) {
     
     
     this.ctx.matrix.push();
-    this.ctx.matrix.setIdentity();
     this.ctx.matrix.translate(pos);
     this.ctx.matrix.setUniforms(shader);
     this.ctx.gl.enable(this.ctx.gl.BLEND);

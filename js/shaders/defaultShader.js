@@ -28,6 +28,8 @@ DefaultShader.prototype.load = function() {
         self.shader.fogColor = gl.getUniformLocation(self.shader, 'uFogColor');
         
         self.shader.opacity = gl.getUniformLocation(self.shader, 'uOpacity');
+        self.shader.clipPlane = gl.getUniformLocation(self.shader, 'uClipPlane');
+        
         self.shaders.setDefaults(self.shader, true);
         
         deferred.resolve();
@@ -47,6 +49,10 @@ DefaultShader.prototype.use = function() {
     this.ctx.gl.enableVertexAttribArray(this.shader.vertexColorAttribute);
     this.ctx.gl.enableVertexAttribArray(this.shader.vertexNormalAttribute);
 }; 
+
+DefaultShader.prototype.setClipPlane = function(clipPlane) {
+    this.ctx.gl.uniform1i(this.shader.clipPlane, clipPlane);
+};
 
 DefaultShader.prototype.cleanUp = function() {
     this.ctx.gl.disableVertexAttribArray(this.shader.vertexColorAttribute);

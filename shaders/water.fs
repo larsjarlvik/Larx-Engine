@@ -7,14 +7,18 @@ varying vec3 vNormal;
 varying vec2 vCoord;
 varying vec4 vClipSpace;
 varying float vVisibility;
-varying vec2 blurCoordinates[5];
+varying vec2 refractBlurCoordinates[5];
+varying vec2 reflectBlurCoordinates[5];
 
 uniform float uOpacity;
+uniform float uDistortion;
 uniform vec3 uColor;
+uniform vec3 uDeepColor;
 uniform vec3 uFogColor;
 
-uniform sampler2D uColorTexture;
-uniform sampler2D uDepthTexture;
+uniform sampler2D uRefractionDepthTexture;
+uniform sampler2D uRefractionColorTexture;
+uniform sampler2D uReflectionColorTexture;
 
 uniform vec3 uAmbientColor;
 uniform vec3 uDirectionalColor;
@@ -23,8 +27,7 @@ uniform vec3 uSpecularColor;
 uniform float uShininess;
 uniform float uSpecularWeight;
 
-
-                                                                                   
+                                                   
 void main(void) {    
     vec3 lightDirection = normalize(uLightingDirection - vPosition.xyz);
     vec3 normal = normalize(vTransformedNormal);
@@ -48,9 +51,11 @@ void main(void) {
     float near = 0.1;
     float far = 10000.0;
     vec2 ndc = (vClipSpace.xy / vClipSpace.w) / 2.0 + 0.5;
+    vec2 refractTexCoords = vec2(ndc.x, ndc.y);
+    vec2 reflectTexCoords = vec2(ndc.x, 1.0 - ndc.y);
     
     // Depth
-    float depth = texture2D(uDepthTexture, ndc).r;
+    float depth = texture2D(uRefractionDepthTexture, refractTexCoords).r;
     float floorDistance = 2.0 * near * far / (far + near - (2.0 * depth - 1.0) * (far - near));
     
     depth = gl_FragCoord.z;
@@ -58,21 +63,24 @@ void main(void) {
     
     // Refraction
     depth = (floorDistance - surfaceDistance);
-    float distort = (normal.x / 25.0) * lightWeighting.r;
+    float distort = ((normal.x / 100.0) * uDistortion) * lightWeighting.r;
     
-	lowp vec4 tex = vec4(0.0);
-	tex += texture2D(uColorTexture, blurCoordinates[0] - distort) * 0.204164;
-	tex += texture2D(uColorTexture, blurCoordinates[1] - distort) * 0.304005;
-	tex += texture2D(uColorTexture, blurCoordinates[2] - distort) * 0.304005;
-	tex += texture2D(uColorTexture, blurCoordinates[3] - distort) * 0.093913;
-	tex += texture2D(uColorTexture, blurCoordinates[4] - distort) * 0.093913;
+	lowp vec4 refraction = vec4(0.0);
+	refraction += texture2D(uRefractionColorTexture, refractBlurCoordinates[0] - distort) * 0.204164;
+	refraction += texture2D(uRefractionColorTexture, refractBlurCoordinates[1] - distort) * 0.304005;
+	refraction += texture2D(uRefractionColorTexture, refractBlurCoordinates[2] - distort) * 0.304005;
+	refraction += texture2D(uRefractionColorTexture, refractBlurCoordinates[3] - distort) * 0.093913;
+	refraction += texture2D(uRefractionColorTexture, refractBlurCoordinates[4] - distort) * 0.093913;
     
-    vec3 color = tex.rgb;
-    color /= lightWeighting;
-    color = mix(uColor, color, 0.5);
+    vec3 refractColor = refraction.rgb;
+    refractColor /= lightWeighting;
+    refractColor = mix(uColor, refractColor, 0.5);
     
-    color = mix(color, vec3(0.098, 0.535, 0.520), clamp(depth * 0.2, 0.0, 0.9));
-    depth = clamp((depth * 3.0), 0.0, 1.0);
+    // Reflection
+    vec3 reflectColor = texture2D(uReflectionColorTexture, reflectTexCoords - distort).rgb;
+    
+    depth = clamp((depth * 2.0), 0.0, 1.0);
+    vec3 color = mix(refractColor, reflectColor, clamp((depth - 0.6) * 0.5, 0.0, 0.9));
         
     // Result
     gl_FragColor = vec4((color * lightWeighting), depth);

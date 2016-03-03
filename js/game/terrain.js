@@ -234,7 +234,6 @@ Terrain.prototype.getAngle = function(cx, cz, sx, sz) {
 };
 
 Terrain.prototype.render = function (shader) {
-    this.ctx.matrix.setIdentity();
     this.ctx.matrix.setUniforms(shader);
     this.model.render(shader);
 };

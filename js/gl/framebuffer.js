@@ -84,13 +84,13 @@ Framebuffer.prototype.unbind = function() {
     this.ctx.gl.bindFramebuffer(this.ctx.gl.FRAMEBUFFER, null);
 };
 
-Framebuffer.prototype.bindColorTexture = function() {
-    this.ctx.gl.activeTexture(this.ctx.gl.TEXTURE0);
+Framebuffer.prototype.bindColorTexture = function(textureUnit) {
+    this.ctx.gl.activeTexture(textureUnit);
     this.ctx.gl.bindTexture(this.ctx.gl.TEXTURE_2D, this.colorTexture);  
 };
 
-Framebuffer.prototype.bindDepthTexture = function() {
-    this.ctx.gl.activeTexture(this.ctx.gl.TEXTURE1);
+Framebuffer.prototype.bindDepthTexture = function(textureUnit) {
+    this.ctx.gl.activeTexture(textureUnit);
     this.ctx.gl.bindTexture(this.ctx.gl.TEXTURE_2D, this.depthTexture);  
 };
 

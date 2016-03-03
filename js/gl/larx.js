@@ -2,7 +2,7 @@
 /* global Matrix */
 /* global Q */
 
-var Larx = function (viewport) {
+var Larx = function (viewport, clearColor) {
     this.gl;
     this.camera;
     this.matrix;
@@ -11,6 +11,7 @@ var Larx = function (viewport) {
     
     this.viewport = viewport;
     this._init();
+    this.setClearColor(clearColor);
 };
 
 Larx.prototype._init = function() {
@@ -37,14 +38,15 @@ Larx.prototype._init = function() {
         self.gl.viewportHeight = self.canvas.height;
     });
     
-    this.gl.clearColor(0.0, 0.0, 0.0, 1.0);
-    
     this.camera = new Camera();
     this.matrix = new Matrix(this);
 };
 
-Larx.prototype.render = function(callback) {      
-    this.matrix.setIdentity();
+Larx.prototype.setClearColor = function(color) {
+    this.gl.clearColor(color[0], color[1], color[2], 1.0);
+};
+
+Larx.prototype.render = function(callback) {    
     this.matrix.push();
     
     callback();
@@ -55,5 +57,5 @@ Larx.prototype.render = function(callback) {
 Larx.prototype.clear = function() {
     this.gl.viewport(0, 0, this.gl.viewportWidth, this.gl.viewportHeight);
     this.gl.clear(this.gl.COLOR_BUFFER_BIT | this.gl.DEPTH_BUFFER_BIT);
-}
+};
 

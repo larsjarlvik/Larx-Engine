@@ -11,6 +11,7 @@ var Water = function (ctx, gameLoop) {
     this.waveIntensity = 0.5;
     this.currentFrame = 0;
     this.refraction;
+    this.reflection;
 };
     
     
@@ -65,6 +66,19 @@ Water.prototype._build = function(terrain) {
                 vecs.push(vec3.fromValues(vx + ts, 0, vz + ts));
             }
             
+            var add = false;
+            for(var i = 0; i < vecs.length; i++) {
+                var elev = terrain.getElevationAtPoint(vecs[i][0], vecs[i][2]);
+                if(elev <= this.waveHeight) {
+                    add = true;
+                    break;
+                }
+            }
+            
+            if(!add) {
+                continue;
+            }
+            
             this._appendToModel(vecs[0]);
             this._appendToModel(vecs[1]);
             this._appendToModel(vecs[2]);
@@ -112,12 +126,12 @@ Water.prototype.generate = function (terrain, quality) {
     this.model.colors = [];
     this.model.normals = [];
     this.model.shininess = 1.0;
-    this.model.opacity = 0.9;
-    this.model.specularWeight = 0.6;
+    this.model.opacity = 0.5;
+    this.model.specularWeight = 0.8;
     this._build(terrain);
     this._generateLoop();
     
-    return Q(true);
+    return Q();
 };
 
 Water.prototype.update = function () {
@@ -135,19 +149,22 @@ Water.prototype.update = function () {
 
 Water.prototype.render = function (shader) {
     if(this.refraction) {
-        this.refraction.bindColorTexture();
-        this.refraction.bindDepthTexture();
-        shader.setColorTexture(this.refraction.colorTexture);
-        shader.setDepthTexture(this.refraction.depthTexture);
+        this.refraction.bindDepthTexture(this.ctx.gl.TEXTURE0);
+        this.refraction.bindColorTexture(this.ctx.gl.TEXTURE1);
+        shader.setRefractionDepthTexture(this.refraction.depthTexture);
+        shader.setRefractionColorTexture(this.refraction.colorTexture);
+    }
+    
+    if(this.reflection) {
+        this.reflection.bindColorTexture(this.ctx.gl.TEXTURE2);
+        shader.setReflectionColorTexture(this.reflection.colorTexture);
     }
 
     this.ctx.gl.enable(this.ctx.gl.BLEND);
-    this.ctx.matrix.setIdentity();
     this.ctx.matrix.setUniforms(shader);
     this.model.render(shader);
     this.ctx.gl.disable(this.ctx.gl.BLEND);
     
-    if(this.refraction) {
-        this.refraction.unbindTextures();
-    }
+    if(this.refraction) { this.refraction.unbindTextures(); }
+    if(this.reflection) { this.reflection.unbindTextures(); }
 };

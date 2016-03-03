@@ -2,6 +2,7 @@ var input = (function() {
     var mousePicker, coords, sObject;
     var dX, dY, cMatrix, dYRad;
     var infoBox = document.getElementById('info');
+    var fullScreenButton = document.getElementById('fullscreen');
     
     function keyboard(larx) {
         if(larx.viewport.keyDown('W')) { larx.camera.move( 0.0,  config.camera.moveSpeed); }
@@ -56,8 +57,11 @@ var input = (function() {
     }
     
     return {
-        init: function(mp) {
+        init: function(larx, mp) {
             mousePicker = mp;
+            fullScreenButton.addEventListener('click', function() {
+                larx.viewport.toggleFullscreen();
+            });
         },
         update: function(larx) {
             keyboard(larx);

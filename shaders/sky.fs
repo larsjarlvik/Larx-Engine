@@ -6,8 +6,7 @@ uniform vec3 uStop3;
 
 varying float vTextureY;
 
-void main(void) {    
-    
+void main(void) {
     vec3 finalColor;
     
     finalColor = mix(uStop1, uStop2, smoothstep(0.0, 0.2, vTextureY));

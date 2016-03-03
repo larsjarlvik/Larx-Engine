@@ -7,6 +7,7 @@ varying vec3 vTransformedNormal;
 varying vec3 vVertexPosition;
 varying float vVisibility;
 
+
 uniform vec3 uAmbientColor;
 uniform vec3 uDirectionalColor;
 uniform vec3 uLightingDirection;
@@ -16,8 +17,12 @@ uniform vec3 uFogColor;
 uniform float uOpacity;
 uniform float uShininess;
 uniform float uSpecularWeight;
+uniform int uClipPlane;
     
 void main(void) {
+    if(uClipPlane == 1 && vVertexPosition.y < -0.2)
+        discard;
+    
     vec3 lightDirection = normalize(uLightingDirection - vPosition.xyz);
     vec3 normal = normalize(vTransformedNormal);
     

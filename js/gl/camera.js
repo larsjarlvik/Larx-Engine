@@ -1,19 +1,19 @@
 
 
 var Camera = function () {
-    this.zoomLevel = 65,
-    this.look = { x: -25, y: 0, z: -25 },
-    this.rot = { v: 35, h: 45 }
+    this.zoomLevel = 0,
+    this.look = { x: 0, y: 0, z: 0 },
+    this.rot = { v: 0, h: 0 }
 };
 
-Camera.prototype._calcPos = function() {
-    this._v = this._degToRad(this.rot.v);
-    this._h = this._degToRad(this.rot.h);
+Camera.prototype._calcPos = function(rot, look, zoom) {
+    this._v = this._degToRad(rot.v);
+    this._h = this._degToRad(rot.h);
     
     return {
-        z: this.look.z - (this.zoomLevel * Math.cos(this._v) * Math.cos(this._h)),
-        x: this.look.x - (this.zoomLevel * Math.cos(this._v) * Math.sin(this._h)),
-        y: this.zoomLevel * Math.sin(this._v)
+        z: look.z - (zoom * Math.cos(this._v) * Math.cos(this._h)),
+        x: look.x - (zoom * Math.cos(this._v) * Math.sin(this._h)),
+        y: zoom * Math.sin(this._v)
     }
 };
 
@@ -22,10 +22,22 @@ Camera.prototype._degToRad = function (degrees) {
 };
 
 Camera.prototype.getMatrix = function () {
-    this._pos = this._calcPos();
+    this._pos = this._calcPos(this.rot, this.look, this.zoomLevel);
     
     return {
         rotV: this._degToRad(this.rot.v),
+        rotH: this._degToRad(this.rot.h),
+        x: -this._pos.x,
+        y: -this._pos.y, 
+        z:  this._pos.z
+    };
+};
+
+Camera.prototype.getInvertedMatrix = function () {
+    this._pos = this._calcPos({ v: -this.rot.v, h: this.rot.h }, this.look, this.zoomLevel);
+    
+    return {
+        rotV: this._degToRad(-this.rot.v),
         rotH: this._degToRad(this.rot.h),
         x: -this._pos.x,
         y: -this._pos.y, 

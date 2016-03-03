@@ -19,11 +19,15 @@ Matrix.prototype.pop = function () {
     this.mvMatrix = this.mvStack.pop();
 };
 
-Matrix.prototype.setIdentity = function () {
+Matrix.prototype.setIdentity = function (invert) {
     mat4.perspective(this.pMatrix, 45, this.ctx.gl.viewportWidth / this.ctx.gl.viewportHeight, 0.1, 1000.0);
     mat4.identity(this.mvMatrix);   
     
-    this._cMat = this.ctx.camera.getMatrix();
+    if(invert) {
+        this._cMat = this.ctx.camera.getInvertedMatrix();
+    } else {
+        this._cMat = this.ctx.camera.getMatrix();
+    }
     
     mat4.rotate(this.mvMatrix, this.mvMatrix, this._cMat.rotV, [1, 0, 0]);
     mat4.rotate(this.mvMatrix, this.mvMatrix, this._cMat.rotH, [0, 1, 0]);

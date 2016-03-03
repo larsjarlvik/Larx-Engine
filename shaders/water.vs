@@ -9,7 +9,8 @@ uniform float uFogGradient;
 
 varying vec3 vNormal;
 varying vec3 vTransformedNormal;
-varying vec2 blurCoordinates[5];
+varying vec2 refractBlurCoordinates[5];
+varying vec2 reflectBlurCoordinates[5];
 
 varying vec4 vPosition;
 varying vec4 vClipSpace;
@@ -30,12 +31,19 @@ void main(void) {
     vVisibility = clamp(exp(-pow((distance * uFogDensity), uFogGradient)), 0.0, 1.0);
     
     // Blur
+	vec2 singleStepOffset = vec2(0.0003, 0.0003);
     
     vec2 ndc = (vClipSpace.xy / vClipSpace.w) / 2.0 + 0.5;
-	vec2 singleStepOffset = vec2(0.0003, 0.0003);
-	blurCoordinates[0] = ndc.xy;
-	blurCoordinates[1] = ndc.xy + singleStepOffset * 1.407333;
-	blurCoordinates[2] = ndc.xy - singleStepOffset * 1.407333;
-	blurCoordinates[3] = ndc.xy + singleStepOffset * 3.294215;
-	blurCoordinates[4] = ndc.xy - singleStepOffset * 3.294215;
+	refractBlurCoordinates[0] = ndc.xy;
+	refractBlurCoordinates[1] = ndc.xy + singleStepOffset * 1.407333;
+	refractBlurCoordinates[2] = ndc.xy - singleStepOffset * 1.407333;
+	refractBlurCoordinates[3] = ndc.xy + singleStepOffset * 3.294215;
+	refractBlurCoordinates[4] = ndc.xy - singleStepOffset * 3.294215;
+    
+    ndc.y = 1.0 - ndc.y;
+	reflectBlurCoordinates[0] = ndc.xy;
+	reflectBlurCoordinates[1] = ndc.xy + singleStepOffset * 1.407333;
+	reflectBlurCoordinates[2] = ndc.xy - singleStepOffset * 1.407333;
+	reflectBlurCoordinates[3] = ndc.xy + singleStepOffset * 3.294215;
+	reflectBlurCoordinates[4] = ndc.xy - singleStepOffset * 3.294215;
 }
