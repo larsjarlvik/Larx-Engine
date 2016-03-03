@@ -37,7 +37,7 @@ Larx.prototype._init = function() {
         self.gl.viewportHeight = self.canvas.height;
     });
     
-    this.gl.clearColor(0.601, 0.816, 0.820, 1.0);
+    this.gl.clearColor(0.0, 0.0, 0.0, 1.0);
     
     this.camera = new Camera();
     this.matrix = new Matrix(this);

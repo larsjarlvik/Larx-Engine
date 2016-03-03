@@ -15,7 +15,7 @@ var Terrain = function(ctx) {
 
 Terrain.prototype._getHeight = function(x, z) {
     if(x < 1 || x >= this.size || z < 1 || z >= this.size) {
-        return -4.0;
+        return -10.0;
     }
     
     return this.heights[x][z] - this.waterLevel;

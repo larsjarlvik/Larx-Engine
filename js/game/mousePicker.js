@@ -25,8 +25,7 @@ var MousePicker = function(ctx, precision) {
     });
 };
 
-MousePicker.prototype.addObject = function(model, pickId) {
-    var b = model.getBounds();
+MousePicker.prototype.addObject = function(b, data) {
     var box = new Model(this.ctx, 'box');
     
     b[0] -= 0.4;
@@ -73,7 +72,7 @@ MousePicker.prototype.addObject = function(model, pickId) {
     box.bindBuffers();
     this.objects.push({
         model: box,
-        pickId: pickId
+        data: data
     });
 };
 
@@ -86,7 +85,7 @@ MousePicker.prototype.render = function(shader, model) {
     model.render(shader);
     
     for(var i = 0; i < this.objects.length; i++) {
-        shader.setColorId(this.objects[i].pickId);
+        shader.setColorId(i);
         this.objects[i].model.render(shader);
     }
     
@@ -114,10 +113,10 @@ MousePicker.prototype.getCoordinates = function() {
 };
 
 
-MousePicker.prototype.getObjectId = function() {
+MousePicker.prototype.getObject = function() {
     if(!this.pixels || this.pixels[0] !== -1) {
         return undefined;
     }
     
-    return this.pixels[1];
+    return this.objects[this.pixels[1]].data;
 };

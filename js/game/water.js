@@ -10,6 +10,7 @@ var Water = function (ctx, gameLoop) {
     this.frames = [];
     this.waveIntensity = 0.5;
     this.currentFrame = 0;
+    this.refraction;
 };
     
     
@@ -132,22 +133,21 @@ Water.prototype.update = function () {
 };
 
 
-Water.prototype.render = function (shader, depthBuffer) {
-    depthBuffer.bindColorTexture();
-    depthBuffer.bindDepthTexture();
-    shader.setColorTexture(depthBuffer.colorTexture);
-    shader.setDepthTexture(depthBuffer.depthTexture);
-    
+Water.prototype.render = function (shader) {
+    if(this.refraction) {
+        this.refraction.bindColorTexture();
+        this.refraction.bindDepthTexture();
+        shader.setColorTexture(this.refraction.colorTexture);
+        shader.setDepthTexture(this.refraction.depthTexture);
+    }
+
     this.ctx.gl.enable(this.ctx.gl.BLEND);
-    
     this.ctx.matrix.setIdentity();
     this.ctx.matrix.setUniforms(shader);
     this.model.render(shader);
-    
     this.ctx.gl.disable(this.ctx.gl.BLEND);
-    depthBuffer.unbindTextures();
-};
-
-Water.prototype.setReflectionCamera = function() {
     
+    if(this.refraction) {
+        this.refraction.unbindTextures();
+    }
 };

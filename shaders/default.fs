@@ -36,7 +36,9 @@ void main(void) {
         lightWeighting += specularColor * specularLightWeighting;
     }
     
+    float fadeOut = clamp(2.0 + log((vVertexPosition.y / 5.0) + 1.0), 0.0, 1.0);
     
     gl_FragColor = vec4((vColor * lightWeighting), 1.0 - vVisibility);
     gl_FragColor = mix(vec4(uFogColor, 1.0), gl_FragColor, vVisibility);
+    gl_FragColor = vec4(gl_FragColor.rgb * fadeOut, vVisibility);
 }

@@ -23,7 +23,7 @@ Sky.prototype.load = function(name) {
 
 Sky.prototype.render = function(shader) {
     this.ctx.matrix.setIdentity();
-    this.ctx.matrix.translate([this.ctx.camera.look.x, -250.0, this.ctx.camera.look.z]);
+    this.ctx.matrix.translate([this.ctx.camera.look.x, -350.0, this.ctx.camera.look.z]);
     this.ctx.matrix.setUniforms(shader);
     
     this.model.render(shader);
