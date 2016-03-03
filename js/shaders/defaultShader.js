@@ -4,6 +4,11 @@ var DefaultShader = function (ctx) {
     this.ctx = ctx;
     this.shaders = undefined;
     this.shader = undefined;
+    
+    this.clip = {
+        above: 1,
+        below: 2
+    }
 };
 
 DefaultShader.prototype.load = function() {
@@ -28,7 +33,9 @@ DefaultShader.prototype.load = function() {
         self.shader.fogColor = gl.getUniformLocation(self.shader, 'uFogColor');
         
         self.shader.opacity = gl.getUniformLocation(self.shader, 'uOpacity');
+        
         self.shader.clipPlane = gl.getUniformLocation(self.shader, 'uClipPlane');
+        self.shader.clipPlaneLevel = gl.getUniformLocation(self.shader, 'uClipPlaneLevel');
         
         self.shaders.setDefaults(self.shader, true);
         
@@ -50,8 +57,9 @@ DefaultShader.prototype.use = function() {
     this.ctx.gl.enableVertexAttribArray(this.shader.vertexNormalAttribute);
 }; 
 
-DefaultShader.prototype.setClipPlane = function(clipPlane) {
+DefaultShader.prototype.setClipPlane = function(clipPlane, clipPlaneLevel) {
     this.ctx.gl.uniform1i(this.shader.clipPlane, clipPlane);
+    this.ctx.gl.uniform1f(this.shader.clipPlaneLevel, clipPlaneLevel);
 };
 
 DefaultShader.prototype.cleanUp = function() {

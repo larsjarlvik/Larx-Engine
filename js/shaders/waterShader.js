@@ -21,19 +21,20 @@ WaterShader.prototype.load = function() {
         self.shader.vertexNormalAttribute = gl.getAttribLocation(self.shader, 'aVertexNormal');
         
         self.shader.color = gl.getUniformLocation(self.shader, 'uColor');
-        self.shader.deepColor = gl.getUniformLocation(self.shader, 'uDeepColor');
-        
-        self.shader.distortion = gl.getUniformLocation(self.shader, 'uDistortion');
-        self.shader.opacity = gl.getUniformLocation(self.shader, 'uOpacity');
         
         self.shader.refractionDepthTexture = gl.getUniformLocation(self.shader, 'uRefractionDepthTexture');
         self.shader.refractionColorTexture = gl.getUniformLocation(self.shader, 'uRefractionColorTexture');
-        
         self.shader.reflectionColorTexture = gl.getUniformLocation(self.shader, 'uReflectionColorTexture');
         
         self.shader.fogDensity = gl.getUniformLocation(self.shader, 'uFogDensity');
         self.shader.fogGradient = gl.getUniformLocation(self.shader, 'uFogGradient');
         self.shader.fogColor = gl.getUniformLocation(self.shader, 'uFogColor');
+        
+        
+        self.shader.distortion = gl.getUniformLocation(self.shader, 'uDistortion');
+        self.shader.edgeWhitening = gl.getUniformLocation(self.shader, 'uEdgeWhitening');
+        self.shader.edgeSoftening = gl.getUniformLocation(self.shader, 'uEdgeSoftening');
+        self.shader.waterDensity = gl.getUniformLocation(self.shader, 'uWaterDensity');
         
         self.shaders.setDefaults(self.shader, true);
         
@@ -75,10 +76,24 @@ WaterShader.prototype.setReflectionColorTexture = function() {
     this.ctx.gl.uniform1i(this.shader.reflectionColorTexture, 2);  
 };
 
-
 WaterShader.prototype.setDistortion = function(value) {
     this.ctx.gl.uniform1f(this.shader.distortion, value);  
 };
+
+WaterShader.prototype.setEdgeWhitening = function(value) {
+    this.ctx.gl.uniform1f(this.shader.edgeWhitening, value);  
+};
+
+
+WaterShader.prototype.setEdgeSoftening = function(value) {
+    this.ctx.gl.uniform1f(this.shader.edgeSoftening, value);  
+};
+
+
+WaterShader.prototype.setDensity = function(value) {
+    this.ctx.gl.uniform1f(this.shader.waterDensity, value);  
+};
+
 
 WaterShader.prototype.setFog = function(density, gradient, color) {
     this.ctx.gl.uniform1f(this.shader.fogDensity, density);

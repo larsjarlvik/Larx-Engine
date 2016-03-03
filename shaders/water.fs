@@ -10,10 +10,7 @@ varying float vVisibility;
 varying vec2 refractBlurCoordinates[5];
 varying vec2 reflectBlurCoordinates[5];
 
-uniform float uOpacity;
-uniform float uDistortion;
 uniform vec3 uColor;
-uniform vec3 uDeepColor;
 uniform vec3 uFogColor;
 
 uniform sampler2D uRefractionDepthTexture;
@@ -27,6 +24,10 @@ uniform vec3 uSpecularColor;
 uniform float uShininess;
 uniform float uSpecularWeight;
 
+uniform float uDistortion;
+uniform float uWaterDensity;
+uniform float uEdgeSoftening;
+uniform float uEdgeWhitening;
                                                    
 void main(void) {    
     vec3 lightDirection = normalize(uLightingDirection - vPosition.xyz);
@@ -72,17 +73,23 @@ void main(void) {
 	refraction += texture2D(uRefractionColorTexture, refractBlurCoordinates[3] - distort) * 0.093913;
 	refraction += texture2D(uRefractionColorTexture, refractBlurCoordinates[4] - distort) * 0.093913;
     
+    
     vec3 refractColor = refraction.rgb;
     refractColor /= lightWeighting;
     refractColor = mix(uColor, refractColor, 0.5);
     
     // Reflection
-    vec3 reflectColor = texture2D(uReflectionColorTexture, reflectTexCoords - distort).rgb;
+	lowp vec4 reflectColor = vec4(0.0);
+	reflectColor += texture2D(uReflectionColorTexture, reflectBlurCoordinates[0] - distort) * 0.204164;
+	reflectColor += texture2D(uReflectionColorTexture, reflectBlurCoordinates[1] - distort) * 0.304005;
+	reflectColor += texture2D(uReflectionColorTexture, reflectBlurCoordinates[2] - distort) * 0.304005;
+	reflectColor += texture2D(uReflectionColorTexture, reflectBlurCoordinates[3] - distort) * 0.093913;
+	reflectColor += texture2D(uReflectionColorTexture, reflectBlurCoordinates[4] - distort) * 0.093913;
     
-    depth = clamp((depth * 2.0), 0.0, 1.0);
-    vec3 color = mix(refractColor, reflectColor, clamp((depth - 0.6) * 0.5, 0.0, 0.9));
+    vec3 color = mix(refractColor, reflectColor.rgb, clamp((depth - 0.5) / 8.0, 0.0, 1.0));
+    color = mix(vec3(1.0, 1.0, 1.0), color, clamp(depth / uEdgeSoftening, 0.9, 1.0));
         
     // Result
-    gl_FragColor = vec4((color * lightWeighting), depth);
+    gl_FragColor = vec4((color * lightWeighting), depth / uEdgeWhitening);
     gl_FragColor = vec4(mix(uFogColor, gl_FragColor.xyz, vVisibility), gl_FragColor.w);
 }

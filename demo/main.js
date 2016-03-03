@@ -51,6 +51,9 @@
             waterShader.setFog(config.fog.density, config.fog.gradient, config.fog.color);
             waterShader.setWaterColor(config.water.color);
             waterShader.setDistortion(config.water.distortion);
+            waterShader.setEdgeWhitening(config.water.edgeWhitening);
+            waterShader.setEdgeSoftening(config.water.edgeSoftening);
+            waterShader.setDensity(config.water.density);
             waterShader.cleanUp();
             
             deferred.resolve();
@@ -86,11 +89,11 @@
     function initTerrain() {
         var deferred = Q.defer();
         
-        models.terrain = new Terrain(larx);
+        models.terrain = new Terrain(larx, config.mapScale);
         models.terrain.generate(config.terrain.path, config.terrain.elevation, config.terrain.waterLevel)              
             .then(function(t) {
-                models.terrain.shininess = 4.0;
-                models.terrain.specularWeight = 0.35;  
+                models.terrain.model.shininess = config.terrain.shininess;
+                models.terrain.model.specularWeight = config.terrain.specularWeight;  
                 deferred.resolve();
             })
             .catch(function(e) { 
@@ -130,18 +133,19 @@
     }
     
     function getRandomCoords() {
-        var x = Math.random() * (models.terrain.size - 2) - ((models.terrain.size - 2) / 2);
-        var z = Math.random() * (models.terrain.size - 2) - ((models.terrain.size - 2) / 2);
+        var x = Math.random() * (models.terrain.getSize() - 2) - ((models.terrain.getSize() - 2) / 2);
+        var z = Math.random() * (models.terrain.getSize() - 2) - ((models.terrain.getSize() - 2) / 2);
+          
         var y = models.terrain.getElevationAtPoint(x, z);
-        
         return [x, y, z];
     }
     
     function testBounds(coords, yLimits) {
-        var bounds = (models.terrain.size / 2) - 2;
+        var bounds = ((models.terrain.size - 4) * models.terrain.scale) / 2;
         
         return (
-            coords[1] >= yLimits[0] && coords[1] < yLimits[1] && 
+            coords[1] >= yLimits[0] * models.terrain.scale && 
+            coords[1] <= yLimits[1] * models.terrain.scale && 
             coords[0] > -bounds && coords[0] < bounds && 
             coords[2] > -bounds && coords[2] < bounds);
     }
@@ -150,7 +154,8 @@
         var deferred = Q.defer();
         var inits = [];
         
-        models.decorations = new Model(larx, 'decorations');
+        models.decorations = [];
+        models.decorations.push(new Model(larx, 'decorations'));
         
         for(var i in config.decorations) {
             inits.push(initDecor(config.decorations[i]));
@@ -165,41 +170,49 @@
                     var m = result[i].model.clone();
                     var coords = getRandomCoords();
                     var rotation = [0.0, 0.0, 0.0];
+                    var size = m.getSize();
+                    
+                    rotation[1] = Math.random() * Math.PI;
                     
                     if(decor.tiltToTerrain) {
-                        var size = m.getSize();
-                        rotation[1] = Math.random() * Math.PI;
                         rotation = models.terrain.getAngle(coords[0], coords[2], size[0], size[1]);
                     }
                     
                     if(decor.tiltLimit > 0.0) {
                         rotation[0] += (Math.random() - 0.5) * Math.PI / decor.tiltLimit;
-                        rotation[1] = Math.random() * Math.PI;
                         rotation[2] += (Math.random() - 0.5) * Math.PI / decor.tiltLimit;
                     } 
                     
                     if(testBounds(coords, decor.yLimits)) {
                         m.rotate(rotation);
                         m.scale(Math.random() * (decor.scale[1] - decor.scale[0]) + decor.scale[0]);
+                        
                         m.translate(coords);
                         
                         if(decor.selectable) {
                             mousePicker.addObject(m.getBounds(), {
-                                size: m.getSize(),
+                                size: size,
                                 position: coords,
                                 description: decor.description
                             });
                         }
                         
-                        models.decorations.push(m);
+                        if(models.decorations[models.decorations.length - 1].indices.length > 65000) {
+                            models.decorations.push(new Model(larx, 'decorations'));
+                        }
+                        
+                        models.decorations[models.decorations.length - 1].push(m);
                         count++;
                     }                    
                 }
             }
             
-            models.decorations.shininess = 1.0;
-            models.decorations.specularWeight = 1.0;
-            models.decorations.bindBuffers();
+            for(var n = 0; n < models.decorations.length; n++) {
+                models.decorations[n].shininess = 1.0;
+                models.decorations[n].specularWeight = 1.0;
+                models.decorations[n].bindBuffers();
+            }
+            
             deferred.resolve();
         })
         .catch(function(e) { 
@@ -254,28 +267,39 @@
         }
         
         function renderWaterReflection() {
+            defaultShader.setClipPlane(defaultShader.clip.above, models.water.waveHeight);  
+            
             larx.setClearColor(config.water.reflectionColor);
             larx.matrix.setIdentity(true);   
             
-            defaultShader.setClipPlane(1);  
             
             models.water.reflection.bind();            
             models.terrain.render(defaultShader);
-            models.decorations.render(defaultShader);
-            models.water.reflection.unbind();
+            for(var i = 0; i < models.decorations.length; i++) {
+                models.decorations[i].render(defaultShader);
+            }
             
-            defaultShader.setClipPlane(0);  
+            models.water.reflection.unbind();
             larx.setClearColor(config.clearColor);
+            defaultShader.setClipPlane(0, 0); 
         }
         
         function renderWaterRefraction() {
+            defaultShader.setClipPlane(defaultShader.clip.below, -models.water.waveHeight);  
+            
             larx.matrix.setIdentity();      
             
             models.water.refraction.bind();
             models.terrain.render(defaultShader);
-            models.decorations.render(defaultShader);
             drawCursor();
-            models.water.refraction.unbind();
+              
+            defaultShader.use(); 
+            for(var i = 0; i < models.decorations.length; i++) {
+                models.decorations[i].render(defaultShader);
+            }
+            
+            models.water.refraction.unbind(); 
+            defaultShader.setClipPlane(0, 0); 
         }
         
         larx.render(function() {            
@@ -291,7 +315,9 @@
             drawCursor();
             
             defaultShader.use();
-            models.decorations.render(defaultShader);
+            for(var i = 0; i < models.decorations.length; i++) {
+                models.decorations[i].render(defaultShader);
+            }
             
             renderWaterReflection();
             renderWaterRefraction();

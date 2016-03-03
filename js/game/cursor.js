@@ -38,9 +38,8 @@ Cursor.prototype._buildCursor = function(terrain, size, pos) {
 
 Cursor.prototype.render = function(shader, terrain, pos, size) {
     if(!pos) { return; }
-    
+        
     this._buildCursor(terrain, size, pos);
-    
     
     this.ctx.matrix.push();
     this.ctx.matrix.translate(pos);

@@ -22,8 +22,8 @@ var input = (function() {
         }
         
         if(larx.viewport.mouse.buttons.right || larx.viewport.mouse.touchDown) {  
-            dX = larx.viewport.mouse.deltaX / 3.0;
-            dY = larx.viewport.mouse.deltaY / 3.0;
+            dX = larx.viewport.mouse.deltaX * config.camera.rotationSpeed;
+            dY = larx.viewport.mouse.deltaY * config.camera.rotationSpeed;
                 
             cMatrix = larx.camera.getMatrix();
             dYRad = dY * Math.PI / 180;
@@ -38,7 +38,7 @@ var input = (function() {
         }
         
         if(larx.viewport.mouse.wheelDelta !== 0) {
-            larx.camera.zoom(-larx.viewport.mouse.wheelDelta * 2);
+            larx.camera.zoom(-larx.viewport.mouse.wheelDelta * config.camera.zoomSpeed);
         }
         
         larx.viewport.resetDelta();

@@ -38,9 +38,10 @@ Water.prototype._setIndices = function(counter) {
 };
 
 Water.prototype._build = function(terrain) {
-    var ts = this.size / this.quality;
+    var ts = (this.size / this.quality);
     
     var counter = 0;
+    
     for(var z = 0; z < this.size - 0.001; z += ts) {
         var vz = z - (this.size / 2);
             
@@ -120,7 +121,7 @@ Water.prototype._generateLoop = function() {
 
 Water.prototype.generate = function (terrain, quality) {
     this.quality = quality;
-    this.size = terrain.size - 2;
+    this.size = terrain.getSize() - (2 * terrain.scale);
     
     this.model = new Model(this.ctx, 'water');
     this.model.colors = [];

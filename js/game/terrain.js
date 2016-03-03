@@ -2,7 +2,7 @@
 /* global vec3 */
 /* global Q */
 
-var Terrain = function(ctx) {
+var Terrain = function(ctx, scale) {
     this.heights;
     this.size;
     this.waterLevel;
@@ -10,7 +10,12 @@ var Terrain = function(ctx) {
     this.model;
     this.underwater;
     
+    this.scale = scale;
     this.ctx = ctx;
+};
+
+Terrain.prototype.getSize = function() {
+    return this.size * this.scale;
 };
 
 Terrain.prototype._getHeight = function(x, z) {
@@ -18,7 +23,7 @@ Terrain.prototype._getHeight = function(x, z) {
         return -10.0;
     }
     
-    return this.heights[x][z] - this.waterLevel;
+    return (this.heights[x][z] - this.waterLevel) * this.scale;
 };
 
 Terrain.prototype._appendToModel = function(vec, color) {
@@ -26,18 +31,9 @@ Terrain.prototype._appendToModel = function(vec, color) {
     this.model.vertices.push(vec[1]);
     this.model.vertices.push(vec[2]);
     
-    var limit = this.size / 2 - 1;
-    
-    if(vec[0] <= limit && vec[0] >= -limit &&
-        vec[2] <= limit && vec[2] >= -limit) {
-        this.model.colors.push(color[0]); 
-        this.model.colors.push(color[1]); 
-        this.model.colors.push(color[2]); 
-    } else {
-        this.model.colors.push(0.871);
-        this.model.colors.push(0.699);
-        this.model.colors.push(0.539);
-    }
+    this.model.colors.push(color[0]); 
+    this.model.colors.push(color[1]); 
+    this.model.colors.push(color[2]); 
 };
 
 Terrain.prototype._setIndices = function(x, z) {
@@ -58,30 +54,34 @@ Terrain.prototype._build = function() {
     
     
     var vecs;
+    var s = this.scale;
+    
     for(var z = 0; z < this.size + 1; z++) {
         var vz = -(this.size / 2) + z;
+        vz *= s;
             
         for(var x = 0; x < this.size; x++) {
             
             vecs = [];
             var vx = -(this.size / 2) + x;
+            vx *= s;
             
             if((x%2 === 0 && z%2 === 0) || (x%2 === 1 && z%2 === 1)) {
-                vecs.push(vec3.fromValues(vx + 1, this._getHeight(x + 1, z),    vz));
+                vecs.push(vec3.fromValues(vx + s, this._getHeight(x + 1, z),    vz));
                 vecs.push(vec3.fromValues(vx,     this._getHeight(x, z),        vz));
-                vecs.push(vec3.fromValues(vx,     this._getHeight(x, z + 1),    vz + 1));
+                vecs.push(vec3.fromValues(vx,     this._getHeight(x, z + 1),    vz + s));
                 
-                vecs.push(vec3.fromValues(vx + 1, this._getHeight(x + 1, z),     vz));
-                vecs.push(vec3.fromValues(vx,     this._getHeight(x, z + 1),     vz + 1));
-                vecs.push(vec3.fromValues(vx + 1, this._getHeight(x + 1, z + 1), vz + 1));
+                vecs.push(vec3.fromValues(vx + s, this._getHeight(x + 1, z),     vz));
+                vecs.push(vec3.fromValues(vx,     this._getHeight(x, z + 1),     vz + s));
+                vecs.push(vec3.fromValues(vx + s, this._getHeight(x + 1, z + 1), vz + s));
             } else {
-                vecs.push(vec3.fromValues(vx + 1, this._getHeight(x + 1, z + 1), vz + 1));
+                vecs.push(vec3.fromValues(vx + s, this._getHeight(x + 1, z + 1), vz + s));
                 vecs.push(vec3.fromValues(vx,     this._getHeight(x, z),         vz));
-                vecs.push(vec3.fromValues(vx,     this._getHeight(x, z + 1),     vz + 1));
+                vecs.push(vec3.fromValues(vx,     this._getHeight(x, z + 1),     vz + s));
                 
-                vecs.push(vec3.fromValues(vx + 1, this._getHeight(x + 1, z),     vz));
+                vecs.push(vec3.fromValues(vx + s, this._getHeight(x + 1, z),     vz));
                 vecs.push(vec3.fromValues(vx,     this._getHeight(x, z),         vz));
-                vecs.push(vec3.fromValues(vx + 1, this._getHeight(x + 1, z + 1), vz + 1));
+                vecs.push(vec3.fromValues(vx + s, this._getHeight(x + 1, z + 1), vz + s));
             }
             
             var color = this._getColor(x, z);
@@ -194,8 +194,8 @@ Terrain.prototype.generate = function(url, elevation, water) {
 };
     
 Terrain.prototype._getPoint = function(x, z) {
-    x = x + (this.size / 2);
-    z = z + (this.size / 2);
+    x = (x + (this.getSize() / 2)) / this.scale;
+    z = (z + (this.getSize() / 2)) / this.scale;
         
     return {
         gx: Math.floor(x),
@@ -233,7 +233,7 @@ Terrain.prototype.getAngle = function(cx, cz, sx, sz) {
     ];
 };
 
-Terrain.prototype.render = function (shader) {
+Terrain.prototype.render = function (shader) {    
     this.ctx.matrix.setUniforms(shader);
     this.model.render(shader);
 };
