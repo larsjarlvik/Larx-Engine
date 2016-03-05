@@ -31,9 +31,9 @@ var input = (function() {
             larx.camera.rotate(dX, 0);
             
             if(dYRad > 0) {
-                if(cMatrix.rotV + dYRad < Math.PI - 0.2) { larx.camera.rotate(0, dY); }
+                if(cMatrix.rotV + dYRad < Math.PI - 0.3) { larx.camera.rotate(0, dY); }
             } else {
-                if(cMatrix.rotV + dYRad > 0.2) { larx.camera.rotate(0, dY); }
+                if(cMatrix.rotV + dYRad > 0.3) { larx.camera.rotate(0, dY); }
             }
         }
         

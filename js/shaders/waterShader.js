@@ -18,9 +18,11 @@ WaterShader.prototype.load = function() {
         gl.useProgram(self.shader);
         
         self.buffers = {};
+        
         self.shader.vertexNormalAttribute = gl.getAttribLocation(self.shader, 'aVertexNormal');
         
         self.shader.color = gl.getUniformLocation(self.shader, 'uColor');
+        self.shader.time = gl.getUniformLocation(self.shader, 'uTime');
         
         self.shader.refractionDepthTexture = gl.getUniformLocation(self.shader, 'uRefractionDepthTexture');
         self.shader.refractionColorTexture = gl.getUniformLocation(self.shader, 'uRefractionColorTexture');
@@ -29,7 +31,6 @@ WaterShader.prototype.load = function() {
         self.shader.fogDensity = gl.getUniformLocation(self.shader, 'uFogDensity');
         self.shader.fogGradient = gl.getUniformLocation(self.shader, 'uFogGradient');
         self.shader.fogColor = gl.getUniformLocation(self.shader, 'uFogColor');
-        
         
         self.shader.distortion = gl.getUniformLocation(self.shader, 'uDistortion');
         self.shader.edgeWhitening = gl.getUniformLocation(self.shader, 'uEdgeWhitening');
@@ -60,8 +61,11 @@ WaterShader.prototype.cleanUp = function() {
 };
 
 WaterShader.prototype.setWaterColor = function(color) {
-    this.ctx.gl.useProgram(this.shader);
     this.ctx.gl.uniform3f(this.shader.color, color[0], color[1], color[2]);
+};
+
+WaterShader.prototype.update = function(time) {
+    this.ctx.gl.uniform1f(this.shader.time, time);
 };
 
 WaterShader.prototype.setRefractionDepthTexture = function() {

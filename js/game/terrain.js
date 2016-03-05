@@ -1,3 +1,4 @@
+/* global Model */
 /* global vec2 */
 /* global vec3 */
 /* global Q */
@@ -7,11 +8,23 @@ var Terrain = function(ctx, scale) {
     this.size;
     this.waterLevel;
     
-    this.model;
     this.underwater;
     
     this.scale = scale;
     this.ctx = ctx;
+    
+    this._numBlocks;
+    this._blockSize = 4;
+    this._blocks = [];
+    
+    this.flags = { default: 0, reflect: 1, refract: 2 };
+};
+
+Terrain.prototype.setLightSettings = function(shininess, specularWeight) {
+    for(var i = 0; i < this._blocks.length; i++) {
+        this._blocks[i].shininess = shininess;
+        this._blocks[i].specularWeight = specularWeight;
+    }
 };
 
 Terrain.prototype.getSize = function() {
@@ -26,77 +39,97 @@ Terrain.prototype._getHeight = function(x, z) {
     return (this.heights[x][z] - this.waterLevel) * this.scale;
 };
 
-Terrain.prototype._appendToModel = function(vec, color) {
-    this.model.vertices.push(vec[0]);
-    this.model.vertices.push(vec[1]);
-    this.model.vertices.push(vec[2]);
+Terrain.prototype._append = function(model, vec, color) {
+    model.vertices.push(vec[0]);
+    model.vertices.push(vec[1]);
+    model.vertices.push(vec[2]);
     
-    this.model.colors.push(color[0]); 
-    this.model.colors.push(color[1]); 
-    this.model.colors.push(color[2]); 
+    model.colors.push(color[0]); 
+    model.colors.push(color[1]); 
+    model.colors.push(color[2]); 
 };
 
-Terrain.prototype._setIndices = function(x, z) {
-    var start = (z * (this.size - 1) + x) * 6;
+Terrain.prototype._setIndices = function(model, x, z) {
+    var start = (z * (this._blockSize) + x) * 6;
     
-    this.model.indices.push(start + 0);
-    this.model.indices.push(start + 1);
-    this.model.indices.push(start + 2);
+    model.indices.push(start + 0);
+    model.indices.push(start + 1);
+    model.indices.push(start + 2);
     
-    this.model.indices.push(start + 3);
-    this.model.indices.push(start + 4);
-    this.model.indices.push(start + 5);
+    model.indices.push(start + 3);
+    model.indices.push(start + 4);
+    model.indices.push(start + 5);
 };
 
 Terrain.prototype._build = function() {
     this.size = this.heightmap.size;
     this._setImageHeights();
+    this._numBlocks = this.size / this._blockSize;
     
-    
-    var vecs;
+    for(var x = 0; x < this._numBlocks; x++) {
+        for(var z = 0; z < this._numBlocks; z++) {
+            var block = this._buildBlock(x * this._blockSize, z * this._blockSize);
+            
+            block.x = (x * this._blockSize - (this.size / 2)) * this.scale;
+            block.z = (z * this._blockSize - (this.size / 2)) * this.scale;
+            block.calculateNormals();
+            block.setBounds();
+            block.bindBuffers(); 
+            
+            this._blocks.push(block);
+        }
+    }
+}
+
+Terrain.prototype._buildBlock = function(bx, bz) {
     var s = this.scale;
+    var model = new Model(this.ctx, 'terrainBlock');
     
-    for(var z = 0; z < this.size + 1; z++) {
-        var vz = -(this.size / 2) + z;
-        vz *= s;
-            
-        for(var x = 0; x < this.size; x++) {
-            
-            vecs = [];
-            var vx = -(this.size / 2) + x;
-            vx *= s;
+    model.colors = [];
+    model.normals = [];
+    
+    for(var z = 0; z < this._blockSize; z++) {
+        var vz = z * s;
+        
+        for(var x = 0; x < this._blockSize; x++) {
+            var vecs = [];
+            var vx = x * s;
+            var tx = bx + x,
+                tz = bz + z;
             
             if((x%2 === 0 && z%2 === 0) || (x%2 === 1 && z%2 === 1)) {
-                vecs.push(vec3.fromValues(vx + s, this._getHeight(x + 1, z),    vz));
-                vecs.push(vec3.fromValues(vx,     this._getHeight(x, z),        vz));
-                vecs.push(vec3.fromValues(vx,     this._getHeight(x, z + 1),    vz + s));
+                vecs.push(vec3.fromValues(vx + s, this._getHeight(tx + 1, tz),    vz));
+                vecs.push(vec3.fromValues(vx,     this._getHeight(tx, tz),        vz));
+                vecs.push(vec3.fromValues(vx,     this._getHeight(tx, tz + 1),    vz + s));
                 
-                vecs.push(vec3.fromValues(vx + s, this._getHeight(x + 1, z),     vz));
-                vecs.push(vec3.fromValues(vx,     this._getHeight(x, z + 1),     vz + s));
-                vecs.push(vec3.fromValues(vx + s, this._getHeight(x + 1, z + 1), vz + s));
+                vecs.push(vec3.fromValues(vx + s, this._getHeight(tx + 1, tz),     vz));
+                vecs.push(vec3.fromValues(vx,     this._getHeight(tx, tz + 1),     vz + s));
+                vecs.push(vec3.fromValues(vx + s, this._getHeight(tx + 1, tz + 1), vz + s));
             } else {
-                vecs.push(vec3.fromValues(vx + s, this._getHeight(x + 1, z + 1), vz + s));
-                vecs.push(vec3.fromValues(vx,     this._getHeight(x, z),         vz));
-                vecs.push(vec3.fromValues(vx,     this._getHeight(x, z + 1),     vz + s));
+                vecs.push(vec3.fromValues(vx + s, this._getHeight(tx + 1, tz + 1), vz + s));
+                vecs.push(vec3.fromValues(vx,     this._getHeight(tx, tz),         vz));
+                vecs.push(vec3.fromValues(vx,     this._getHeight(tx, tz + 1),     vz + s));
                 
-                vecs.push(vec3.fromValues(vx + s, this._getHeight(x + 1, z),     vz));
-                vecs.push(vec3.fromValues(vx,     this._getHeight(x, z),         vz));
-                vecs.push(vec3.fromValues(vx + s, this._getHeight(x + 1, z + 1), vz + s));
+                vecs.push(vec3.fromValues(vx + s, this._getHeight(tx + 1, tz),     vz));
+                vecs.push(vec3.fromValues(vx,     this._getHeight(tx, tz),         vz));
+                vecs.push(vec3.fromValues(vx + s, this._getHeight(tx + 1, tz + 1), vz + s));
             }
             
-            var color = this._getColor(x, z);
-                
-            this._appendToModel(vecs[0], color);
-            this._appendToModel(vecs[1], color);
-            this._appendToModel(vecs[2], color);
+            var color = this._getColor(tx, tz);
             
-            this._appendToModel(vecs[3], color);
-            this._appendToModel(vecs[4], color);
-            this._appendToModel(vecs[5], color);
+            this._append(model, vecs[0], color);
+            this._append(model, vecs[1], color);
+            this._append(model, vecs[2], color);
             
-            this._setIndices(x, z, this.size);
+            this._append(model, vecs[3], color);
+            this._append(model, vecs[4], color);
+            this._append(model, vecs[5], color);
+            
+            this._setIndices(model, x, z);
         } 
     }
+    
+    return model;
 };
 
 Terrain.prototype._setImageHeights = function() {
@@ -118,7 +151,7 @@ Terrain.prototype._setImageHeights = function() {
     }
 };
     
-Terrain.prototype._getColor = function(x, y) {
+Terrain.prototype._getColor = function(x, y) {    
     var xy = (y * this.colormap.size + x) * 4;
     return [
         this.colormap.data[xy] / 255,
@@ -127,7 +160,7 @@ Terrain.prototype._getColor = function(x, y) {
         this.colormap.data[xy + 3] / 255];
 };
     
-Terrain.prototype._getImage = function(url) {    
+Terrain.prototype._getImage = function(url) {  
     var image = new Image();
     var deferred = Q.defer();
     
@@ -173,14 +206,7 @@ Terrain.prototype.generate = function(url, elevation, water) {
             self.heightmap = imgHeightmap;
             self.colormap = imgColormap;
             self.elevation = elevation;
-            self.model = new Model(self.ctx, 'terrain');
-            self.model.colors = [];
-            self.model.normals = [];
-            
             self._build(); 
-            
-            self.model.calculateNormals();
-            self.model.bindBuffers(); 
             
             deferred.resolve();
         })
@@ -210,13 +236,13 @@ Terrain.prototype.getElevationAtPoint = function (x, z) {
     var v1, v2, v3;
     
     if(p.xc <= (1 - p.zc)) {
-        v1 = vec3.fromValues(0, this._getHeight(p.gx, p.gz), 0);
-        v2 = vec3.fromValues(1, this._getHeight(p.gx + 1, p.gz), 0);
-        v3 = vec3.fromValues(0, this._getHeight(p.gx, p.gz + 1), 1);
+        v1 = [0, this._getHeight(p.gx, p.gz), 0];
+        v2 = [1, this._getHeight(p.gx + 1, p.gz), 0];
+        v3 = [0, this._getHeight(p.gx, p.gz + 1), 1];
     } else {
-        v1 = vec3.fromValues(1, this._getHeight(p.gx + 1, p.gz), 0);
-        v2 = vec3.fromValues(0, this._getHeight(p.gx, p.gz + 1), 1);
-        v3 = vec3.fromValues(1, this._getHeight(p.gx + 1, p.gz + 1), 1);
+        v1 = [1, this._getHeight(p.gx + 1, p.gz), 0];
+        v2 = [0, this._getHeight(p.gx, p.gz + 1), 1];
+        v3 = [1, this._getHeight(p.gx + 1, p.gz + 1), 1];
     }
 
     return this._baryCentric(v1, v2, v3, vec2.fromValues(p.xc, p.zc));
@@ -231,9 +257,15 @@ Terrain.prototype.getAngle = function(cx, cz, sx, sz) {
         0,
         Math.atan2(this.getElevationAtPoint(cx + rx, cz) - this.getElevationAtPoint(cx - rx, cz), sx)
     ];
-};
+}; 
+    
 
-Terrain.prototype.render = function (shader) {    
-    this.ctx.matrix.setUniforms(shader);
-    this.model.render(shader);
+
+Terrain.prototype.render = function (shader, flag) {   
+    for(var i = 0; i < this._blocks.length; i ++) {
+        if(flag === this.flags.reflect && this._blocks[i].bounds.vMax[1] < -0.3) { continue; }
+        if(flag === this.flags.refract && this._blocks[i].bounds.vMin[1] >  0.3) { continue; }
+        
+        this._blocks[i].render(shader, [this._blocks[i].x, 0, this._blocks[i].z], flag === this.flags.reflect);
+    }  
 };

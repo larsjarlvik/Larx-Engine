@@ -86,10 +86,10 @@ void main(void) {
 	reflectColor += texture2D(uReflectionColorTexture, reflectBlurCoordinates[3] - distort) * 0.093913;
 	reflectColor += texture2D(uReflectionColorTexture, reflectBlurCoordinates[4] - distort) * 0.093913;
     
-    vec3 color = mix(refractColor, reflectColor.rgb, clamp((depth - 0.5) / 8.0, 0.0, 1.0));
-    color = mix(vec3(1.0, 1.0, 1.0), color, clamp(depth / uEdgeSoftening, 0.9, 1.0));
+    vec3 color = mix(refractColor, reflectColor.rgb, clamp((depth - 0.5) * uWaterDensity, 0.0, 0.7));
+    color = mix(vec3(1.0, 1.0, 1.0), color, clamp(depth / uEdgeWhitening, 0.2, 0.8));
         
     // Result
-    gl_FragColor = vec4((color * lightWeighting), depth / uEdgeWhitening);
+    gl_FragColor = vec4((color * lightWeighting), clamp(depth / uEdgeSoftening, 0.0, 1.0));
     gl_FragColor = vec4(mix(uFogColor, gl_FragColor.xyz, vVisibility), gl_FragColor.w);
 }

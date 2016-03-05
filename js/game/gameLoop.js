@@ -23,13 +23,16 @@ GameLoop.prototype._tick = function() {
     for(var i = 0 ; i < this.catchUpFrameCount && i < 180; i++){
         this.logicCallback(new Date().getTime());
     }
+    
+    var self = this;
 
-    requestAnimationFrame(this.renderCallback);
+    requestAnimationFrame(function() {
+        self.renderCallback()
+        self._currentFps ++;
+    });
     
     this.leftover = this.timeSinceLastDoLogic - (this.catchUpFrameCount * this.idealTimePerFrame);
     this.timeAtLastFrame = this.timeAtThisFrame;
-    
-    this._currentFps ++;
 };
 
 GameLoop.prototype.start = function (logicCallback, renderCallback) {

@@ -32,8 +32,6 @@ DefaultShader.prototype.load = function() {
         self.shader.fogGradient = gl.getUniformLocation(self.shader, 'uFogGradient');
         self.shader.fogColor = gl.getUniformLocation(self.shader, 'uFogColor');
         
-        self.shader.opacity = gl.getUniformLocation(self.shader, 'uOpacity');
-        
         self.shader.clipPlane = gl.getUniformLocation(self.shader, 'uClipPlane');
         self.shader.clipPlaneLevel = gl.getUniformLocation(self.shader, 'uClipPlaneLevel');
         
@@ -65,6 +63,7 @@ DefaultShader.prototype.setClipPlane = function(clipPlane, clipPlaneLevel) {
 DefaultShader.prototype.cleanUp = function() {
     this.ctx.gl.disableVertexAttribArray(this.shader.vertexColorAttribute);
     this.ctx.gl.disableVertexAttribArray(this.shader.vertexNormalAttribute);
+    this.setClipPlane(0, 0); 
 };
 
 DefaultShader.prototype.setFog = function(density, gradient, color) {

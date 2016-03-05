@@ -8,6 +8,7 @@ var Larx = function (viewport, clearColor) {
     this.matrix;
     this.model;
     this.canvas;
+    this.frustum;
     
     this.viewport = viewport;
     this._init();
@@ -40,14 +41,18 @@ Larx.prototype._init = function() {
     
     this.camera = new Camera();
     this.matrix = new Matrix(this);
+    this.frustum = new Frustum(this);
 };
 
 Larx.prototype.setClearColor = function(color) {
     this.gl.clearColor(color[0], color[1], color[2], 1.0);
 };
 
-Larx.prototype.render = function(callback) {    
+Larx.prototype.render = function(callback) { 
+       
     this.matrix.push();
+    this.matrix.setIdentity();
+    this.frustum.extractFrustum();
     
     callback();
     

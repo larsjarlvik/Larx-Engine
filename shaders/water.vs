@@ -6,6 +6,7 @@ uniform mat4 uPMatrix;
 uniform mat3 uNMatrix;
 uniform float uFogDensity;
 uniform float uFogGradient;
+uniform float uTime;
 
 varying vec3 vNormal;
 varying vec3 vTransformedNormal;
@@ -16,15 +17,16 @@ varying vec4 vPosition;
 varying vec4 vClipSpace;
 varying float vVisibility;
 
+
 void main(void) {
-    vec4 position = vec4(aVertexPosition, 1.0);
-    
     vNormal = aVertexNormal;
+    vNormal.y /= 2.0;
+    
     vTransformedNormal = uNMatrix * vNormal;
     
+    vec4 position = vec4(aVertexPosition, 1.0);
     vClipSpace = uPMatrix * uMVMatrix * position;
     gl_Position = vClipSpace;
-    
     vPosition = uMVMatrix * position;
     
     float distance = length(gl_Position);

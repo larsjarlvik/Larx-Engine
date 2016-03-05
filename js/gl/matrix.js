@@ -55,3 +55,4 @@ Matrix.prototype.translate = function (vec) {
 Matrix.prototype.rotate = function (vec) {
     mat4.rotate(this.mvMatrix, this.mvMatrix, vec);
 };
+

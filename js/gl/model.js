@@ -15,7 +15,37 @@ var Model = function (ctx, name) {
     this.specularWeight = 1.0;
     this.faceCount = 0;
     this.vertexCount = 0;
+    
+    this.bounds;
+    this.frustumBounds;
 };
+
+Model.prototype.setBounds = function() {
+    this.bounds = {
+        vMin: undefined,
+        vMax: undefined
+    };
+    
+    for(var i = 0; i < this.vertices.length; i += 3) {
+        
+        if(this.bounds.vMin === undefined) {
+            this.bounds.vMin = [this.vertices[i], this.vertices[i + 1], this.vertices[i + 2]];
+        }
+        
+        if(this.bounds.vMax === undefined) {
+            this.bounds.vMax = [this.vertices[i], this.vertices[i + 1], this.vertices[i + 2]];
+        }
+        
+        
+        if(this.vertices[i + 0] < this.bounds.vMin[0]) { this.bounds.vMin[0] = this.vertices[i + 0]; }
+        if(this.vertices[i + 0] > this.bounds.vMax[0]) { this.bounds.vMax[0] = this.vertices[i + 0]; }
+        if(this.vertices[i + 1] < this.bounds.vMin[1]) { this.bounds.vMin[1] = this.vertices[i + 1]; }
+        if(this.vertices[i + 1] > this.bounds.vMax[1]) { this.bounds.vMax[1] = this.vertices[i + 1]; }
+        if(this.vertices[i + 2] < this.bounds.vMin[2]) { this.bounds.vMin[2] = this.vertices[i + 2]; }
+        if(this.vertices[i + 2] > this.bounds.vMax[2]) { this.bounds.vMax[2] = this.vertices[i + 2]; }
+    }
+};
+
 
 Model.prototype._download = function() {
     var deferred = Q.defer();
@@ -42,7 +72,6 @@ Model.prototype._parse = function(data) {
 };
     
 Model.prototype._parseHeader = function(lines) {
-    
     this.properties = [];
     var propertyIndex = 0;
     
@@ -129,38 +158,28 @@ Model.prototype._parseHeaderValue = function(line) {
     return n[n.length - 1];
 };
 
+
+Model.prototype._bindBuffer = function(buffer, data, itemSize) {
+    if(!data) { return; }
+    if(!buffer) { buffer = this.ctx.gl.createBuffer();  }
+    
+    this.ctx.gl.bindBuffer(this.ctx.gl.ARRAY_BUFFER, buffer);
+    this.ctx.gl.bufferData(this.ctx.gl.ARRAY_BUFFER, new Float32Array(data), this.ctx.gl.STATIC_DRAW);
+    buffer.itemSize = itemSize;
+    
+    return buffer;
+};
+
 Model.prototype.bindBuffers = function() {
-    var gl = this.ctx.gl;
+    this.vertexBuffer = this._bindBuffer(this.vertexBuffer, this.vertices, 3);
     
-    if(!this.vertexBuffer) { this.vertexBuffer = gl.createBuffer(); }
-    gl.bindBuffer(gl.ARRAY_BUFFER, this.vertexBuffer);
-    gl.bufferData(gl.ARRAY_BUFFER, new Float32Array(this.vertices), gl.STATIC_DRAW);
-    this.vertexBuffer.itemSize = 3;
+    this.colorBuffer = this._bindBuffer(this.colorBuffer, this.colors, 3);
+    this.normalBuffer = this._bindBuffer(this.normalBuffer, this.normals, 3);
+    this.texCoordBuffer = this._bindBuffer(this.texCoordBuffer, this.texCoords, 2);
     
-    if(this.colors) {
-        if(!this.colorBuffer) { this.colorBuffer = gl.createBuffer(); }
-        gl.bindBuffer(gl.ARRAY_BUFFER, this.colorBuffer);
-        gl.bufferData(gl.ARRAY_BUFFER, new Float32Array(this.colors), gl.STATIC_DRAW);
-        this.colorBuffer.itemSize = 3;
-    }
-    
-    if(this.normals) {
-        if(!this.normalBuffer) { this.normalBuffer = gl.createBuffer(); }
-        gl.bindBuffer(gl.ARRAY_BUFFER, this.normalBuffer);
-        gl.bufferData(gl.ARRAY_BUFFER, new Float32Array(this.normals), gl.STATIC_DRAW);
-        this.normalBuffer.itemSize = 3;
-    }
-    
-    if(this.texCoords) {
-        if(!this.texCoordBuffer) { this.texCoordBuffer = gl.createBuffer(); }
-        gl.bindBuffer(gl.ARRAY_BUFFER, this.texCoordBuffer);
-        gl.bufferData(gl.ARRAY_BUFFER, new Float32Array(this.texCoords), gl.STATIC_DRAW);
-        this.texCoordBuffer.itemSize = 2;
-    }
-    
-    if(!this.indexBuffer) { this.indexBuffer = gl.createBuffer(); }
-    gl.bindBuffer(gl.ELEMENT_ARRAY_BUFFER, this.indexBuffer);
-    gl.bufferData(gl.ELEMENT_ARRAY_BUFFER, new Uint16Array(this.indices), gl.STATIC_DRAW);
+    if(!this.indexBuffer) { this.indexBuffer = this.ctx.gl.createBuffer(); }
+    this.ctx.gl.bindBuffer(this.ctx.gl.ELEMENT_ARRAY_BUFFER, this.indexBuffer);
+    this.ctx.gl.bufferData(this.ctx.gl.ELEMENT_ARRAY_BUFFER, new Uint16Array(this.indices), this.ctx.gl.STATIC_DRAW);
     this.indexBuffer.numItems = this.indices.length;
 };
     
@@ -171,6 +190,7 @@ Model.prototype.load = function () {
     self._download(self.name).then(function (data) {
         self._parse(data);
         self.bindBuffers();
+        self.setBounds();
         deferred.resolve(); 
     })
     .catch(function(e) {
@@ -188,7 +208,6 @@ Model.prototype.translate = function (pos) {
         this.vertices[i + 2] += pos[2];
     }
 };
-
 
 Model.prototype.scale = function (value) {    
     for(var i = 0; i < this.vertices.length; i += 3) {
@@ -320,54 +339,54 @@ Model.prototype.calculateNormals = function () {
     }
 };
 
-Model.prototype.getBounds = function() {
-    var minX, minY, minZ,
-        maxX, maxY, maxZ;
-    
-    for(var i = 0; i < this.vertices.length; i+=3) {
-        if(minX === undefined || this.vertices[i] < minX) { minX = this.vertices[i]; } 
-        if(maxX === undefined || this.vertices[i] > maxX) { maxX = this.vertices[i]; }
-        
-        if(minY === undefined || this.vertices[i + 1] < minY) { minY = this.vertices[i + 1]; } 
-        if(maxY === undefined || this.vertices[i + 1] > maxY) { maxY = this.vertices[i + 1]; }
-        
-        if(minZ === undefined || this.vertices[i + 2] < minZ) { minZ = this.vertices[i + 2]; } 
-        if(maxZ === undefined || this.vertices[i + 2] > maxZ) { maxZ = this.vertices[i + 2]; }
-    }  
-    
-    return [minX, maxX, minY, maxY, minZ, maxZ];
-};
-
 Model.prototype.getSize = function() {
-    this._bounds = this.getBounds();
-    return [this._bounds[1] - this._bounds[0], this._bounds[3] - this._bounds[2], this._bounds[5] - this._bounds[4]];
+    return [
+        this.bounds.vMax[0] - this.bounds.vMin[0], 
+        this.bounds.vMax[1] - this.bounds.vMin[1], 
+        this.bounds.vMax[2] - this.bounds.vMin[2]];
 };
 
-Model.prototype.render = function (shaderProgram) {
+Model.prototype.inFrustum = function(translation) {
+    if(!this.bounds) { return true; }
+    
+    return this.ctx.frustum.inFrustum([
+        this.bounds.vMin[0] + translation[0],
+        this.bounds.vMin[1] + translation[1],
+        this.bounds.vMin[2] + translation[2]
+    ],[
+        this.bounds.vMax[0] + translation[0],
+        this.bounds.vMax[1] + translation[1],
+        this.bounds.vMax[2] + translation[2]
+    ]);
+};
+
+Model.prototype._setAttribute = function(attribute, buffer) {
+    if(buffer !== undefined && attribute != undefined) {
+        this.ctx.gl.bindBuffer(this.ctx.gl.ARRAY_BUFFER, buffer);
+        this.ctx.gl.vertexAttribPointer(attribute, buffer.itemSize, this.ctx.gl.FLOAT, false, 0, 0);
+    }
+}
+
+
+Model.prototype.render = function (shaderProgram, translation, reflect) {
+    if(!this.vertexBuffer || !this.inFrustum(translation)) {
+        return;
+    }
+    
     this._sp = shaderProgram.get();
+    this.ctx.matrix.setIdentity(reflect);
+    this.ctx.matrix.translate(translation);
+    this.ctx.matrix.setUniforms(shaderProgram);
     
     if(this._sp.shininess) { this.ctx.gl.uniform1f(this._sp.shininess, this.shininess); }
     if(this._sp.opacity) { this.ctx.gl.uniform1f(this._sp.opacity, this.opacity); }
     if(this._sp.specularWeight) { this.ctx.gl.uniform1f(this._sp.specularWeight, this.specularWeight); }
     
-    this.ctx.gl.bindBuffer(this.ctx.gl.ARRAY_BUFFER, this.vertexBuffer);
-    this.ctx.gl.vertexAttribPointer(this._sp.vertexPositionAttribute, this.vertexBuffer.itemSize, this.ctx.gl.FLOAT, false, 0, 0);
+    this._setAttribute(this._sp.vertexPositionAttribute, this.vertexBuffer);
+    this._setAttribute(this._sp.vertexColorAttribute, this.colorBuffer);
+    this._setAttribute(this._sp.vertexNormalAttribute, this.normalBuffer);
+    this._setAttribute(this._sp.textureCoordAttribute, this.texCoordBuffer);
 
-    if(this.colorBuffer && this._sp.vertexColorAttribute) {
-        this.ctx.gl.bindBuffer(this.ctx.gl.ARRAY_BUFFER, this.colorBuffer);
-        this.ctx.gl.vertexAttribPointer(this._sp.vertexColorAttribute, this.colorBuffer.itemSize, this.ctx.gl.FLOAT, false, 0, 0);
-    } 
-    
-    if(this.normalBuffer && this._sp.vertexNormalAttribute) {
-        this.ctx.gl.bindBuffer(this.ctx.gl.ARRAY_BUFFER, this.normalBuffer);
-        this.ctx.gl.vertexAttribPointer(this._sp.vertexNormalAttribute, this.normalBuffer.itemSize, this.ctx.gl.FLOAT, false, 0, 0);
-    } 
-    
-    if(this.texCoordBuffer && this._sp.textureCoordAttribute) {
-        this.ctx.gl.bindBuffer(this.ctx.gl.ARRAY_BUFFER, this.texCoordBuffer);
-        this.ctx.gl.vertexAttribPointer(this._sp.textureCoordAttribute, this.texCoordBuffer.itemSize, this.ctx.gl.FLOAT, false, 0, 0);
-    } 
-    
     this.ctx.gl.bindBuffer(this.ctx.gl.ELEMENT_ARRAY_BUFFER, this.indexBuffer);
     this.ctx.gl.drawElements(this.ctx.gl.TRIANGLES, this.indexBuffer.numItems, this.ctx.gl.UNSIGNED_SHORT, 0);
 };

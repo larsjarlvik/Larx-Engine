@@ -28,36 +28,36 @@ var MousePicker = function(ctx, precision) {
 MousePicker.prototype.addObject = function(b, data) {
     var box = new Model(this.ctx, 'box');
     
-    b[0] -= 0.4;
-    b[1] += 0.4;
-    b[4] -= 0.4;
-    b[5] += 0.4;
+    b.vMin[0] -= 0.4;
+    b.vMax[0] += 0.4;
+    b.vMin[2] -= 0.4;
+    b.vMax[2] += 0.4;
     
     box.vertices = [
-        b[0], b[2], b[5],
-        b[1], b[2], b[5],
-        b[1], b[3], b[5],
-        b[0], b[3], b[5],
-        b[0], b[2], b[4],
-        b[0], b[3], b[4],
-        b[1], b[3], b[4],
-        b[1], b[2], b[4],
-        b[0], b[3], b[4],
-        b[0], b[3], b[5],
-        b[1], b[3], b[5],
-        b[1], b[3], b[4],
-        b[0], b[2], b[4],
-        b[1], b[2], b[4],
-        b[1], b[2], b[5],
-        b[0], b[2], b[5],
-        b[1], b[2], b[4],
-        b[1], b[3], b[4],
-        b[1], b[3], b[5],
-        b[1], b[2], b[5],
-        b[0], b[2], b[4],
-        b[0], b[2], b[5],
-        b[0], b[3], b[5],
-        b[0], b[3], b[4]
+        b.vMin[0], b.vMin[1], b.vMax[2],
+        b.vMax[0], b.vMin[1], b.vMax[2],
+        b.vMax[0], b.vMax[1], b.vMax[2],
+        b.vMin[0], b.vMax[1], b.vMax[2],
+        b.vMin[0], b.vMin[1], b.vMin[2],
+        b.vMin[0], b.vMax[1], b.vMin[2],
+        b.vMax[0], b.vMax[1], b.vMin[2],
+        b.vMax[0], b.vMin[1], b.vMin[2],
+        b.vMin[0], b.vMax[1], b.vMin[2],
+        b.vMin[0], b.vMax[1], b.vMax[2],
+        b.vMax[0], b.vMax[1], b.vMax[2],
+        b.vMax[0], b.vMax[1], b.vMin[2],
+        b.vMin[0], b.vMin[1], b.vMin[2],
+        b.vMax[0], b.vMin[1], b.vMin[2],
+        b.vMax[0], b.vMin[1], b.vMax[2],
+        b.vMin[0], b.vMin[1], b.vMax[2],
+        b.vMax[0], b.vMin[1], b.vMin[2],
+        b.vMax[0], b.vMax[1], b.vMin[2],
+        b.vMax[0], b.vMax[1], b.vMax[2],
+        b.vMax[0], b.vMin[1], b.vMax[2],
+        b.vMin[0], b.vMin[1], b.vMin[2],
+        b.vMin[0], b.vMin[1], b.vMax[2],
+        b.vMin[0], b.vMax[1], b.vMax[2],
+        b.vMin[0], b.vMax[1], b.vMin[2]
     ];
     
     box.indices = [

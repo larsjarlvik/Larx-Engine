@@ -22,20 +22,20 @@ var config = {
         }
     },
     fog: {
-        density: 0.0017,
-        gradient: 1.3,
+        density: 0.0015,
+        gradient: 3.0,
         color: [0.601, 0.816, 0.820]
     },
     water: {
-        quality: 50,
-        detail: 1.0,
+        quality: 6,
+        detail: 10,
         color: [0.195, 0.805, 0.723],
         reflectionColor: [0.098, 0.535, 0.520],
-        waveHeight: 1.2,
-        speed: 0.5,
+        waveHeight: 1.0,
+        speed: 0.001,
         distortion: 2.5,
         edgeWhitening: 3.0, 
-        edgeSoftening: 3.0,
+        edgeSoftening: 5.0,
         density: 0.03
     },
     terrain: {
