@@ -1,66 +1,54 @@
+/* global Frustum */
 /* global Camera */
 /* global Matrix */
 /* global Q */
 
-var Larx = function (viewport, clearColor) {
-    this.gl;
-    this.camera;
-    this.matrix;
-    this.model;
-    this.canvas;
-    this.frustum;
-    
-    this.viewport = viewport;
-    this._init();
-    this.setClearColor(clearColor);
-};
+var Larx = { VERSION: 0.1 };
 
-Larx.prototype._init = function() {
-    var self = this;
-    this.canvas = this.viewport.canvas;
+Larx.gl = undefined;
 
-    this.gl = this.canvas.getContext('webgl');
-    if(!this.gl) { this.gl = this.canvas.getContext('experimental-webgl'); }
+Larx.init = function(canvas) {
+    Larx.Viewport.init(canvas);
+    Larx.Frustum.init();
     
-    this.gl.getExtension("OES_texture_float");
-    this.gl.getExtension("WEBGL_depth_texture");
+    Larx.gl = Larx.Viewport.canvas.getContext('webgl');
+    if(!Larx.gl) { Larx.gl = this.canvas.getContext('experimental-webgl'); }
     
-    this.gl.viewportWidth = this.canvas.width;
-    this.gl.viewportHeight = this.canvas.height;
+    Larx.gl.getExtension("OES_texture_float");
+    Larx.gl.getExtension("WEBGL_depth_texture");
     
-    this.gl.enable(this.gl.DEPTH_TEST);
-    this.gl.blendFunc(this.gl.SRC_ALPHA, this.gl.ONE_MINUS_SRC_ALPHA);
+    Larx.gl.viewportWidth = Larx.Viewport.canvas.width;
+    Larx.gl.viewportHeight = Larx.Viewport.canvas.height;
+    
+    Larx.gl.enable(Larx.gl.DEPTH_TEST);
+    Larx.gl.blendFunc(Larx.gl.SRC_ALPHA, Larx.gl.ONE_MINUS_SRC_ALPHA);
 
-    this.gl.enable(this.gl.CULL_FACE);
-    this.gl.cullFace(this.gl.BACK);
+    Larx.gl.enable(Larx.gl.CULL_FACE);
+    Larx.gl.cullFace(Larx.gl.BACK);
 
-    this.viewport.onResize(function () {
-        self.gl.viewportWidth = self.canvas.width;
-        self.gl.viewportHeight = self.canvas.height;
+    Larx.Viewport.onResize(function () {
+        Larx.gl.viewportWidth = Larx.Viewport.canvas.width;
+        Larx.gl.viewportHeight = Larx.Viewport.canvas.height;
     });
-    
-    this.camera = new Camera();
-    this.matrix = new Matrix(this);
-    this.frustum = new Frustum(this);
 };
 
-Larx.prototype.setClearColor = function(color) {
-    this.gl.clearColor(color[0], color[1], color[2], 1.0);
+Larx.setClearColor = function(color) {
+    Larx.gl.clearColor(color[0], color[1], color[2], 1.0);
 };
 
-Larx.prototype.render = function(callback) { 
-       
-    this.matrix.push();
-    this.matrix.setIdentity();
-    this.frustum.extractFrustum();
+Larx.render = function(callback) { 
+    Larx.Matrix.push();
+    Larx.Matrix.setIdentity();
+    Larx.Frustum.extractFrustum();
     
     callback();
     
-    this.matrix.pop();
+    Larx.Matrix.pop();
 };
 
-Larx.prototype.clear = function() {
-    this.gl.viewport(0, 0, this.gl.viewportWidth, this.gl.viewportHeight);
-    this.gl.clear(this.gl.COLOR_BUFFER_BIT | this.gl.DEPTH_BUFFER_BIT);
+Larx.clear = function() {
+    Larx.gl.viewport(0, 0, Larx.gl.viewportWidth, Larx.gl.viewportHeight);
+    Larx.gl.clear(Larx.gl.COLOR_BUFFER_BIT | Larx.gl.DEPTH_BUFFER_BIT);
 };
 
+Larx.prototype = {};

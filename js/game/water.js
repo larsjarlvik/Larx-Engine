@@ -2,9 +2,7 @@
 /* global Model */
 /* global vec3 */
 
-var Water = function (ctx, gameLoop) {
-    this.ctx = ctx;
-    this.gameLoop = gameLoop;
+Larx.Water = function () {
     this.size = undefined;
     this.waveHeight = 0.25;
     this.speed = 0.01;
@@ -13,193 +11,196 @@ var Water = function (ctx, gameLoop) {
     this.refraction;
     this.reflection;
     
-    this._numBlocks = 4;
-    this._blockSize;
-    this._blocks = [];
+    this.numBlocks = 4;
 };
     
     
-Water.prototype._appendToModel = function(model, vec) {
-    model.vertices.push(vec[0]);
-    model.vertices.push(vec[1]);
-    model.vertices.push(vec[2]);
-};
-
-Water.prototype._setIndices = function(model, counter) {
-    var start = counter * 6;
-
-    model.indices.push(start + 0);
-    model.indices.push(start + 1);
-    model.indices.push(start + 2);
-
-    model.indices.push(start + 3);
-    model.indices.push(start + 4);
-    model.indices.push(start + 5);
-};
-
-Water.prototype._getIndex = function (x, z) {
-    return z * this._numBlocks + x;
-};
-
-Water.prototype._build = function(terrain) {
-    this._blockSize = this.size / this._numBlocks;
+Larx.Water.prototype = {
     
-    for(var x = 0; x < this._numBlocks; x++) {
-        var bx = x * this._blockSize - (this.size / 2);
+    generate: function (terrain, quality) {
+        var self = this;
+        var blocks = [];
+        var blockSize;
         
-        for(var z = 0; z < this._numBlocks; z++) {
-            var bz = z * this._blockSize - (this.size / 2);
-            var i = z * this._numBlocks + x;
+        function appendToModel(model, vec) {
+            model.vertices.push(vec[0]);
+            model.vertices.push(vec[1]);
+            model.vertices.push(vec[2]);
+        }
+
+        function setIndices(model, counter) {
+            var start = counter * 6;
+
+            model.indices.push(start + 0);
+            model.indices.push(start + 1);
+            model.indices.push(start + 2);
+
+            model.indices.push(start + 3);
+            model.indices.push(start + 4);
+            model.indices.push(start + 5);
+        }
+        
+        function getIndex(x, z) {
+            return z * self.numBlocks + x;
+        }
+        
+        function buildBlock(terrain, bx, bz) {
+            var ts = blockSize / self.quality;
+            var counter = 0;
+            var model = new Larx.Model();
             
-            this._blocks[i] = this._buildBlock(terrain, bx, bz);
-            if(this._blocks[i] !== undefined) {
-                this._blocks[i].x = x;
-                this._blocks[i].z = z;
-                this._blocks[i].bx = bx;
-                this._blocks[i].bz = bz;
-                this._blocks[i].setBounds();
-                this._blocks[i].bindBuffers(); 
+            model.normals = [];
+            model.shininess = 1.0;
+            model.opacity = 0.5;
+            model.specularWeight = 0.5;
+            
+            for(var z = 0; z < blockSize; z += ts) {
+                var vz = z;
+                
+                for(var x = 0; x < blockSize; x += ts) {
+                    var vecs = [];
+                    var vx = x;
+                    
+                    if((x%2 === 0 && z%2 === 0) || (x%2 === 1 && z%2 === 1)) {
+                        vecs.push(vec3.fromValues(vx + ts, 0, vz));
+                        vecs.push(vec3.fromValues(vx, 0, vz));
+                        vecs.push(vec3.fromValues(vx, 0, vz + ts));
+                        
+                        vecs.push(vec3.fromValues(vx + ts, 0, vz));
+                        vecs.push(vec3.fromValues(vx, 0, vz + ts));
+                        vecs.push(vec3.fromValues(vx + ts, 0, vz + ts));
+                    } else {
+                        vecs.push(vec3.fromValues(vx + ts, 0, vz + ts));
+                        vecs.push(vec3.fromValues(vx, 0, vz));
+                        vecs.push(vec3.fromValues(vx, 0, vz + ts));
+                        
+                        vecs.push(vec3.fromValues(vx + ts, 0, vz));
+                        vecs.push(vec3.fromValues(vx, 0, vz));
+                        vecs.push(vec3.fromValues(vx + ts, 0, vz + ts));
+                    }
+                    
+                    var add = false;
+                    for(var i = 0; i < vecs.length; i++)
+                        if(terrain.getElevationAtPoint(bx + vecs[i][0], bz + vecs[i][2]) <= self.waveHeight) {
+                            add = true;
+                            break;
+                        }
+                        
+                    if(!add) { continue; }
+                    
+                    appendToModel(model, vecs[0]);
+                    appendToModel(model, vecs[1]);
+                    appendToModel(model, vecs[2]);
+                    
+                    appendToModel(model, vecs[3]);
+                    appendToModel(model, vecs[4]);
+                    appendToModel(model, vecs[5]);
+                    
+                    setIndices(model, counter);
+                    counter++;
+                } 
+            }
+            
+            if(model.vertices.length == 0) {
+                return undefined;
+            } else {
+                return model;
             }
         }
-    }
-};
-
-Water.prototype._buildBlock = function(terrain, bx, bz) {
-    var ts = this._blockSize / this.quality;
-    var counter = 0;
-    var model = new Model(this.ctx, 'waterBlock');
-    
-    model.normals = [];
-    model.shininess = 1.0;
-    model.opacity = 0.5;
-    model.specularWeight = 0.8;
-    
-    for(var z = 0; z < this._blockSize; z += ts) {
-        var vz = z;
         
-        for(var x = 0; x < this._blockSize; x += ts) {
-            var vecs = [];
-            var vx = x;
+        function build(terrain) {
+            blockSize = self.size / self.numBlocks;
             
-            if((x%2 === 0 && z%2 === 0) || (x%2 === 1 && z%2 === 1)) {
-                vecs.push(vec3.fromValues(vx + ts, 0, vz));
-                vecs.push(vec3.fromValues(vx, 0, vz));
-                vecs.push(vec3.fromValues(vx, 0, vz + ts));
+            for(var x = 0; x < self.numBlocks; x++) {
+                var bx = x * blockSize - (self.size / 2);
                 
-                vecs.push(vec3.fromValues(vx + ts, 0, vz));
-                vecs.push(vec3.fromValues(vx, 0, vz + ts));
-                vecs.push(vec3.fromValues(vx + ts, 0, vz + ts));
-            } else {
-                vecs.push(vec3.fromValues(vx + ts, 0, vz + ts));
-                vecs.push(vec3.fromValues(vx, 0, vz));
-                vecs.push(vec3.fromValues(vx, 0, vz + ts));
-                
-                vecs.push(vec3.fromValues(vx + ts, 0, vz));
-                vecs.push(vec3.fromValues(vx, 0, vz));
-                vecs.push(vec3.fromValues(vx + ts, 0, vz + ts));
-            }
-            
-            var add = false;
-            for(var i = 0; i < vecs.length; i++) {
-                var elev = terrain.getElevationAtPoint(bx + vecs[i][0], bz + vecs[i][2]);
-                if(elev <= this.waveHeight) {
-                    add = true;
-                    break;
+                for(var z = 0; z < self.numBlocks; z++) {
+                    var bz = z * blockSize - (self.size / 2);
+                    var i = z * self.numBlocks + x;
+                    
+                    blocks[i] = buildBlock(terrain, bx, bz);
+                    if(blocks[i] !== undefined) {
+                        blocks[i].x = x;
+                        blocks[i].z = z;
+                        blocks[i].bx = bx;
+                        blocks[i].bz = bz;
+                        blocks[i].setBounds();
+                        blocks[i].bindBuffers(); 
+                    }
                 }
             }
-            
-            if(!add) { continue; }
-            
-            this._appendToModel(model, vecs[0]);
-            this._appendToModel(model, vecs[1]);
-            this._appendToModel(model, vecs[2]);
-            
-            this._appendToModel(model, vecs[3]);
-            this._appendToModel(model, vecs[4]);
-            this._appendToModel(model, vecs[5]);
-            
-            this._setIndices(model, counter);
-            counter++;
-        } 
-    }
-    
-    if(model.vertices.length == 0) {
-        return undefined;
-    } else {
-        return model;
-    }
-};
-
-Water.prototype._generateLoop = function() {
-    var frameTime = (1000.0 / this.gameLoop.targetFps);
-    var target;
-    
-    for(var i = 0; i < Math.PI / this.speed; i += frameTime) {
-        var tx = i * this.speed;
-        
-        target = [];
-        
-        for(var n = 0; n < this._blocks.length; n ++) {
-            if(this._blocks[n] === undefined) { continue; }
-            
-            target[n] = this._blocks[n].clone();
-            target[n].x = this._blocks[n].x;
-            target[n].z = this._blocks[n].z;
-            target[n].bx = this._blocks[n].bx;
-            target[n].bz = this._blocks[n].bz;
-            
-            for(var v = 0; v < this._blocks[n].vertices.length; v += 3) {
-                target[n].vertices[v + 1] = 
-                    Math.sin(tx + (target[n].x * this._blockSize) + this._blocks[n].vertices[v]) * 
-                    Math.cos(tx + (target[n].z * this._blockSize) + this._blocks[n].vertices[v + 2])
-                    * this.waveHeight;
-            }
-            
-            target[n].calculateNormals();
-            target[n].bindBuffers();
         }
         
-        this.frames.push(target);
-    }
-};
-
-Water.prototype.generate = function (terrain, quality) {
-    this.quality = quality;
-    this.size = terrain.getSize() - (2 * terrain.scale) - 0.5;
-    
-    this._build(terrain);
-    this._generateLoop();
-    
-    return Q();
-};
-
-Water.prototype.update = function () {
-    this.currentFrame ++;
-    this.currentFrame = this.currentFrame % this.frames.length;
-};
-
-Water.prototype.render = function (shader) {    
-    if(this.refraction) {
-        this.refraction.bindDepthTexture(this.ctx.gl.TEXTURE0);
-        this.refraction.bindColorTexture(this.ctx.gl.TEXTURE1);
-        shader.setRefractionDepthTexture(this.refraction.depthTexture);
-        shader.setRefractionColorTexture(this.refraction.colorTexture);
-    }
-    
-    if(this.reflection) {
-        this.reflection.bindColorTexture(this.ctx.gl.TEXTURE2);
-        shader.setReflectionColorTexture(this.reflection.colorTexture);
-    }
-    
-    for(var i = 0; i < this._blocks.length; i ++) {
-        if(this.frames[this.currentFrame][i] === undefined) { continue; }
+        function generateLoop() {
+            var frameTime = (1000.0 / Larx.GameLoop.targetFps);
+            var target;
+            
+            for(var i = 0; i < Math.PI / self.speed; i += frameTime) {
+                var tx = i * self.speed;
+                
+                target = [];
+                
+                for(var n = 0; n < blocks.length; n ++) {
+                    if(blocks[n] === undefined) { continue; }
+                    
+                    target[n] = blocks[n].clone();
+                    target[n].x = blocks[n].x;
+                    target[n].z = blocks[n].z;
+                    target[n].bx = blocks[n].bx;
+                    target[n].bz = blocks[n].bz;
+                    
+                    for(var v = 0; v < blocks[n].vertices.length; v += 3) {
+                        target[n].vertices[v + 1] = 
+                            Math.sin(tx + (target[n].x * blockSize) + blocks[n].vertices[v]) * 
+                            Math.cos(tx + (target[n].z * blockSize) + blocks[n].vertices[v + 2])
+                            * self.waveHeight;
+                    }
+                    
+                    target[n].calculateNormals();
+                    target[n].bindBuffers();
+                }
+                
+                self.frames.push(target);
+            }
+        }
+                
+        this.quality = quality;
+        this.size = terrain.getSize() - (2 * terrain.scale) - 0.5;
         
-        this.frames[this.currentFrame][i].render(shader, [
-            this.frames[this.currentFrame][i].bx, 0, 
-            this.frames[this.currentFrame][i].bz]);
-    }
-   
+        build(terrain);
+        generateLoop();
+        
+        return Q();
+    },
     
-    if(this.refraction) { this.refraction.unbindTextures(); }
-    if(this.reflection) { this.reflection.unbindTextures(); }
+    update: function () {
+        this.currentFrame ++;
+        this.currentFrame = this.currentFrame % this.frames.length;
+    },
+    
+    render: function (shader) {    
+        if(this.refraction) {
+            this.refraction.bindDepthTexture(Larx.gl.TEXTURE0);
+            this.refraction.bindColorTexture(Larx.gl.TEXTURE1);
+            shader.setRefractionDepthTexture(this.refraction.depthTexture);
+            shader.setRefractionColorTexture(this.refraction.colorTexture);
+        }
+        
+        if(this.reflection) {
+            this.reflection.bindColorTexture(Larx.gl.TEXTURE2);
+            shader.setReflectionColorTexture(this.reflection.colorTexture);
+        }
+        
+        for(var i = 0; i < this.numBlocks * this.numBlocks; i ++) {
+            if(this.frames[this.currentFrame][i] === undefined) { continue; }
+            
+            this.frames[this.currentFrame][i].render(shader, [
+                this.frames[this.currentFrame][i].bx, 0, 
+                this.frames[this.currentFrame][i].bz]);
+        }
+    
+        
+        if(this.refraction) { this.refraction.unbindTextures(); }
+        if(this.reflection) { this.reflection.unbindTextures(); }
+    }
 };

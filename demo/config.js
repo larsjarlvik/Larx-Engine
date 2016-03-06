@@ -33,17 +33,17 @@ var config = {
         reflectionColor: [0.098, 0.535, 0.520],
         waveHeight: 1.0,
         speed: 0.001,
-        distortion: 2.5,
-        edgeWhitening: 3.0, 
+        distortion: 4.5,
+        edgeWhitening: 2.0, 
         edgeSoftening: 5.0,
-        density: 0.03
+        density: 0.07
     },
     terrain: {
         path: '/maps/test',
         elevation: 8.0,
         waterLevel: 1.5,
         shininess: 4.0,
-        specularWeight: 0.65
+        specularWeight: 0.3
     },
     decorations: [
         {

@@ -1,48 +1,43 @@
-/* global Q */
+/* Larx.global Q */
 
-var MouseShader = function(ctx) {
-    this.ctx = ctx;
-    this.shaders = undefined;
-    this.shader = undefined;
+Larx.MouseShader = function() {
+    this.shader;
 };
 
+Larx.MouseShader.prototype = {
+    load: function() {
+        var deferred = Q.defer();
+        var self = this;
+        
+        Larx.Shaders.downloadShaderProgram('mouse').then(function (shaderProgram) {    
+            self.shader = shaderProgram;
+            
+            Larx.gl.linkProgram(self.shader);
+            Larx.gl.useProgram(self.shader);
+            
+            self.shader.vertexPositionAttribute = Larx.gl.getAttribLocation(self.shader, 'aVertexPosition');
+            self.shader.colorId = Larx.gl.getUniformLocation(self.shader, 'uColorId');
+            
+            Larx.Shaders.setDefaults(self.shader, false);
+            
+            deferred.resolve();
+        }).catch(function (e) {
+            console.error(e);
+        });
+        
+        return deferred.promise;
+    },
 
-MouseShader.prototype.load = function() {
-    var deferred = Q.defer();
-    var self = this;
-    var gl = this.ctx.gl;
-    
-    this.shaders = new Shaders(this.ctx);
-    this.shaders.downloadShaderProgram('mouse').then(function (shaderProgram) {    
-        self.shader = shaderProgram;
-        
-        gl.linkProgram(self.shader);
-        gl.useProgram(self.shader);
-        
-        // START BUFFERS
-        self.shader.vertexPositionAttribute = gl.getAttribLocation(self.shader, 'aVertexPosition');
-        gl.enableVertexAttribArray(self.shader.vertexPositionAttribute);
-        // END BUFFERS
-        
-        self.shader.colorId = gl.getUniformLocation(self.shader, 'uColorId');
-        self.shaders.setDefaults(self.shader, false);
-        
-        deferred.resolve();
-    }).catch(function (e) {
-        console.error(e);
-    });
-    
-    return deferred.promise;
+    get: function() {
+        return this.shader;
+    },
+
+    use: function() {
+        Larx.Larx.gl.useProgram(this.shader);
+    },
+
+    setColorId: function(id) {
+        Larx.Larx.gl.uniform1f(this.shader.colorId, id);
+    } 
 };
 
-MouseShader.prototype.get = function() {
-    return this.shader;
-}; 
-
-MouseShader.prototype.use = function() {
-    this.ctx.gl.useProgram(this.shader);
-}; 
-
-MouseShader.prototype.setColorId = function(id) {
-    this.ctx.gl.uniform1f(this.shader.colorId, id);
-};

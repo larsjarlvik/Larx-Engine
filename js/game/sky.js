@@ -1,7 +1,6 @@
 /* global Model */
 
-var Sky = function(ctx, size) {
-    this.ctx = ctx;
+var Sky = function(size) {
     this.size = size;
     this.model;
 };
@@ -10,7 +9,7 @@ Sky.prototype.load = function(name) {
     var deferred = Q.defer();
     var self = this;
     
-    this.model = new Model(this.ctx, name);
+    this.model = new Model();
     this.model.load(name).then(function() {
         self.model.scale(self.size, self.size / 2, self.size);
         self.model.bindBuffers();
@@ -22,9 +21,9 @@ Sky.prototype.load = function(name) {
 };
 
 Sky.prototype.render = function(shader) {
-    this.ctx.matrix.setIdentity();
-    this.ctx.matrix.translate([this.ctx.camera.look.x, -350.0, this.ctx.camera.look.z]);
-    this.ctx.matrix.setUniforms(shader);
+    Larx.Matrix.setIdentity();
+    Larx.Matrix.translate([Larx.Camera.look.x, -350.0, Larx.Camera.look.z]);
+    Larx.Matrix.setUniforms(shader);
     
     this.model.render(shader);
 };

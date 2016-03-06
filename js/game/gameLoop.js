@@ -1,56 +1,61 @@
 
-var GameLoop = function(targetFps) {
-    this.targetFps = targetFps;
-    this.fps = 0;
-    this.averageFpsMinute = 0;
-    this._currentFps = 0;
-    this._averageFps = 0;
-    this.timeAtLastFrame = new Date().getTime();
-    this.leftover = 0.0;
+Larx.GameLoop = {
+    targetFps: 0,
+    fps: 0,
+    averageFpsMinute: 0,
+    logicCallback: undefined,
+    renderCallback: undefined,
     
-    this.logicCallback;
-    this.renderCallback;
+    init: function(logicCallback, renderCallback, targetFps) {
+        this.targetFps = targetFps;
+        this.logicCallback = logicCallback;
+        this.renderCallback = renderCallback;
+    },
     
-    this.idealTimePerFrame = 1000 / this.targetFps;
-};
-
-GameLoop.prototype._tick = function() {
-    
-    this.timeAtThisFrame = new Date().getTime();
-    this.timeSinceLastDoLogic = (this.timeAtThisFrame - this.timeAtLastFrame) + this.leftover;
-    this.catchUpFrameCount = Math.floor(this.timeSinceLastDoLogic / this.idealTimePerFrame);
-
-    for(var i = 0 ; i < this.catchUpFrameCount && i < 180; i++){
-        this.logicCallback(new Date().getTime());
+    start: function () {
+        var self = this;
+        var currentFps = 0;
+        var averageFps = 0;
+        
+        
+        var timeAtLastFrame = new Date().getTime(),
+            timeAtThisFrame = new Date().getTime(),
+            idealTimePerFrame = 1000 / this.targetFps,
+            leftover = 0.0,
+            timeSinceLastDoLogic ,
+            catchUpFrameCount;
+        
+        
+        function tick() {
+            timeAtThisFrame = new Date().getTime();
+            timeSinceLastDoLogic = (timeAtThisFrame - timeAtLastFrame) + leftover;
+            catchUpFrameCount = Math.floor(timeSinceLastDoLogic / idealTimePerFrame);
+            
+            for(var i = 0 ; i < catchUpFrameCount && i < 180; i++){
+                self.logicCallback(new Date().getTime());
+            }
+            
+            requestAnimationFrame(function() {
+                self.renderCallback()
+                currentFps ++;
+            });
+            
+            leftover = timeSinceLastDoLogic - (catchUpFrameCount * idealTimePerFrame);
+            timeAtLastFrame = timeAtThisFrame;
+        }
+        
+        setInterval(function() { tick(); }, 1000 / this.targetFps);
+        setInterval(function() {
+            self.fps = currentFps;
+            averageFps += currentFps;
+            currentFps = 0;
+        }, 1000);
+        
+        setInterval(function () {
+            self.averageFpsMinute = (averageFps / 60).toFixed(1);
+            averageFps = 0;
+        }, 60000);
     }
-    
-    var self = this;
-
-    requestAnimationFrame(function() {
-        self.renderCallback()
-        self._currentFps ++;
-    });
-    
-    this.leftover = this.timeSinceLastDoLogic - (this.catchUpFrameCount * this.idealTimePerFrame);
-    this.timeAtLastFrame = this.timeAtThisFrame;
 };
 
-GameLoop.prototype.start = function (logicCallback, renderCallback) {
-    this.logicCallback = logicCallback;
-    this.renderCallback = renderCallback;
-    
-    var self = this;
-    
-    setInterval(function() { self._tick(); }, 1000 / this.targetFps);
-    setInterval(function() {
-        self.fps = self._currentFps;
-        self._averageFps += self._currentFps;
-        self._currentFps = 0;
-    }, 1000);
-    
-    setInterval(function () {
-        self.averageFpsMinute = (self._averageFps / 60).toFixed(1);
-        self._averageFps = 0;
-    }, 60000);
-};
     

@@ -1,11 +1,9 @@
-var Framebuffer = function(ctx, width, height) {
-    this.ctx = ctx;
-    
+Larx.Framebuffer = function(width, height) {    
     this.width = width;
     this.height = height;
     
-    this.framebuffer = ctx.gl.createFramebuffer();
-    this.renderbuffer = ctx.gl.createRenderbuffer();
+    this.framebuffer = Larx.gl.createFramebuffer();
+    this.renderbuffer = Larx.gl.createRenderbuffer();
     
     this.colorTexture;
     this.depthTexture;
@@ -13,87 +11,85 @@ var Framebuffer = function(ctx, width, height) {
     this.build();
 };
 
-Framebuffer.prototype.build = function() {
-    var gl = this.ctx.gl;
-    
-    gl.bindFramebuffer(gl.FRAMEBUFFER, this.framebuffer);
-    gl.bindRenderbuffer(gl.RENDERBUFFER, this.renderbuffer);
-    
-    gl.renderbufferStorage(gl.RENDERBUFFER, gl.DEPTH_COMPONENT16, this.width, this.height);
-    gl.framebufferRenderbuffer(gl.FRAMEBUFFER, gl.DEPTH_ATTACHMENT, gl.RENDERBUFFER, this.renderbuffer);
-    gl.framebufferRenderbuffer(gl.FRAMEBUFFER, gl.DEPTH_ATTACHMENT, gl.RENDERBUFFER, this.renderbuffer);
-    
-    gl.bindFramebuffer(gl.FRAMEBUFFER, null);
-    gl.bindFramebuffer(gl.FRAMEBUFFER, null);
-};
-
-Framebuffer.prototype.buildColorBuffer = function(format) {
-    var gl = this.ctx.gl;
-    this.colorTexture = gl.createTexture();
-    
-    gl.bindFramebuffer(gl.FRAMEBUFFER, this.framebuffer);
-    
-    gl.bindTexture(gl.TEXTURE_2D, this.colorTexture);
-    gl.texImage2D(gl.TEXTURE_2D, 0, gl.RGBA, this.width, this.height, 0, gl.RGBA, format, null);
-    gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_WRAP_S, gl.CLAMP_TO_EDGE);
-    gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_WRAP_T, gl.CLAMP_TO_EDGE);
-    gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_MAG_FILTER, gl.LINEAR);
-    gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_MIN_FILTER, gl.LINEAR);
-    
-    gl.framebufferTexture2D(gl.FRAMEBUFFER, gl.COLOR_ATTACHMENT0, gl.TEXTURE_2D, this.colorTexture, 0);
+Larx.Framebuffer.prototype = {
+    build: function() {
+        Larx.gl.bindFramebuffer(Larx.gl.FRAMEBUFFER, this.framebuffer);
+        Larx.gl.bindRenderbuffer(Larx.gl.RENDERBUFFER, this.renderbuffer);
         
-    gl.bindTexture(gl.TEXTURE_2D, null);
-    gl.bindFramebuffer(gl.FRAMEBUFFER, null);
-};
+        Larx.gl.renderbufferStorage(Larx.gl.RENDERBUFFER, Larx.gl.DEPTH_COMPONENT16, this.width, this.height);
+        Larx.gl.framebufferRenderbuffer(Larx.gl.FRAMEBUFFER, Larx.gl.DEPTH_ATTACHMENT, Larx.gl.RENDERBUFFER, this.renderbuffer);
+        Larx.gl.framebufferRenderbuffer(Larx.gl.FRAMEBUFFER, Larx.gl.DEPTH_ATTACHMENT, Larx.gl.RENDERBUFFER, this.renderbuffer);
+        
+        Larx.gl.bindFramebuffer(Larx.gl.FRAMEBUFFER, null);
+        Larx.gl.bindFramebuffer(Larx.gl.FRAMEBUFFER, null);
+    },
 
-Framebuffer.prototype.buildDepthBuffer = function() {
-    var gl = this.ctx.gl;
-    this.depthTexture = gl.createTexture();
-    
-    gl.bindFramebuffer(gl.FRAMEBUFFER, this.framebuffer);
-    
-    gl.bindTexture(gl.TEXTURE_2D, this.depthTexture);
-    gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_MAG_FILTER, gl.LINEAR);
-    gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_MIN_FILTER, gl.LINEAR);
-    gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_WRAP_S, gl.CLAMP_TO_EDGE);
-    gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_WRAP_T, gl.CLAMP_TO_EDGE);
-    gl.texImage2D(gl.TEXTURE_2D, 0, gl.DEPTH_COMPONENT, this.width, this.height, 0, gl.DEPTH_COMPONENT, gl.UNSIGNED_INT, null);
+    buildColorBuffer: function(format) {
+        this.colorTexture = Larx.gl.createTexture();
+        
+        Larx.gl.bindFramebuffer(Larx.gl.FRAMEBUFFER, this.framebuffer);
+        
+        Larx.gl.bindTexture(Larx.gl.TEXTURE_2D, this.colorTexture);
+        Larx.gl.texImage2D(Larx.gl.TEXTURE_2D, 0, Larx.gl.RGBA, this.width, this.height, 0, Larx.gl.RGBA, format, null);
+        Larx.gl.texParameteri(Larx.gl.TEXTURE_2D, Larx.gl.TEXTURE_WRAP_S, Larx.gl.CLAMP_TO_EDGE);
+        Larx.gl.texParameteri(Larx.gl.TEXTURE_2D, Larx.gl.TEXTURE_WRAP_T, Larx.gl.CLAMP_TO_EDGE);
+        Larx.gl.texParameteri(Larx.gl.TEXTURE_2D, Larx.gl.TEXTURE_MAG_FILTER, Larx.gl.LINEAR);
+        Larx.gl.texParameteri(Larx.gl.TEXTURE_2D, Larx.gl.TEXTURE_MIN_FILTER, Larx.gl.LINEAR);
+        
+        Larx.gl.framebufferTexture2D(Larx.gl.FRAMEBUFFER, Larx.gl.COLOR_ATTACHMENT0, Larx.gl.TEXTURE_2D, this.colorTexture, 0);
+            
+        Larx.gl.bindTexture(Larx.gl.TEXTURE_2D, null);
+        Larx.gl.bindFramebuffer(Larx.gl.FRAMEBUFFER, null);
+    },
+
+    buildDepthBuffer: function() {
+        this.depthTexture = Larx.gl.createTexture();
+        
+        Larx.gl.bindFramebuffer(Larx.gl.FRAMEBUFFER, this.framebuffer);
+        
+        Larx.gl.bindTexture(Larx.gl.TEXTURE_2D, this.depthTexture);
+        Larx.gl.texParameteri(Larx.gl.TEXTURE_2D, Larx.gl.TEXTURE_MAG_FILTER, Larx.gl.LINEAR);
+        Larx.gl.texParameteri(Larx.gl.TEXTURE_2D, Larx.gl.TEXTURE_MIN_FILTER, Larx.gl.LINEAR);
+        Larx.gl.texParameteri(Larx.gl.TEXTURE_2D, Larx.gl.TEXTURE_WRAP_S, Larx.gl.CLAMP_TO_EDGE);
+        Larx.gl.texParameteri(Larx.gl.TEXTURE_2D, Larx.gl.TEXTURE_WRAP_T, Larx.gl.CLAMP_TO_EDGE);
+        Larx.gl.texImage2D(Larx.gl.TEXTURE_2D, 0, Larx.gl.DEPTH_COMPONENT, this.width, this.height, 0, Larx.gl.DEPTH_COMPONENT, Larx.gl.UNSIGNED_INT, null);
 
 
-    gl.bindTexture(gl.TEXTURE_2D, null);
-    gl.bindRenderbuffer(gl.RENDERBUFFER, null);
-};
+        Larx.gl.bindTexture(Larx.gl.TEXTURE_2D, null);
+        Larx.gl.bindRenderbuffer(Larx.gl.RENDERBUFFER, null);
+    },
 
-Framebuffer.prototype.bind = function() {
-    this.ctx.gl.bindFramebuffer(this.ctx.gl.FRAMEBUFFER, this.framebuffer);
-    this.ctx.gl.clear(this.ctx.gl.COLOR_BUFFER_BIT | this.ctx.gl.DEPTH_BUFFER_BIT);
-    
-    this.ctx.gl.viewport(0, 0, this.width, this.height);
-    
-    if(this.colorTexture) { 
-        this.ctx.gl.framebufferTexture2D(this.ctx.gl.FRAMEBUFFER, this.ctx.gl.COLOR_ATTACHMENT0, this.ctx.gl.TEXTURE_2D, this.colorTexture, 0);
+    bind: function() {
+        Larx.gl.bindFramebuffer(Larx.gl.FRAMEBUFFER, this.framebuffer);
+        Larx.gl.clear(Larx.gl.COLOR_BUFFER_BIT | Larx.gl.DEPTH_BUFFER_BIT);
+        
+        Larx.gl.viewport(0, 0, this.width, this.height);
+        
+        if(this.colorTexture) { 
+            Larx.gl.framebufferTexture2D(Larx.gl.FRAMEBUFFER, Larx.gl.COLOR_ATTACHMENT0, Larx.gl.TEXTURE_2D, this.colorTexture, 0);
+        }
+        
+        if(this.depthTexture) { 
+            Larx.gl.framebufferTexture2D(Larx.gl.FRAMEBUFFER, Larx.gl.DEPTH_ATTACHMENT, Larx.gl.TEXTURE_2D, this.depthTexture, 0);
+        }
+    },
+
+    unbind: function() {
+        Larx.gl.viewport(0, 0, Larx.Viewport.canvas.width, Larx.Viewport.canvas.height);
+        Larx.gl.bindFramebuffer(Larx.gl.FRAMEBUFFER, null);
+    },
+
+    bindColorTexture: function(textureUnit) {
+        Larx.gl.activeTexture(textureUnit);
+        Larx.gl.bindTexture(Larx.gl.TEXTURE_2D, this.colorTexture);  
+    },
+
+    bindDepthTexture: function(textureUnit) {
+        Larx.gl.activeTexture(textureUnit);
+        Larx.gl.bindTexture(Larx.gl.TEXTURE_2D, this.depthTexture);  
+    },
+
+    unbindTextures: function() {
+        Larx.gl.bindTexture(Larx.gl.TEXTURE_2D, null);  
     }
-    
-    if(this.depthTexture) { 
-        this.ctx.gl.framebufferTexture2D(this.ctx.gl.FRAMEBUFFER, this.ctx.gl.DEPTH_ATTACHMENT, this.ctx.gl.TEXTURE_2D, this.depthTexture, 0);
-    }
-};
-
-Framebuffer.prototype.unbind = function() {
-    this.ctx.gl.viewport(0, 0, this.ctx.canvas.width, this.ctx.canvas.height);
-    this.ctx.gl.bindFramebuffer(this.ctx.gl.FRAMEBUFFER, null);
-};
-
-Framebuffer.prototype.bindColorTexture = function(textureUnit) {
-    this.ctx.gl.activeTexture(textureUnit);
-    this.ctx.gl.bindTexture(this.ctx.gl.TEXTURE_2D, this.colorTexture);  
-};
-
-Framebuffer.prototype.bindDepthTexture = function(textureUnit) {
-    this.ctx.gl.activeTexture(textureUnit);
-    this.ctx.gl.bindTexture(this.ctx.gl.TEXTURE_2D, this.depthTexture);  
-};
-
-Framebuffer.prototype.unbindTextures = function() {
-    this.ctx.gl.bindTexture(this.ctx.gl.TEXTURE_2D, null);  
 }

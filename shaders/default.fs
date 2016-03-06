@@ -29,10 +29,7 @@ void main(void) {
     vec3 normal = normalize(vTransformedNormal);
     
     float directionalLightWeighting = max(dot(vNormal, uLightingDirection), 0.0);
-    
-    vec3 lightWeighting = 
-        uAmbientColor + 
-        uDirectionalColor * directionalLightWeighting;
+    vec3 lightWeighting = uAmbientColor + uDirectionalColor * directionalLightWeighting;
         
     if(uShininess > 0.0) {
         vec3 eyeDirection = normalize(-vPosition.xyz);
@@ -43,5 +40,6 @@ void main(void) {
         lightWeighting += specularColor * specularLightWeighting;
     }
     
-    gl_FragColor = vec4((vColor * lightWeighting), vVisibility);
+    gl_FragColor = vec4((vColor * lightWeighting), 1.0);
+    gl_FragColor = mix(vec4(uFogColor, 1.0), gl_FragColor, vVisibility);
 }

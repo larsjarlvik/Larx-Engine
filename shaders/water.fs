@@ -32,6 +32,7 @@ uniform float uEdgeWhitening;
 void main(void) {    
     vec3 lightDirection = normalize(uLightingDirection - vPosition.xyz);
     vec3 normal = normalize(vTransformedNormal);
+    normal.y /= 10.0;
     
     float directionalLightWeighting = max(dot(vNormal, uLightingDirection), 0.0);
     
@@ -86,7 +87,7 @@ void main(void) {
 	reflectColor += texture2D(uReflectionColorTexture, reflectBlurCoordinates[3] - distort) * 0.093913;
 	reflectColor += texture2D(uReflectionColorTexture, reflectBlurCoordinates[4] - distort) * 0.093913;
     
-    vec3 color = mix(refractColor, reflectColor.rgb, clamp((depth - 0.5) * uWaterDensity, 0.0, 0.7));
+    vec3 color = mix(refractColor, reflectColor.rgb, clamp((depth - 0.5) * uWaterDensity, 0.0, 1.0));
     color = mix(vec3(1.0, 1.0, 1.0), color, clamp(depth / uEdgeWhitening, 0.2, 0.8));
         
     // Result

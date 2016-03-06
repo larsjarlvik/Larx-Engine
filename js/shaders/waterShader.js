@@ -1,106 +1,100 @@
-var WaterShader = function (ctx) {
-    this.ctx = ctx;
-    this.shaders = undefined;
+Larx.WaterShader = function () {
     this.shader = undefined;
 };
 
-WaterShader.prototype.load = function() {
-    var deferred = Q.defer();
-    var self = this;
-    var gl = this.ctx.gl;
+Larx.WaterShader.prototype = {
+    load: function() {
+        var deferred = Q.defer();
+        var self = this;
+        
+        Larx.Shaders.downloadShaderProgram('water').then(function (shaderProgram) {    
+            self.shader = shaderProgram;
+            
+            Larx.gl.linkProgram(self.shader);
+            Larx.gl.useProgram(self.shader);
+            
+            self.buffers = {};
+            
+            self.shader.vertexNormalAttribute = Larx.gl.getAttribLocation(self.shader, 'aVertexNormal');
+            
+            self.shader.color = Larx.gl.getUniformLocation(self.shader, 'uColor');
+            self.shader.time = Larx.gl.getUniformLocation(self.shader, 'uTime');
+            
+            self.shader.refractionDepthTexture = Larx.gl.getUniformLocation(self.shader, 'uRefractionDepthTexture');
+            self.shader.refractionColorTexture = Larx.gl.getUniformLocation(self.shader, 'uRefractionColorTexture');
+            self.shader.reflectionColorTexture = Larx.gl.getUniformLocation(self.shader, 'uReflectionColorTexture');
+            
+            self.shader.fogDensity = Larx.gl.getUniformLocation(self.shader, 'uFogDensity');
+            self.shader.fogGradient = Larx.gl.getUniformLocation(self.shader, 'uFogGradient');
+            self.shader.fogColor = Larx.gl.getUniformLocation(self.shader, 'uFogColor');
+            
+            self.shader.distortion = Larx.gl.getUniformLocation(self.shader, 'uDistortion');
+            self.shader.edgeWhitening = Larx.gl.getUniformLocation(self.shader, 'uEdgeWhitening');
+            self.shader.edgeSoftening = Larx.gl.getUniformLocation(self.shader, 'uEdgeSoftening');
+            self.shader.waterDensity = Larx.gl.getUniformLocation(self.shader, 'uWaterDensity');
+            
+            Larx.Shaders.setDefaults(self.shader, true);
+            
+            deferred.resolve();
+        }).catch(function (e) {
+            console.error(e);
+        });
+        
+        return deferred.promise;
+    },
+
+    get: function() {
+        return this.shader;
+    },
+
+    use: function() {
+        Larx.gl.useProgram(this.shader);
+        Larx.gl.enableVertexAttribArray(this.shader.vertexNormalAttribute);
+    }, 
+
+    cleanUp: function() {
+        Larx.gl.disableVertexAttribArray(this.shader.vertexNormalAttribute);
+    },
+
+    setWaterColor: function(color) {
+        Larx.gl.uniform3f(this.shader.color, color[0], color[1], color[2]);
+    },
+
+    update: function(time) {
+        Larx.gl.uniform1f(this.shader.time, time);
+    },
+
+    setRefractionDepthTexture: function() {
+        Larx.gl.uniform1i(this.shader.refractionDepthTexture, 0);  
+    },
+
+    setRefractionColorTexture: function() {
+        Larx.gl.uniform1i(this.shader.refractionColorTexture, 1);  
+    },
+
+    setReflectionColorTexture: function() {
+        Larx.gl.uniform1i(this.shader.reflectionColorTexture, 2);  
+    },
+
+    setDistortion:  function(value) {
+        Larx.gl.uniform1f(this.shader.distortion, value);  
+    },
+
+    setEdgeWhitening:  function(value) {
+        Larx.gl.uniform1f(this.shader.edgeWhitening, value);  
+    },
     
-    this.shaders = new Shaders(this.ctx);
+    setEdgeSoftening:  function(value) {
+        Larx.gl.uniform1f(this.shader.edgeSoftening, value);  
+    },
     
-    this.shaders.downloadShaderProgram('water').then(function (shaderProgram) {    
-        self.shader = shaderProgram;
-        
-        gl.linkProgram(self.shader);
-        gl.useProgram(self.shader);
-        
-        self.buffers = {};
-        
-        self.shader.vertexNormalAttribute = gl.getAttribLocation(self.shader, 'aVertexNormal');
-        
-        self.shader.color = gl.getUniformLocation(self.shader, 'uColor');
-        self.shader.time = gl.getUniformLocation(self.shader, 'uTime');
-        
-        self.shader.refractionDepthTexture = gl.getUniformLocation(self.shader, 'uRefractionDepthTexture');
-        self.shader.refractionColorTexture = gl.getUniformLocation(self.shader, 'uRefractionColorTexture');
-        self.shader.reflectionColorTexture = gl.getUniformLocation(self.shader, 'uReflectionColorTexture');
-        
-        self.shader.fogDensity = gl.getUniformLocation(self.shader, 'uFogDensity');
-        self.shader.fogGradient = gl.getUniformLocation(self.shader, 'uFogGradient');
-        self.shader.fogColor = gl.getUniformLocation(self.shader, 'uFogColor');
-        
-        self.shader.distortion = gl.getUniformLocation(self.shader, 'uDistortion');
-        self.shader.edgeWhitening = gl.getUniformLocation(self.shader, 'uEdgeWhitening');
-        self.shader.edgeSoftening = gl.getUniformLocation(self.shader, 'uEdgeSoftening');
-        self.shader.waterDensity = gl.getUniformLocation(self.shader, 'uWaterDensity');
-        
-        self.shaders.setDefaults(self.shader, true);
-        
-        deferred.resolve();
-    }).catch(function (e) {
-        console.error(e);
-    });
-    
-    return deferred.promise;
-};
+    setDensity:  function(value) {
+        Larx.gl.uniform1f(this.shader.waterDensity, value);  
+    },
 
-WaterShader.prototype.get = function() {
-    return this.shader;
-}; 
-
-WaterShader.prototype.use = function() {
-    this.ctx.gl.useProgram(this.shader);
-    this.ctx.gl.enableVertexAttribArray(this.shader.vertexNormalAttribute);
-}; 
-
-WaterShader.prototype.cleanUp = function() {
-    this.ctx.gl.disableVertexAttribArray(this.shader.vertexNormalAttribute);
-};
-
-WaterShader.prototype.setWaterColor = function(color) {
-    this.ctx.gl.uniform3f(this.shader.color, color[0], color[1], color[2]);
-};
-
-WaterShader.prototype.update = function(time) {
-    this.ctx.gl.uniform1f(this.shader.time, time);
-};
-
-WaterShader.prototype.setRefractionDepthTexture = function() {
-    this.ctx.gl.uniform1i(this.shader.refractionDepthTexture, 0);  
-};
-
-WaterShader.prototype.setRefractionColorTexture = function() {
-    this.ctx.gl.uniform1i(this.shader.refractionColorTexture, 1);  
-};
-
-WaterShader.prototype.setReflectionColorTexture = function() {
-    this.ctx.gl.uniform1i(this.shader.reflectionColorTexture, 2);  
-};
-
-WaterShader.prototype.setDistortion = function(value) {
-    this.ctx.gl.uniform1f(this.shader.distortion, value);  
-};
-
-WaterShader.prototype.setEdgeWhitening = function(value) {
-    this.ctx.gl.uniform1f(this.shader.edgeWhitening, value);  
-};
-
-
-WaterShader.prototype.setEdgeSoftening = function(value) {
-    this.ctx.gl.uniform1f(this.shader.edgeSoftening, value);  
-};
-
-
-WaterShader.prototype.setDensity = function(value) {
-    this.ctx.gl.uniform1f(this.shader.waterDensity, value);  
-};
-
-
-WaterShader.prototype.setFog = function(density, gradient, color) {
-    this.ctx.gl.uniform1f(this.shader.fogDensity, density);
-    this.ctx.gl.uniform1f(this.shader.fogGradient, gradient);
-    this.ctx.gl.uniform3f(this.shader.fogColor, color[0], color[1], color[2]);
+    setFog:  function(density, gradient, color) {
+        Larx.gl.uniform1f(this.shader.fogDensity, density);
+        Larx.gl.uniform1f(this.shader.fogGradient, gradient);
+        Larx.gl.uniform3f(this.shader.fogColor, color[0], color[1], color[2]);
+    }
 };

@@ -1,271 +1,292 @@
-/* global Model */
 /* global vec2 */
 /* global vec3 */
 /* global Q */
 
-var Terrain = function(ctx, scale) {
+Larx.Terrain = function(scale) {
     this.heights;
     this.size;
     this.waterLevel;
     
     this.underwater;
-    
     this.scale = scale;
-    this.ctx = ctx;
     
-    this._numBlocks;
-    this._blockSize = 4;
-    this._blocks = [];
+    this.numBlocks;
+    this.blockSize = 12;
+    this.blocks = [];
     
-    this.flags = { default: 0, reflect: 1, refract: 2 };
+    this.reflect = { NO: 0, YES: 1 };
+    this.clip = { NONE: 0, TOP: 1, BOTTOM: 2 };
 };
 
-Terrain.prototype.setLightSettings = function(shininess, specularWeight) {
-    for(var i = 0; i < this._blocks.length; i++) {
-        this._blocks[i].shininess = shininess;
-        this._blocks[i].specularWeight = specularWeight;
-    }
-};
 
-Terrain.prototype.getSize = function() {
-    return this.size * this.scale;
-};
-
-Terrain.prototype._getHeight = function(x, z) {
-    if(x < 1 || x >= this.size || z < 1 || z >= this.size) {
-        return -10.0;
-    }
-    
-    return (this.heights[x][z] - this.waterLevel) * this.scale;
-};
-
-Terrain.prototype._append = function(model, vec, color) {
-    model.vertices.push(vec[0]);
-    model.vertices.push(vec[1]);
-    model.vertices.push(vec[2]);
-    
-    model.colors.push(color[0]); 
-    model.colors.push(color[1]); 
-    model.colors.push(color[2]); 
-};
-
-Terrain.prototype._setIndices = function(model, x, z) {
-    var start = (z * (this._blockSize) + x) * 6;
-    
-    model.indices.push(start + 0);
-    model.indices.push(start + 1);
-    model.indices.push(start + 2);
-    
-    model.indices.push(start + 3);
-    model.indices.push(start + 4);
-    model.indices.push(start + 5);
-};
-
-Terrain.prototype._build = function() {
-    this.size = this.heightmap.size;
-    this._setImageHeights();
-    this._numBlocks = this.size / this._blockSize;
-    
-    for(var x = 0; x < this._numBlocks; x++) {
-        for(var z = 0; z < this._numBlocks; z++) {
-            var block = this._buildBlock(x * this._blockSize, z * this._blockSize);
-            
-            block.x = (x * this._blockSize - (this.size / 2)) * this.scale;
-            block.z = (z * this._blockSize - (this.size / 2)) * this.scale;
-            block.calculateNormals();
-            block.setBounds();
-            block.bindBuffers(); 
-            
-            this._blocks.push(block);
+Larx.Terrain.prototype = {
+    setLightSettings: function(shininess, specularWeight) {
+        for(var i = 0; i < this.blocks.length; i++) {
+            this.blocks[i].shininess = shininess;
+            this.blocks[i].specularWeight = specularWeight;
         }
-    }
-}
+    },
 
-Terrain.prototype._buildBlock = function(bx, bz) {
-    var s = this.scale;
-    var model = new Model(this.ctx, 'terrainBlock');
+    getSize: function() {
+        return this.size * this.scale;
+    },
     
-    model.colors = [];
-    model.normals = [];
-    
-    for(var z = 0; z < this._blockSize; z++) {
-        var vz = z * s;
+    generate: function(url, elevation, water) {
+        var deferred = Q.defer();   
+        var self = this;
         
-        for(var x = 0; x < this._blockSize; x++) {
-            var vecs = [];
-            var vx = x * s;
-            var tx = bx + x,
-                tz = bz + z;
-            
-            if((x%2 === 0 && z%2 === 0) || (x%2 === 1 && z%2 === 1)) {
-                vecs.push(vec3.fromValues(vx + s, this._getHeight(tx + 1, tz),    vz));
-                vecs.push(vec3.fromValues(vx,     this._getHeight(tx, tz),        vz));
-                vecs.push(vec3.fromValues(vx,     this._getHeight(tx, tz + 1),    vz + s));
+        self.waterLevel = water;
+        
+        self.getImage(url + '/heightmap.jpg').then(function (imgHeightmap) {
+            self.getImage(url + '/colormap.jpg').then(function (imgColormap) {
                 
-                vecs.push(vec3.fromValues(vx + s, this._getHeight(tx + 1, tz),     vz));
-                vecs.push(vec3.fromValues(vx,     this._getHeight(tx, tz + 1),     vz + s));
-                vecs.push(vec3.fromValues(vx + s, this._getHeight(tx + 1, tz + 1), vz + s));
-            } else {
-                vecs.push(vec3.fromValues(vx + s, this._getHeight(tx + 1, tz + 1), vz + s));
-                vecs.push(vec3.fromValues(vx,     this._getHeight(tx, tz),         vz));
-                vecs.push(vec3.fromValues(vx,     this._getHeight(tx, tz + 1),     vz + s));
+                self.heightmap = imgHeightmap;
+                self.colormap = imgColormap;
+                self.elevation = elevation;
+                self.build(); 
                 
-                vecs.push(vec3.fromValues(vx + s, this._getHeight(tx + 1, tz),     vz));
-                vecs.push(vec3.fromValues(vx,     this._getHeight(tx, tz),         vz));
-                vecs.push(vec3.fromValues(vx + s, this._getHeight(tx + 1, tz + 1), vz + s));
-            }
-            
-            var color = this._getColor(tx, tz);
-            
-            this._append(model, vecs[0], color);
-            this._append(model, vecs[1], color);
-            this._append(model, vecs[2], color);
-            
-            this._append(model, vecs[3], color);
-            this._append(model, vecs[4], color);
-            this._append(model, vecs[5], color);
-            
-            this._setIndices(model, x, z);
-        } 
-    }
-    
-    return model;
-};
-
-Terrain.prototype._setImageHeights = function() {
-    var parsed = [];
-    this.heights = new Array(this.size);
-    
-    for(var i = 0; i < this.heightmap.data.length; i += 4) {
-        parsed.push(this.heightmap.data[i]);
-    }
-    
-    for(var x = 0; x < this.size; x++) { 
-        this.heights[x] = new Array(this.size); 
-    }
-    
-    for(var z = 0; z < this.size; z++) {
-        for(var x = 0; x < this.size; x++) {
-            this.heights[x][z] = parsed[z * this.size + x] / 255 * this.elevation;
-        }
-    }
-};
-    
-Terrain.prototype._getColor = function(x, y) {    
-    var xy = (y * this.colormap.size + x) * 4;
-    return [
-        this.colormap.data[xy] / 255,
-        this.colormap.data[xy + 1] / 255,
-        this.colormap.data[xy + 2] / 255,
-        this.colormap.data[xy + 3] / 255];
-};
-    
-Terrain.prototype._getImage = function(url) {  
-    var image = new Image();
-    var deferred = Q.defer();
-    
-    image.onload = function () {
-        this.size = image.width;
-        
-        var canvas = document.createElement('canvas');
-        canvas.setAttribute('width', this.size);
-        canvas.setAttribute('height', this.size);
-        
-        var canvasCtx = canvas.getContext('2d');
-        canvasCtx.drawImage(image, 0, 0);
-        
-        deferred.resolve({
-            size: this.size,
-            data: canvasCtx.getImageData(0, 0, this.size, this.size).data
+                deferred.resolve();
+            })
+            .catch(function (e) { 
+                console.error(e); 
+                deferred.reject();
+            });  
         });
-    };
-    
-    image.src = url;
-    
-    return deferred.promise;
-};
-    
-Terrain.prototype._baryCentric = function(p1, p2, p3, pos) {
-    var det = (p2[2] - p3[2]) * (p1[0] - p3[0]) + (p3[0] - p2[0]) * (p1[2] - p3[2]);
-    var l1 = ((p2[2] - p3[2]) * (pos[0] - p3[0]) + (p3[0] - p2[0]) * (pos[1] - p3[2])) / det;
-    var l2 = ((p3[2] - p1[2]) * (pos[0] - p3[0]) + (p1[0] - p3[0]) * (pos[1] - p3[2])) / det;
-    var l3 = 1.0 - l1 - l2;
-    
-    return l1 * p1[1] + l2 * p2[1] + l3 * p3[1];
-};
-
-Terrain.prototype.generate = function(url, elevation, water) {
-    var deferred = Q.defer();   
-    var self = this;
-    
-    self.waterLevel = water;
-    
-    self._getImage(url + '/heightmap.jpg').then(function (imgHeightmap) {
-        self._getImage(url + '/colormap.jpg').then(function (imgColormap) {
-            
-            self.heightmap = imgHeightmap;
-            self.colormap = imgColormap;
-            self.elevation = elevation;
-            self._build(); 
-            
-            deferred.resolve();
-        })
-        .catch(function (e) { 
-            console.error(e); 
-            deferred.reject();
-        });  
-    });
-    
-    return deferred.promise;
-};
-    
-Terrain.prototype._getPoint = function(x, z) {
-    x = (x + (this.getSize() / 2)) / this.scale;
-    z = (z + (this.getSize() / 2)) / this.scale;
         
-    return {
-        gx: Math.floor(x),
-        gz: Math.floor(z),
-        xc: x % 1,
-        zc: z % 1
-    };
-};
-
-Terrain.prototype.getElevationAtPoint = function (x, z) {
-    var p = this._getPoint(x, z);       
-    var v1, v2, v3;
+        return deferred.promise;
+    },
     
-    if(p.xc <= (1 - p.zc)) {
-        v1 = [0, this._getHeight(p.gx, p.gz), 0];
-        v2 = [1, this._getHeight(p.gx + 1, p.gz), 0];
-        v3 = [0, this._getHeight(p.gx, p.gz + 1), 1];
-    } else {
-        v1 = [1, this._getHeight(p.gx + 1, p.gz), 0];
-        v2 = [0, this._getHeight(p.gx, p.gz + 1), 1];
-        v3 = [1, this._getHeight(p.gx + 1, p.gz + 1), 1];
+    getElevationAtPoint: function (x, z) {
+        var p = this.getPoint(x, z);       
+        var v1, v2, v3;
+        
+        if(p.xc <= (1 - p.zc)) {
+            v1 = [0, this.getHeight(p.gx, p.gz), 0];
+            v2 = [1, this.getHeight(p.gx + 1, p.gz), 0];
+            v3 = [0, this.getHeight(p.gx, p.gz + 1), 1];
+        } else {
+            v1 = [1, this.getHeight(p.gx + 1, p.gz), 0];
+            v2 = [0, this.getHeight(p.gx, p.gz + 1), 1];
+            v3 = [1, this.getHeight(p.gx + 1, p.gz + 1), 1];
+        }
+
+        return this.baryCentric(v1, v2, v3, vec2.fromValues(p.xc, p.zc));
+    },
+    
+    getAngle: function(cx, cz, sx, sz) {
+        var rx = sx / 2;
+        var rz = sz / 2;
+        
+        return [
+            Math.atan2(this.getElevationAtPoint(cx, cz - rz) - this.getElevationAtPoint(cx, cz + rz), sz),
+            0,
+            Math.atan2(this.getElevationAtPoint(cx + rx, cz) - this.getElevationAtPoint(cx - rx, cz), sx)
+        ];
+    },
+    
+    getHeight: function(x, z) {
+        if(x < 1 || x >= this.size || z < 1 || z >= this.size) {
+            return -10.0;
+        }
+        
+        return (this.heights[x][z] - this.waterLevel) * this.scale;
+    },
+    
+    append: function(model, vec, color) {
+        model.vertices.push(vec[0]);
+        model.vertices.push(vec[1]);
+        model.vertices.push(vec[2]);
+        
+        model.colors.push(color[0]); 
+        model.colors.push(color[1]); 
+        model.colors.push(color[2]); 
+        
+        model.normals.push(0); 
+        model.normals.push(1); 
+        model.normals.push(0); 
+    },
+    
+    setIndices: function(model, x, z) {
+        var start = (z * (this.blockSize) + x) * 6;
+        
+        model.indices.push(start + 0);
+        model.indices.push(start + 1);
+        model.indices.push(start + 2);
+        
+        model.indices.push(start + 3);
+        model.indices.push(start + 4);
+        model.indices.push(start + 5);
+    },
+    
+    build: function() {
+        this.size = this.heightmap.size;
+        this.setImageHeights();
+        this.numBlocks = this.size / this.blockSize;
+        
+        for(var x = 0; x < this.numBlocks; x++) {
+            for(var z = 0; z < this.numBlocks; z++) {
+                var block = this.buildBlock(x * this.blockSize, z * this.blockSize);
+                
+                block.x = (x * this.blockSize - (this.size / 2)) * this.scale;
+                block.z = (z * this.blockSize - (this.size / 2)) * this.scale;
+                block.calculateNormals();
+                block.setBounds();
+                block.bindBuffers(); 
+                
+                this.blocks.push(block);
+            }
+        }
+    },
+    
+    buildBlock: function(bx, bz) {
+        var s = this.scale;
+        var model = new Larx.Model();
+        
+        model.colors = [];
+        model.normals = [];
+        
+        for(var z = 0; z < this.blockSize; z++) {
+            var vz = z * s;
+            
+            for(var x = 0; x < this.blockSize; x++) {
+                var vecs = [], colors = [];
+                var vx = x * s;
+                var tx = bx + x,
+                    tz = bz + z;
+                
+                if((x%2 === 0 && z%2 === 0) || (x%2 === 1 && z%2 === 1)) {
+                    vecs.push(vec3.fromValues(vx + s, this.getHeight(tx + 1, tz),    vz));
+                    vecs.push(vec3.fromValues(vx,     this.getHeight(tx, tz),        vz));
+                    vecs.push(vec3.fromValues(vx,     this.getHeight(tx, tz + 1),    vz + s));
+                    
+                    colors.push(this.getColor(tx + 1, tz));
+                    colors.push(this.getColor(tx, tz));
+                    colors.push(this.getColor(tx, tz + 1));
+                    
+                    vecs.push(vec3.fromValues(vx + s, this.getHeight(tx + 1, tz),     vz));
+                    vecs.push(vec3.fromValues(vx,     this.getHeight(tx, tz + 1),     vz + s));
+                    vecs.push(vec3.fromValues(vx + s, this.getHeight(tx + 1, tz + 1), vz + s));
+                    
+                    colors.push(this.getColor(tx + 1, tz));
+                    colors.push(this.getColor(tx, tz + 1));
+                    colors.push(this.getColor(tx + 1, tz + 1));
+                } else {
+                    vecs.push(vec3.fromValues(vx + s, this.getHeight(tx + 1, tz + 1), vz + s));
+                    vecs.push(vec3.fromValues(vx,     this.getHeight(tx, tz),         vz));
+                    vecs.push(vec3.fromValues(vx,     this.getHeight(tx, tz + 1),     vz + s));
+                    
+                    colors.push(this.getColor(tx + 1, tz + 1));
+                    colors.push(this.getColor(tx, tz));
+                    colors.push(this.getColor(tx, tz + 1));
+                    
+                    vecs.push(vec3.fromValues(vx + s, this.getHeight(tx + 1, tz),     vz));
+                    vecs.push(vec3.fromValues(vx,     this.getHeight(tx, tz),         vz));
+                    vecs.push(vec3.fromValues(vx + s, this.getHeight(tx + 1, tz + 1), vz + s));
+                    
+                    colors.push(this.getColor(tx + 1, tz));
+                    colors.push(this.getColor(tx, tz));
+                    colors.push(this.getColor(tx + 1, tz + 1));
+                }
+                
+                
+                this.append(model, vecs[0], colors[0]);
+                this.append(model, vecs[1], colors[1]);
+                this.append(model, vecs[2], colors[2]);
+                
+                this.append(model, vecs[3], colors[3]);
+                this.append(model, vecs[4], colors[4]);
+                this.append(model, vecs[5], colors[5]);
+                
+                this.setIndices(model, x, z);
+            } 
+        }
+        
+        return model;
+    },
+    
+    setImageHeights: function() {
+        var parsed = [];
+        this.heights = new Array(this.size);
+        
+        for(var i = 0; i < this.heightmap.data.length; i += 4) {
+            parsed.push(this.heightmap.data[i]);
+        }
+        
+        for(var x = 0; x < this.size; x++) { 
+            this.heights[x] = new Array(this.size); 
+        }
+        
+        for(var z = 0; z < this.size; z++) {
+            for(var x = 0; x < this.size; x++) {
+                this.heights[x][z] = parsed[z * this.size + x] / 255 * this.elevation;
+            }
+        }
+    },
+    
+    getColor: function(x, y) {    
+        if(x >= this.size) { x = this.size - 1; }
+        if(y >= this.size) { y = this.size - 1; }
+        
+        var xy = (y * this.colormap.size + x) * 4;
+        return [
+            this.colormap.data[xy] / 255,
+            this.colormap.data[xy + 1] / 255,
+            this.colormap.data[xy + 2] / 255,
+            this.colormap.data[xy + 3] / 255];
+    },
+    
+    getImage: function(url) {  
+        var image = new Image();
+        var deferred = Q.defer();
+        
+        image.onload = function () {
+            this.size = image.width;
+            
+            var canvas = document.createElement('canvas');
+            canvas.setAttribute('width', this.size);
+            canvas.setAttribute('height', this.size);
+            
+            var canvasCtx = canvas.getContext('2d');
+            canvasCtx.drawImage(image, 0, 0);
+            
+            deferred.resolve({
+                size: this.size,
+                data: canvasCtx.getImageData(0, 0, this.size, this.size).data
+            });
+        };
+        
+        image.src = url;
+        
+        return deferred.promise;
+    },
+    
+    baryCentric: function(p1, p2, p3, pos) {
+        var det = (p2[2] - p3[2]) * (p1[0] - p3[0]) + (p3[0] - p2[0]) * (p1[2] - p3[2]);
+        var l1 = ((p2[2] - p3[2]) * (pos[0] - p3[0]) + (p3[0] - p2[0]) * (pos[1] - p3[2])) / det;
+        var l2 = ((p3[2] - p1[2]) * (pos[0] - p3[0]) + (p1[0] - p3[0]) * (pos[1] - p3[2])) / det;
+        var l3 = 1.0 - l1 - l2;
+        
+        return l1 * p1[1] + l2 * p2[1] + l3 * p3[1];
+    },
+    
+    getPoint: function(x, z) {
+        x = (x + (this.getSize() / 2)) / this.scale;
+        z = (z + (this.getSize() / 2)) / this.scale;
+            
+        return {
+            gx: Math.floor(x),
+            gz: Math.floor(z),
+            xc: x % 1,
+            zc: z % 1
+        };
+    },
+    
+    render: function (shader, clip, reflect) {   
+        for(var i = 0; i < this.blocks.length; i ++) {
+            if(clip === this.clip.BOTTOM && this.blocks[i].bounds.vMax[1] < -0.3) { continue; }
+            if(clip === this.clip.TOP && this.blocks[i].bounds.vMin[1] >  0.3) { continue; }
+            
+            this.blocks[i].render(shader, [this.blocks[i].x, 0, this.blocks[i].z], reflect === this.reflect.YES);
+        }
     }
-
-    return this._baryCentric(v1, v2, v3, vec2.fromValues(p.xc, p.zc));
-};
-    
-Terrain.prototype.getAngle = function(cx, cz, sx, sz) {
-    var rx = sx / 2;
-    var rz = sz / 2;
-    
-    return [
-        Math.atan2(this.getElevationAtPoint(cx, cz - rz) - this.getElevationAtPoint(cx, cz + rz), sz),
-        0,
-        Math.atan2(this.getElevationAtPoint(cx + rx, cz) - this.getElevationAtPoint(cx - rx, cz), sx)
-    ];
-}; 
-    
-
-
-Terrain.prototype.render = function (shader, flag) {   
-    for(var i = 0; i < this._blocks.length; i ++) {
-        if(flag === this.flags.reflect && this._blocks[i].bounds.vMax[1] < -0.3) { continue; }
-        if(flag === this.flags.refract && this._blocks[i].bounds.vMin[1] >  0.3) { continue; }
-        
-        this._blocks[i].render(shader, [this._blocks[i].x, 0, this._blocks[i].z], flag === this.flags.reflect);
-    }  
 };

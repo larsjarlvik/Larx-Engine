@@ -1,47 +1,48 @@
 var input = (function() {
-    var mousePicker, coords, sObject;
+    var coords, sObject;
     var dX, dY, cMatrix, dYRad;
     var infoBox = document.getElementById('info');
     var fullScreenButton = document.getElementById('fullscreen');
     
-    function keyboard(larx) {
-        if(larx.viewport.keyDown('W')) { larx.camera.move( 0.0,  config.camera.moveSpeed); }
-        if(larx.viewport.keyDown('S')) { larx.camera.move( 0.0, -config.camera.moveSpeed); }
-        if(larx.viewport.keyDown('A')) { larx.camera.move(-config.camera.moveSpeed,  0.0); }
-        if(larx.viewport.keyDown('D')) { larx.camera.move( config.camera.moveSpeed,  0.0); }
+    function keyboard() {
+        if(Larx.Viewport.keyDown('W')) { Larx.Camera.move( 0.0,  config.camera.moveSpeed); }
+        if(Larx.Viewport.keyDown('S')) { Larx.Camera.move( 0.0, -config.camera.moveSpeed); }
+        if(Larx.Viewport.keyDown('A')) { Larx.Camera.move(-config.camera.moveSpeed,  0.0); }
+        if(Larx.Viewport.keyDown('D')) { Larx.Camera.move( config.camera.moveSpeed,  0.0); }
     }
 
-    function mouse(larx) {
-        mousePicker.updateMouse(larx.viewport.mouse.x, larx.viewport.mouse.y);
-        
-        if(larx.viewport.mouse.buttons.left) {
-            coords = mousePicker.getCoordinates(larx.viewport.mouse.x, larx.viewport.mouse.y);
-            sObject = mousePicker.getObject(larx.viewport.mouse.x, larx.viewport.mouse.y);
+    function mouse() {
+        /*
+        Larx.MousePicker.updateMouse(Larx.Viewport.mouse.x, Larx.Viewport.mouse.y);
+        if(Larx.Viewport.mouse.buttons.left) {
+            coords = mousePicker.getCoordinates(Larx.Viewport.mouse.x, Larx.Viewport.mouse.y);
+            sObject = mousePicker.getObject(Larx.Viewport.mouse.x, Larx.Viewport.mouse.y);
             
             setInfoText();
         }
+        */
         
-        if(larx.viewport.mouse.buttons.right || larx.viewport.mouse.touchDown) {  
-            dX = larx.viewport.mouse.deltaX * config.camera.rotationSpeed;
-            dY = larx.viewport.mouse.deltaY * config.camera.rotationSpeed;
+        if(Larx.Viewport.mouse.buttons.right || Larx.Viewport.mouse.touchDown) {  
+            dX = Larx.Viewport.mouse.deltaX * config.camera.rotationSpeed;
+            dY = Larx.Viewport.mouse.deltaY * config.camera.rotationSpeed;
                 
-            cMatrix = larx.camera.getMatrix();
+            cMatrix = Larx.Camera.getMatrix();
             dYRad = dY * Math.PI / 180;
             
-            larx.camera.rotate(dX, 0);
+            Larx.Camera.rotate(dX, 0);
             
             if(dYRad > 0) {
-                if(cMatrix.rotV + dYRad < Math.PI - 0.3) { larx.camera.rotate(0, dY); }
+                if(cMatrix.rotV + dYRad < Math.PI - 0.3) { Larx.Camera.rotate(0, dY); }
             } else {
-                if(cMatrix.rotV + dYRad > 0.3) { larx.camera.rotate(0, dY); }
+                if(cMatrix.rotV + dYRad > 0.3) { Larx.Camera.rotate(0, dY); }
             }
         }
         
-        if(larx.viewport.mouse.wheelDelta !== 0) {
-            larx.camera.zoom(-larx.viewport.mouse.wheelDelta * config.camera.zoomSpeed);
+        if(Larx.Viewport.mouse.wheelDelta !== 0) {
+            Larx.Camera.zoom(-Larx.Viewport.mouse.wheelDelta * config.camera.zoomSpeed);
         }
         
-        larx.viewport.resetDelta();
+        Larx.Viewport.resetDelta();
     }
     
     function setInfoText(params) {
@@ -57,15 +58,16 @@ var input = (function() {
     }
     
     return {
-        init: function(larx, mp) {
-            mousePicker = mp;
+        init: function() {
+            console.log(fullScreenButton);
             fullScreenButton.addEventListener('click', function() {
-                larx.viewport.toggleFullscreen();
+                console.log('he')
+                Larx.Viewport.toggleFullscreen();
             });
         },
-        update: function(larx) {
-            keyboard(larx);
-            mouse(larx);
+        update: function() {
+            keyboard();
+            mouse();
         },
         worldCoords: coords,
         getSelectedObject: function() {
