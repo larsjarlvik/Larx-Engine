@@ -1,30 +1,19 @@
-Larx.MousePicker = function(precision) {
-    this.capture;
-    this.mouse;
-    this.objects = [];
-    this.precision = precision;
+Larx.MousePicker = {
     
-    this.width = Larx.gl.viewportWidth * this.precision;
-    this.height = Larx.gl.viewportHeight * this.precision;
+    init: function(precision) {
+        var res = Math.pow(2, precision);
+        
+        this.capture;
+        this.mouse;
+        
+        this.width = res;
+        this.height = res;
+        
+        this.buffer = new Larx.Framebuffer(this.width, this.height);
+        this.buffer.buildColorBuffer(Larx.gl.FLOAT);
+        this.pixels = new Float32Array(4);
+    },
     
-    this.buffer = new Larx.Framebuffer(this.width, this.height);
-    this.buffer.buildColorBuffer(Larx.gl.FLOAT);
-    
-    this.pixels = new Float32Array(4);
-    
-    var self = this;
-    
-    Larx.Viewport.onResize(function () {
-        self.width = Larx.gl.viewportWidth * self.precision;
-        self.height = Larx.gl.viewportHeight * self.precision;
-    
-        self.buffer.width = self.width;
-        self.buffer.height = self.height;
-        self.buffer.build();
-    });
-};
-
-Larx.MousePicker.prototype = {
     addObject: function(b, data) {
         var box = new Model('box');
         
@@ -81,13 +70,7 @@ Larx.MousePicker.prototype = {
         Larx.Matrix.setIdentity();
         Larx.Matrix.setUniforms(shader);
         
-        shader.setColorId(-10);
         model.render(shader);
-        
-        for(var i = 0; i < this.objects.length; i++) {
-            shader.setColorId(i);
-            this.objects[i].model.render(shader);
-        }
         
         if (this.mouse && Larx.gl.checkFramebufferStatus(Larx.gl.FRAMEBUFFER) == Larx.gl.FRAMEBUFFER_COMPLETE) {
             Larx.gl.readPixels(this.mouse.x, this.mouse.y, 1, 1, Larx.gl.RGBA, Larx.gl.FLOAT, this.pixels);
@@ -96,27 +79,18 @@ Larx.MousePicker.prototype = {
         this.buffer.unbind();
     },
 
-    updateMouse: function(mx, my) {
+    updateMouse: function() {
         this.mouse = {
-            x: mx * this.precision,
-            y: this.height - (my * this.precision)
+            x: (Larx.Viewport.mouse.x / Larx.gl.viewportWidth * this.width),
+            y: this.height - (Larx.Viewport.mouse.y / Larx.gl.viewportHeight * this.height)
         };
     },
 
     getCoordinates: function() {
-        if(!this.pixels || this.pixels[0] === -1 || 
-        (this.pixels[0] === 0.0 && this.pixels[1] === 0.0 && this.pixels[2] === 0.0)) {
-            return undefined;
+        if(this.pixels[0] === 0.0 && this.pixels[2] === 0.0) {
+            return [0, 0];
         }
         
-        return [this.pixels[0], this.pixels[1], this.pixels[2]];
-    },
-
-    getObject: function() {
-        if(!this.pixels || this.pixels[0] !== -1) {
-            return undefined;
-        }
-        
-        return this.objects[this.pixels[1]].data;
+        return [this.pixels[0], this.pixels[2]];
     }
 };

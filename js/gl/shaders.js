@@ -3,7 +3,7 @@
 Larx.Shaders = {
     light: {
         ambient: [0.2, 0.2, 0.2],
-        directional: [0.4, 0.4, 0.4],
+        directional: [0.6, 0.6, 0.6],
         specular: [1.0, 1.0, 1.0],
         direction: [-0.5, -0.7, -0.5]
     },

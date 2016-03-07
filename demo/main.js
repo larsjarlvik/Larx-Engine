@@ -12,6 +12,7 @@
     
     Larx.init(renderTarget);
     Larx.setClearColor(config.clearColor);
+    Larx.MousePicker.init(10);
     Larx.GameLoop.init(doLogic, render, config.targetFps);
     
     input.init();
@@ -34,7 +35,7 @@
             setInterval(function() {
                 document.getElementById('fps').innerHTML = 
                     'FPS: ' + Larx.GameLoop.fps + ' ' +
-                    'AVG/MIN: ' + Larx.GameLoop.averageFpsMinute;
+                    'AVG: ' + Larx.GameLoop.averageFpsMinute;
             }, 1000);
         })
         .catch(function(err) { console.error(err); });
@@ -117,11 +118,11 @@
         models.water = new Larx.Water();
         
         models.water.refraction = new Larx.Framebuffer(res, res);
-        models.water.refraction.buildColorBuffer(Larx.gl.UNSIGNED_BYTE, true);
+        models.water.refraction.buildColorBuffer(Larx.gl.UNSIGNED_BYTE);
         models.water.refraction.buildDepthBuffer();
         
         models.water.reflection = new Larx.Framebuffer(res, res);
-        models.water.reflection.buildColorBuffer(Larx.gl.UNSIGNED_BYTE, true);
+        models.water.reflection.buildColorBuffer(Larx.gl.UNSIGNED_BYTE);
         
         models.water.waveHeight = config.water.waveHeight;
         models.water.speed = config.water.speed;
@@ -196,36 +197,19 @@
     }
    
     function doLogic(time) {
+        Larx.MousePicker.updateMouse();
         input.update();
         models.water.update();
     }
     
     function render() {
-        var cursorPos, cursorObject, sObject;
+        var cursorPos;
         
-        function drawCursor() {
-            cursorPos = Larx.MousePicker.getCoordinates();
-            cursorObject = Larx.MousePicker.getObject();
-            sObject = input.getSelectedObject();
-            
-            cursorShader.use();
-                
-            if(cursorObject !== undefined) {
-                cursor.color = config.mouse.colors.hightlight;
-                cursor.render(cursorShader, models.terrain, cursorObject.position, cursorObject.size);
-            } else {
-                cursor.color = config.mouse.colors.default;
-                cursor.render(cursorShader, models.terrain, cursorPos, config.mouse.size);
-            }
-            
-            if(sObject) {
-                selectionCursor.render(cursorShader, models.terrain, sObject.position, sObject.size);
-            }
-            
-            cursorShader.cleanUp();
-        }
         
         function renderWaterReflection() {
+            Larx.Matrix.setIdentity(true);
+            Larx.Matrix.setUniforms(defaultShader);
+            
             defaultShader.setClipPlane(defaultShader.clip.above, models.water.waveHeight);  
             
             Larx.setClearColor(config.water.reflectionColor);
@@ -249,23 +233,39 @@
         
         Larx.render(function() {            
             Larx.clear();
-            defaultShader.use(); 
             
-            models.decorations.render(defaultShader);
+            defaultShader.use(); 
+            Larx.Matrix.setIdentity();
+            Larx.Matrix.setUniforms(defaultShader);
+            
+            defaultShader.useFog(true);
+            defaultShader.drawCursor(true);
+            defaultShader.serCursorPosition(Larx.MousePicker.getCoordinates());
+            
             models.terrain.render(defaultShader, models.terrain.clip.BOTTOM, models.terrain.reflect.NO);
             
-            renderWaterReflection();
+            defaultShader.drawCursor(false);
+            models.decorations.render(defaultShader);
+            defaultShader.useFog(false);
+            
             renderWaterRefraction();
+            renderWaterReflection();
             
             defaultShader.cleanUp();   
             
             Larx.gl.enable(Larx.gl.BLEND);
             
             waterShader.use();
+            Larx.Matrix.setIdentity();
+            Larx.Matrix.setUniforms(waterShader);
+            
             models.water.render(waterShader);
             waterShader.cleanUp();
-            
+                        
             Larx.gl.disable(Larx.gl.BLEND);
+            
+            mouseShader.use();
+            Larx.MousePicker.render(mouseShader, models.terrain);
         });
     }
 })();

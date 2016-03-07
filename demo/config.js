@@ -16,7 +16,7 @@ var config = {
         moveSpeed: 2.5,
         rotationSpeed: 0.35,
         default: {
-            zoom: 65,
+            zoom: 125,
             look: { x: -25, y: 0, z: -25 },
             rotation: { v: 35, h: 45 }
         }
@@ -31,19 +31,19 @@ var config = {
         detail: 10,
         color: [0.195, 0.805, 0.723],
         reflectionColor: [0.098, 0.535, 0.520],
-        waveHeight: 1.0,
+        waveHeight: 0.6,
         speed: 0.001,
-        distortion: 4.5,
-        edgeWhitening: 2.0, 
-        edgeSoftening: 5.0,
+        distortion: 2.5,
+        edgeWhitening: 1.7, 
+        edgeSoftening: 2.0,
         density: 0.07
     },
     terrain: {
         path: '/maps/test',
         elevation: 8.0,
         waterLevel: 1.5,
-        shininess: 4.0,
-        specularWeight: 0.3
+        shininess: 8.0,
+        specularWeight: 0.1
     },
     decorations: [
         {

@@ -39,12 +39,13 @@ Larx.Cursor.prototype = {
     render: function(shader, terrain, pos, size) {
         if(!pos) { return; }
             
-        this.buildCursor(terrain, size, pos);
-        
+        //this.buildCursor(terrain, size, pos);
+         
         Larx.Matrix.push();
+        Larx.Matrix.setIdentity();           
         Larx.Matrix.translate(pos);
         Larx.Matrix.setUniforms(shader);
-        Larx.gl.enable(Larx.gl.BLEND);
+        
         Larx.gl.disable(Larx.gl.DEPTH_TEST);
         
         shader.setColor(this.color);
@@ -53,7 +54,6 @@ Larx.Cursor.prototype = {
         this.model.render(shader);
         
         Larx.Matrix.pop();
-        Larx.gl.disable(Larx.gl.BLEND);
         Larx.gl.enable(Larx.gl.DEPTH_TEST);
     },
     

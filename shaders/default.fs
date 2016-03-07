@@ -6,40 +6,38 @@ varying vec3 vNormal;
 varying vec3 vTransformedNormal;
 varying vec3 vVertexPosition;
 varying float vVisibility;
+varying vec3 vLightWeighting;
 
-uniform vec3 uAmbientColor;
-uniform vec3 uDirectionalColor;
-uniform vec3 uLightingDirection;
-uniform vec3 uSpecularColor;
 uniform vec3 uFogColor;
 
-uniform float uShininess;
-uniform float uSpecularWeight;
+uniform int uDrawCursor;
+varying vec2 vCursorCenter;
 
 uniform int uClipPlane;
 uniform float uClipPlaneLevel;
+
+const int CLIP_ABOVE = 1;
+const int CLIP_BELOW = 2;
+
+void drawCursor() {
     
-void main(void) {   
-    if(uClipPlane == 1 && vVertexPosition.y < -uClipPlaneLevel)
-        discard;
-    if(uClipPlane == 2 && vVertexPosition.y > -uClipPlaneLevel)
-        discard;
+    float distance = sqrt(vCursorCenter.x * vCursorCenter.x + vCursorCenter.y * vCursorCenter.y);
+    float delta = 0.2;
+    float start = 1.0 - (delta * 2.0);
     
-    vec3 lightDirection = normalize(uLightingDirection - vPosition.xyz);
-    vec3 normal = normalize(vTransformedNormal);
-    
-    float directionalLightWeighting = max(dot(vNormal, uLightingDirection), 0.0);
-    vec3 lightWeighting = uAmbientColor + uDirectionalColor * directionalLightWeighting;
+    if(distance < 2.0) {
+        float alpha1 = start - delta;
+        float alpha2 = start + delta;
         
-    if(uShininess > 0.0) {
-        vec3 eyeDirection = normalize(-vPosition.xyz);
-        vec3 reflectionDirection = reflect(lightDirection, normal);
-        float specularLightWeighting = pow(max(dot(reflectionDirection, eyeDirection), 0.0), uShininess);
-    
-        vec3 specularColor = uSpecularColor * uSpecularWeight;
-        lightWeighting += specularColor * specularLightWeighting;
+        if(alpha1 > alpha2) alpha1 = alpha2;    
+        gl_FragColor = mix(gl_FragColor, vec4(1.0, 1.0, 1.0, 1.0), alpha1);
     }
+}
+
+void main(void) {   
+    if(uClipPlane == CLIP_ABOVE && vVertexPosition.y < -uClipPlaneLevel) discard;
+    if(uClipPlane == CLIP_BELOW && vVertexPosition.y > -uClipPlaneLevel) discard;   
     
-    gl_FragColor = vec4((vColor * lightWeighting), 1.0);
-    gl_FragColor = mix(vec4(uFogColor, 1.0), gl_FragColor, vVisibility);
+    gl_FragColor = vec4((vColor * vLightWeighting), 1.0);
+    gl_FragColor = vec4(mix(uFogColor, gl_FragColor.xyz, vVisibility), gl_FragColor.w);
 }

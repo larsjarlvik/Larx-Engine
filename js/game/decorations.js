@@ -1,7 +1,7 @@
 Larx.Decorations = function(terrain) {
     this.terrain = terrain;
     
-    this.numBlocks = 4;
+    this.numBlocks = 6;
     this.size = this.terrain.getSize() - 0.5;
     this.blockSize = this.size / this.numBlocks;
     
@@ -48,8 +48,6 @@ Larx.Decorations.prototype = {
                 coords[2] > -bounds && coords[2] < bounds);
         }
         
-        var bx = xz[0] % this.blockSize;
-        var bz = xz[1] % this.blockSize;
         var x = xz[0] - (this.terrain.getSize() / 2);
         var z = xz[1] - (this.terrain.getSize() / 2);
         var by = this.terrain.getElevationAtPoint(x, z);
@@ -75,7 +73,7 @@ Larx.Decorations.prototype = {
         } 
         
         m.rotate(rotation);
-        m.translate([bx, by, bz]);
+        m.translate([x, by, z]);
         m.setBounds();
         
         if(by + m.bounds.vMin[1] > -0.5) {
@@ -100,19 +98,19 @@ Larx.Decorations.prototype = {
         }
     },
 
-    render: function(shader, flag) {
+    render: function(shader, clip, flag) {
         
         if(flag !== this.flags.refract) {
             for(var i = 0; i < this.decorsAboveWL.length; i ++) {
                 if(this.decorsAboveWL[i].vertices.length === 0) { continue; }
-                this.decorsAboveWL[i].render(shader, [this.decorsAboveWL[i].x, 0, this.decorsAboveWL[i].z], flag === this.flags.reflect);
+                this.decorsAboveWL[i].render(shader, flag === this.flags.reflect);
             }  
         }
 
         if(flag !== this.flags.reflect) {
             for(var i = 0; i < this.decorsBelowWL.length; i ++) {
                 if(this.decorsBelowWL[i].vertices.length === 0) { continue; }
-                this.decorsBelowWL[i].render(shader, [this.decorsBelowWL[i].x, 0, this.decorsBelowWL[i].z], flag === this.flags.reflect);
+                this.decorsBelowWL[i].render(shader, flag === this.flags.reflect);
             }  
         }
     }

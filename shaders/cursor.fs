@@ -16,10 +16,7 @@ void main(void) {
     float alpha1 = smoothstep(start - delta, start, distance);
     float alpha2 = smoothstep(start + delta, start, distance);
     
-    float alpha;
-    if(alpha1 < alpha2) alpha = alpha1;
-    else alpha = alpha2;
-    
-    gl_FragColor = vec4(uColor, alpha);
+    if(alpha1 > alpha2) alpha1 = alpha2;    
+    gl_FragColor = vec4(uColor, alpha1);
 
 }

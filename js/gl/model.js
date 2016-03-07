@@ -342,18 +342,9 @@ Larx.Model.prototype = {
             this.bounds.vMax[2] - this.bounds.vMin[2]];
     },
 
-    inFrustum: function(translation) {
+    inFrustum: function() {
         if(!this.bounds) { return true; }
-        
-        return Larx.Frustum.inFrustum([
-            this.bounds.vMin[0] + translation[0],
-            this.bounds.vMin[1] + translation[1],
-            this.bounds.vMin[2] + translation[2]
-        ],[
-            this.bounds.vMax[0] + translation[0],
-            this.bounds.vMax[1] + translation[1],
-            this.bounds.vMax[2] + translation[2]
-        ]);
+        return Larx.Frustum.inFrustum(this.bounds.vMin, this.bounds.vMax);
     },
 
     setAttribute: function(attribute, buffer) {
@@ -363,14 +354,10 @@ Larx.Model.prototype = {
         }
     },
     
-    render: function (sp, translation, reflect) {
-        if(!this.vertexBuffer || !this.inFrustum(translation)) {
+    render: function (sp, reflect) {
+        if(!this.vertexBuffer || !this.inFrustum()) {
             return;
         }
-        
-        Larx.Matrix.setIdentity(reflect);
-        Larx.Matrix.translate(translation);
-        Larx.Matrix.setUniforms(sp);
         
         if(sp.shader.shininess) { Larx.gl.uniform1f(sp.shader.shininess, this.shininess); }
         if(sp.shader.opacity) { Larx.gl.uniform1f(sp.shader.opacity, this.opacity); }

@@ -1,6 +1,5 @@
 /* global Q */
 /* global Model */
-/* global vec3 */
 
 Larx.Water = function () {
     this.size = undefined;
@@ -11,7 +10,7 @@ Larx.Water = function () {
     this.refraction;
     this.reflection;
     
-    this.numBlocks = 4;
+    this.numBlocks = 6;
 };
     
     
@@ -22,35 +21,32 @@ Larx.Water.prototype = {
         var blocks = [];
         var blockSize;
         
-        function appendToModel(model, vec) {
-            model.vertices.push(vec[0]);
-            model.vertices.push(vec[1]);
-            model.vertices.push(vec[2]);
-        }
-
-        function setIndices(model, counter) {
-            var start = counter * 6;
-
-            model.indices.push(start + 0);
-            model.indices.push(start + 1);
-            model.indices.push(start + 2);
-
-            model.indices.push(start + 3);
-            model.indices.push(start + 4);
-            model.indices.push(start + 5);
-        }
-        
-        function getIndex(x, z) {
-            return z * self.numBlocks + x;
-        }
-        
         function buildBlock(terrain, bx, bz) {
+            
+            function append(model, vec) {
+                model.vertices.push(bx + vec[0]);
+                model.vertices.push(vec[1]);
+                model.vertices.push(bz + vec[2]);
+            }
+
+            function setIndices(model, counter) {
+                var start = counter * 6;
+
+                model.indices.push(start + 0);
+                model.indices.push(start + 1);
+                model.indices.push(start + 2);
+
+                model.indices.push(start + 3);
+                model.indices.push(start + 4);
+                model.indices.push(start + 5);
+            }
+            
             var ts = blockSize / self.quality;
             var counter = 0;
             var model = new Larx.Model();
             
             model.normals = [];
-            model.shininess = 1.0;
+            model.shininess = 3.0;
             model.opacity = 0.5;
             model.specularWeight = 0.5;
             
@@ -62,21 +58,21 @@ Larx.Water.prototype = {
                     var vx = x;
                     
                     if((x%2 === 0 && z%2 === 0) || (x%2 === 1 && z%2 === 1)) {
-                        vecs.push(vec3.fromValues(vx + ts, 0, vz));
-                        vecs.push(vec3.fromValues(vx, 0, vz));
-                        vecs.push(vec3.fromValues(vx, 0, vz + ts));
+                        vecs.push([vx + ts, 0, vz]);
+                        vecs.push([vx, 0, vz]);
+                        vecs.push([vx, 0, vz + ts]);
                         
-                        vecs.push(vec3.fromValues(vx + ts, 0, vz));
-                        vecs.push(vec3.fromValues(vx, 0, vz + ts));
-                        vecs.push(vec3.fromValues(vx + ts, 0, vz + ts));
+                        vecs.push([vx + ts, 0, vz]);
+                        vecs.push([vx, 0, vz + ts]);
+                        vecs.push([vx + ts, 0, vz + ts]);
                     } else {
-                        vecs.push(vec3.fromValues(vx + ts, 0, vz + ts));
-                        vecs.push(vec3.fromValues(vx, 0, vz));
-                        vecs.push(vec3.fromValues(vx, 0, vz + ts));
+                        vecs.push([vx + ts, 0, vz + ts]);
+                        vecs.push([vx, 0, vz]);
+                        vecs.push([vx, 0, vz + ts]);
                         
-                        vecs.push(vec3.fromValues(vx + ts, 0, vz));
-                        vecs.push(vec3.fromValues(vx, 0, vz));
-                        vecs.push(vec3.fromValues(vx + ts, 0, vz + ts));
+                        vecs.push([vx + ts, 0, vz]);
+                        vecs.push([vx, 0, vz]);
+                        vecs.push([vx + ts, 0, vz + ts]);
                     }
                     
                     var add = false;
@@ -88,13 +84,13 @@ Larx.Water.prototype = {
                         
                     if(!add) { continue; }
                     
-                    appendToModel(model, vecs[0]);
-                    appendToModel(model, vecs[1]);
-                    appendToModel(model, vecs[2]);
+                    append(model, vecs[0]);
+                    append(model, vecs[1]);
+                    append(model, vecs[2]);
                     
-                    appendToModel(model, vecs[3]);
-                    appendToModel(model, vecs[4]);
-                    appendToModel(model, vecs[5]);
+                    append(model, vecs[3]);
+                    append(model, vecs[4]);
+                    append(model, vecs[5]);
                     
                     setIndices(model, counter);
                     counter++;
@@ -122,8 +118,6 @@ Larx.Water.prototype = {
                     if(blocks[i] !== undefined) {
                         blocks[i].x = x;
                         blocks[i].z = z;
-                        blocks[i].bx = bx;
-                        blocks[i].bz = bz;
                         blocks[i].setBounds();
                         blocks[i].bindBuffers(); 
                     }
@@ -151,8 +145,8 @@ Larx.Water.prototype = {
                     
                     for(var v = 0; v < blocks[n].vertices.length; v += 3) {
                         target[n].vertices[v + 1] = 
-                            Math.sin(tx + (target[n].x * blockSize) + blocks[n].vertices[v]) * 
-                            Math.cos(tx + (target[n].z * blockSize) + blocks[n].vertices[v + 2])
+                            Math.sin(tx + blocks[n].vertices[v]) * 
+                            Math.cos(tx + blocks[n].vertices[v + 2])
                             * self.waveHeight;
                     }
                     
@@ -178,7 +172,8 @@ Larx.Water.prototype = {
         this.currentFrame = this.currentFrame % this.frames.length;
     },
     
-    render: function (shader) {    
+    render: function (shader) { 
+           
         if(this.refraction) {
             this.refraction.bindDepthTexture(Larx.gl.TEXTURE0);
             this.refraction.bindColorTexture(Larx.gl.TEXTURE1);
@@ -194,9 +189,7 @@ Larx.Water.prototype = {
         for(var i = 0; i < this.numBlocks * this.numBlocks; i ++) {
             if(this.frames[this.currentFrame][i] === undefined) { continue; }
             
-            this.frames[this.currentFrame][i].render(shader, [
-                this.frames[this.currentFrame][i].bx, 0, 
-                this.frames[this.currentFrame][i].bz]);
+            this.frames[this.currentFrame][i].render(shader);
         }
     
         

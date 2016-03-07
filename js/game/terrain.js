@@ -1,6 +1,3 @@
-/* global vec2 */
-/* global vec3 */
-/* global Q */
 
 Larx.Terrain = function(scale) {
     this.heights;
@@ -29,6 +26,153 @@ Larx.Terrain.prototype = {
 
     getSize: function() {
         return this.size * this.scale;
+    },
+    
+    build: function() {
+        var self = this;
+         
+        function buildBlock(bx, bz) {
+            var s = self.scale;
+            var model = new Larx.Model();
+            
+            var mx = (bx * self.blockSize - (self.size / 2)) * self.scale;
+            var mz = (bz * self.blockSize - (self.size / 2)) * self.scale;
+            
+            function append(model, vec, color) {
+                model.vertices.push(mx + vec[0]);
+                model.vertices.push(vec[1]);
+                model.vertices.push(mz + vec[2]);
+                
+                model.colors.push(color[0]); 
+                model.colors.push(color[1]); 
+                model.colors.push(color[2]); 
+                
+                model.normals.push(0); 
+                model.normals.push(1); 
+                model.normals.push(0); 
+            }
+            
+            function setIndices(model, x, z) {
+                var start = (z * (self.blockSize) + x) * 6;
+                
+                model.indices.push(start + 0);
+                model.indices.push(start + 1);
+                model.indices.push(start + 2);
+                
+                model.indices.push(start + 3);
+                model.indices.push(start + 4);
+                model.indices.push(start + 5);
+            }
+            
+    
+            function getColor(x, y) {    
+                if(x >= self.size) { x = self.size - 1; }
+                if(y >= self.size) { y = self.size - 1; }
+                
+                var xy = (y * self.colormap.size + x) * 4;
+                return [
+                    self.colormap.data[xy] / 255,
+                    self.colormap.data[xy + 1] / 255,
+                    self.colormap.data[xy + 2] / 255,
+                    self.colormap.data[xy + 3] / 255];
+            }
+            
+            model.colors = [];
+            model.normals = [];
+            
+            for(var z = 0; z < self.blockSize; z++) {
+                var vz = z * s;
+                
+                for(var x = 0; x < self.blockSize; x++) {
+                    var vecs = [], colors = [];
+                    var vx = x * s;
+                    var tx = bx * self.blockSize + x,
+                        tz = bz * self.blockSize + z;
+                    
+                    if((x%2 === 0 && z%2 === 0) || (x%2 === 1 && z%2 === 1)) {
+                        vecs.push([vx + s, self.getHeight(tx + 1, tz),    vz]);
+                        vecs.push([vx,     self.getHeight(tx, tz),        vz]);
+                        vecs.push([vx,     self.getHeight(tx, tz + 1),    vz + s]);
+                        
+                        colors.push(getColor(tx + 1, tz));
+                        colors.push(getColor(tx, tz));
+                        colors.push(getColor(tx, tz + 1));
+                        
+                        vecs.push([vx + s, self.getHeight(tx + 1, tz),     vz]);
+                        vecs.push([vx,     self.getHeight(tx, tz + 1),     vz + s]);
+                        vecs.push([vx + s, self.getHeight(tx + 1, tz + 1), vz + s]);
+                        
+                        colors.push(getColor(tx + 1, tz));
+                        colors.push(getColor(tx, tz + 1));
+                        colors.push(getColor(tx + 1, tz + 1));
+                    } else {
+                        vecs.push([vx + s, self.getHeight(tx + 1, tz + 1), vz + s]);
+                        vecs.push([vx,     self.getHeight(tx, tz),         vz]);
+                        vecs.push([vx,     self.getHeight(tx, tz + 1),     vz + s]);
+                        
+                        colors.push(getColor(tx + 1, tz + 1));
+                        colors.push(getColor(tx, tz));
+                        colors.push(getColor(tx, tz + 1));
+                        
+                        vecs.push([vx + s, self.getHeight(tx + 1, tz),     vz]);
+                        vecs.push([vx,     self.getHeight(tx, tz),         vz]);
+                        vecs.push([vx + s, self.getHeight(tx + 1, tz + 1), vz + s]);
+                        
+                        colors.push(getColor(tx + 1, tz));
+                        colors.push(getColor(tx, tz));
+                        colors.push(getColor(tx + 1, tz + 1));
+                    }
+                    
+                    
+                    append(model, vecs[0], colors[0]);
+                    append(model, vecs[1], colors[1]);
+                    append(model, vecs[2], colors[2]);
+                    
+                    append(model, vecs[3], colors[3]);
+                    append(model, vecs[4], colors[4]);
+                    append(model, vecs[5], colors[5]);
+                    
+                    setIndices(model, x, z);
+                } 
+            }
+            
+            return model;
+        }
+        
+        function setImageHeights() {
+            var parsed = [];
+            self.heights = new Array(self.size);
+            
+            for(var i = 0; i < self.heightmap.data.length; i += 4) {
+                parsed.push(self.heightmap.data[i]);
+            }
+            
+            for(var x = 0; x < self.size; x++) { 
+                self.heights[x] = new Array(self.size); 
+            }
+            
+            for(var z = 0; z < self.size; z++) {
+                for(var x = 0; x < self.size; x++) {
+                    self.heights[x][z] = parsed[z * self.size + x] / 255 * self.elevation;
+                }
+            }
+        }
+        
+        this.size = this.heightmap.size;
+        this.numBlocks = this.size / this.blockSize;
+        setImageHeights();
+        
+        for(var x = 0; x < this.numBlocks; x++) {
+            for(var z = 0; z < this.numBlocks; z++) {
+                var block = buildBlock(x, z);
+                
+                block.calculateNormals();
+                block.setBounds();
+                block.bindBuffers(); 
+                
+                this.blocks.push(block);
+            }
+        }
     },
     
     generate: function(url, elevation, water) {
@@ -70,7 +214,7 @@ Larx.Terrain.prototype = {
             v3 = [1, this.getHeight(p.gx + 1, p.gz + 1), 1];
         }
 
-        return this.baryCentric(v1, v2, v3, vec2.fromValues(p.xc, p.zc));
+        return this.baryCentric(v1, v2, v3, [p.xc, p.zc]);
     },
     
     getAngle: function(cx, cz, sx, sz) {
@@ -90,149 +234,6 @@ Larx.Terrain.prototype = {
         }
         
         return (this.heights[x][z] - this.waterLevel) * this.scale;
-    },
-    
-    append: function(model, vec, color) {
-        model.vertices.push(vec[0]);
-        model.vertices.push(vec[1]);
-        model.vertices.push(vec[2]);
-        
-        model.colors.push(color[0]); 
-        model.colors.push(color[1]); 
-        model.colors.push(color[2]); 
-        
-        model.normals.push(0); 
-        model.normals.push(1); 
-        model.normals.push(0); 
-    },
-    
-    setIndices: function(model, x, z) {
-        var start = (z * (this.blockSize) + x) * 6;
-        
-        model.indices.push(start + 0);
-        model.indices.push(start + 1);
-        model.indices.push(start + 2);
-        
-        model.indices.push(start + 3);
-        model.indices.push(start + 4);
-        model.indices.push(start + 5);
-    },
-    
-    build: function() {
-        this.size = this.heightmap.size;
-        this.setImageHeights();
-        this.numBlocks = this.size / this.blockSize;
-        
-        for(var x = 0; x < this.numBlocks; x++) {
-            for(var z = 0; z < this.numBlocks; z++) {
-                var block = this.buildBlock(x * this.blockSize, z * this.blockSize);
-                
-                block.x = (x * this.blockSize - (this.size / 2)) * this.scale;
-                block.z = (z * this.blockSize - (this.size / 2)) * this.scale;
-                block.calculateNormals();
-                block.setBounds();
-                block.bindBuffers(); 
-                
-                this.blocks.push(block);
-            }
-        }
-    },
-    
-    buildBlock: function(bx, bz) {
-        var s = this.scale;
-        var model = new Larx.Model();
-        
-        model.colors = [];
-        model.normals = [];
-        
-        for(var z = 0; z < this.blockSize; z++) {
-            var vz = z * s;
-            
-            for(var x = 0; x < this.blockSize; x++) {
-                var vecs = [], colors = [];
-                var vx = x * s;
-                var tx = bx + x,
-                    tz = bz + z;
-                
-                if((x%2 === 0 && z%2 === 0) || (x%2 === 1 && z%2 === 1)) {
-                    vecs.push(vec3.fromValues(vx + s, this.getHeight(tx + 1, tz),    vz));
-                    vecs.push(vec3.fromValues(vx,     this.getHeight(tx, tz),        vz));
-                    vecs.push(vec3.fromValues(vx,     this.getHeight(tx, tz + 1),    vz + s));
-                    
-                    colors.push(this.getColor(tx + 1, tz));
-                    colors.push(this.getColor(tx, tz));
-                    colors.push(this.getColor(tx, tz + 1));
-                    
-                    vecs.push(vec3.fromValues(vx + s, this.getHeight(tx + 1, tz),     vz));
-                    vecs.push(vec3.fromValues(vx,     this.getHeight(tx, tz + 1),     vz + s));
-                    vecs.push(vec3.fromValues(vx + s, this.getHeight(tx + 1, tz + 1), vz + s));
-                    
-                    colors.push(this.getColor(tx + 1, tz));
-                    colors.push(this.getColor(tx, tz + 1));
-                    colors.push(this.getColor(tx + 1, tz + 1));
-                } else {
-                    vecs.push(vec3.fromValues(vx + s, this.getHeight(tx + 1, tz + 1), vz + s));
-                    vecs.push(vec3.fromValues(vx,     this.getHeight(tx, tz),         vz));
-                    vecs.push(vec3.fromValues(vx,     this.getHeight(tx, tz + 1),     vz + s));
-                    
-                    colors.push(this.getColor(tx + 1, tz + 1));
-                    colors.push(this.getColor(tx, tz));
-                    colors.push(this.getColor(tx, tz + 1));
-                    
-                    vecs.push(vec3.fromValues(vx + s, this.getHeight(tx + 1, tz),     vz));
-                    vecs.push(vec3.fromValues(vx,     this.getHeight(tx, tz),         vz));
-                    vecs.push(vec3.fromValues(vx + s, this.getHeight(tx + 1, tz + 1), vz + s));
-                    
-                    colors.push(this.getColor(tx + 1, tz));
-                    colors.push(this.getColor(tx, tz));
-                    colors.push(this.getColor(tx + 1, tz + 1));
-                }
-                
-                
-                this.append(model, vecs[0], colors[0]);
-                this.append(model, vecs[1], colors[1]);
-                this.append(model, vecs[2], colors[2]);
-                
-                this.append(model, vecs[3], colors[3]);
-                this.append(model, vecs[4], colors[4]);
-                this.append(model, vecs[5], colors[5]);
-                
-                this.setIndices(model, x, z);
-            } 
-        }
-        
-        return model;
-    },
-    
-    setImageHeights: function() {
-        var parsed = [];
-        this.heights = new Array(this.size);
-        
-        for(var i = 0; i < this.heightmap.data.length; i += 4) {
-            parsed.push(this.heightmap.data[i]);
-        }
-        
-        for(var x = 0; x < this.size; x++) { 
-            this.heights[x] = new Array(this.size); 
-        }
-        
-        for(var z = 0; z < this.size; z++) {
-            for(var x = 0; x < this.size; x++) {
-                this.heights[x][z] = parsed[z * this.size + x] / 255 * this.elevation;
-            }
-        }
-    },
-    
-    getColor: function(x, y) {    
-        if(x >= this.size) { x = this.size - 1; }
-        if(y >= this.size) { y = this.size - 1; }
-        
-        var xy = (y * this.colormap.size + x) * 4;
-        return [
-            this.colormap.data[xy] / 255,
-            this.colormap.data[xy + 1] / 255,
-            this.colormap.data[xy + 2] / 255,
-            this.colormap.data[xy + 3] / 255];
     },
     
     getImage: function(url) {  
@@ -286,7 +287,7 @@ Larx.Terrain.prototype = {
             if(clip === this.clip.BOTTOM && this.blocks[i].bounds.vMax[1] < -0.3) { continue; }
             if(clip === this.clip.TOP && this.blocks[i].bounds.vMin[1] >  0.3) { continue; }
             
-            this.blocks[i].render(shader, [this.blocks[i].x, 0, this.blocks[i].z], reflect === this.reflect.YES);
+            this.blocks[i].render(shader, reflect === this.reflect.YES);
         }
     }
 };

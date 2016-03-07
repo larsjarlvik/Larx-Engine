@@ -22,6 +22,10 @@ var input = (function() {
         }
         */
         
+        if(Larx.Viewport.mouse.buttons.left) {
+            console.log(Larx.MousePicker.getCoordinates());
+        }
+        
         if(Larx.Viewport.mouse.buttons.right || Larx.Viewport.mouse.touchDown) {  
             dX = Larx.Viewport.mouse.deltaX * config.camera.rotationSpeed;
             dY = Larx.Viewport.mouse.deltaY * config.camera.rotationSpeed;
@@ -59,9 +63,7 @@ var input = (function() {
     
     return {
         init: function() {
-            console.log(fullScreenButton);
             fullScreenButton.addEventListener('click', function() {
-                console.log('he')
                 Larx.Viewport.toggleFullscreen();
             });
         },

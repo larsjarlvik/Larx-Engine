@@ -16,7 +16,6 @@ Larx.MouseShader.prototype = {
             Larx.gl.useProgram(self.shader);
             
             self.shader.vertexPositionAttribute = Larx.gl.getAttribLocation(self.shader, 'aVertexPosition');
-            self.shader.colorId = Larx.gl.getUniformLocation(self.shader, 'uColorId');
             
             Larx.Shaders.setDefaults(self.shader, false);
             
@@ -33,11 +32,7 @@ Larx.MouseShader.prototype = {
     },
 
     use: function() {
-        Larx.Larx.gl.useProgram(this.shader);
-    },
-
-    setColorId: function(id) {
-        Larx.Larx.gl.uniform1f(this.shader.colorId, id);
-    } 
+        Larx.gl.useProgram(this.shader);
+    }
 };
 

@@ -52,9 +52,9 @@ Larx.GameLoop = {
         }, 1000);
         
         setInterval(function () {
-            self.averageFpsMinute = (averageFps / 60).toFixed(1);
+            self.averageFpsMinute = (averageFps / 20).toFixed(1);
             averageFps = 0;
-        }, 60000);
+        }, 20000);
     }
 };
 

@@ -26,9 +26,13 @@ Larx.DefaultShader.prototype = {
             self.shader.fogDensity = Larx.gl.getUniformLocation(self.shader, 'uFogDensity');
             self.shader.fogGradient = Larx.gl.getUniformLocation(self.shader, 'uFogGradient');
             self.shader.fogColor = Larx.gl.getUniformLocation(self.shader, 'uFogColor');
+            self.shader.useFog = Larx.gl.getUniformLocation(self.shader, 'uUseFog');
             
             self.shader.clipPlane = Larx.gl.getUniformLocation(self.shader, 'uClipPlane');
             self.shader.clipPlaneLevel = Larx.gl.getUniformLocation(self.shader, 'uClipPlaneLevel');
+            
+            self.shader.drawCursor = Larx.gl.getUniformLocation(self.shader, 'uDrawCursor');
+            self.shader.cursorPosition = Larx.gl.getUniformLocation(self.shader, 'uCursorPosition');
             
             Larx.Shaders.setDefaults(self.shader, true);
             
@@ -65,5 +69,17 @@ Larx.DefaultShader.prototype = {
         Larx.gl.uniform1f(this.shader.fogDensity, density);
         Larx.gl.uniform1f(this.shader.fogGradient, gradient);
         Larx.gl.uniform3f(this.shader.fogColor, color[0], color[1], color[2]);
+    },
+    
+    useFog: function(enable) {
+        Larx.gl.uniform1i(this.shader.useFog, enable == true ? 1 : 0);
+    },
+    
+    drawCursor: function(enable) {
+        Larx.gl.uniform1i(this.shader.drawCursor, enable == true ? 1 : 0);
+    },
+    
+    serCursorPosition: function(xz) {
+        Larx.gl.uniform2f(this.shader.cursorPosition, xz[0], xz[1]);
     }
 };

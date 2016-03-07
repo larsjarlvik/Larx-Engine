@@ -76,23 +76,23 @@ Larx.WaterShader.prototype = {
         Larx.gl.uniform1i(this.shader.reflectionColorTexture, 2);  
     },
 
-    setDistortion:  function(value) {
+    setDistortion: function(value) {
         Larx.gl.uniform1f(this.shader.distortion, value);  
     },
 
-    setEdgeWhitening:  function(value) {
+    setEdgeWhitening: function(value) {
         Larx.gl.uniform1f(this.shader.edgeWhitening, value);  
     },
     
-    setEdgeSoftening:  function(value) {
+    setEdgeSoftening: function(value) {
         Larx.gl.uniform1f(this.shader.edgeSoftening, value);  
     },
     
-    setDensity:  function(value) {
+    setDensity: function(value) {
         Larx.gl.uniform1f(this.shader.waterDensity, value);  
     },
 
-    setFog:  function(density, gradient, color) {
+    setFog: function(density, gradient, color) {
         Larx.gl.uniform1f(this.shader.fogDensity, density);
         Larx.gl.uniform1f(this.shader.fogGradient, gradient);
         Larx.gl.uniform3f(this.shader.fogColor, color[0], color[1], color[2]);
