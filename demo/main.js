@@ -9,8 +9,10 @@
     
     Larx.init(renderTarget, Larx.RENDER_MODES.FXAA);
     Larx.setClearColor(config.clearColor);
-    Larx.MousePicker.init(10);
-    Larx.GameLoop.init(doLogic, render, config.targetFps);
+    
+    var gameLoop = new LarxGameLoop(doLogic, render, config.targetFps);
+    var mousePicker = new LarxMousePicker(10);
+    
     
     input.init();
     
@@ -27,12 +29,12 @@
         .then(initDecorations)
         .then(initCursors)
         .then(function() {
-            Larx.GameLoop.start();
+            gameLoop.start();
             
             setInterval(function() {
                 document.getElementById('fps').innerHTML = 
-                    'FPS: ' + Larx.GameLoop.fps + ' ' +
-                    'AVG: ' + Larx.GameLoop.averageFpsMinute;
+                    'FPS: ' + gameLoop.fps + ' ' +
+                    'AVG: ' + gameLoop.averageFpsMinute;
             }, 1000);
         })
         .catch(function(err) { console.error(err); });
@@ -40,10 +42,10 @@
      function initShaders() {
         var deferred = Q.defer();
         
-        defaultShader = new Larx.DefaultShader();
-        waterShader = new Larx.WaterShader();
-        mouseShader = new Larx.MouseShader();
-        cursorShader = new Larx.CursorShader();
+        defaultShader = new LarxDefaultShader();
+        waterShader = new LarxWaterShader();
+        mouseShader = new LarxMouseShader();
+        cursorShader = new LarxCursorShader();
         
         Q.all([
             defaultShader.load(),
@@ -82,7 +84,7 @@
     }
     
     function initCursors() {
-        cursor = new Larx.Cursor(models.terrain);
+        cursor = new LarxCursor(models.terrain);
         cursor.color = config.mouse.colors.default;
         
         return Q();
@@ -91,7 +93,7 @@
     function initTerrain() {
         var deferred = Q.defer();
         
-        models.terrain = new Larx.Terrain(config.mapScale);
+        models.terrain = new LarxTerrain(config.mapScale);
         models.terrain.generate(config.terrain.path, config.terrain.elevation, config.terrain.waterLevel)              
             .then(function(t) {
                 models.terrain.setLightSettings(config.terrain.shininess, config.terrain.specularWeight);
@@ -109,19 +111,19 @@
         var deferred = Q.defer();
         var res = Math.pow(2, config.water.detail);
         
-        models.water = new Larx.Water();
+        models.water = new LarxWater();
         
-        models.water.refraction = new Larx.Framebuffer(res, res);
+        models.water.refraction = new LarxFramebuffer(res, res);
         models.water.refraction.buildColorBuffer(Larx.gl.UNSIGNED_BYTE);
         models.water.refraction.buildDepthBuffer();
         
-        models.water.reflection = new Larx.Framebuffer(res, res);
+        models.water.reflection = new LarxFramebuffer(res, res);
         models.water.reflection.buildColorBuffer(Larx.gl.UNSIGNED_BYTE);
         
         models.water.waveHeight = config.water.waveHeight;
         models.water.speed = config.water.speed;
         
-        models.water.generate(models.terrain, config.water.quality)
+        models.water.generate(models.terrain, config.water.quality, config.targetFps)
             .then(function(w) {
                 deferred.resolve();
             })
@@ -144,7 +146,7 @@
         var deferred = Q.defer();
         var inits = [];
         
-        models.decorations = new Larx.Decorations(models.terrain);
+        models.decorations = new LarxDecorations(models.terrain);
         
         for(var i in config.decorations) {
             inits.push(initDecor(config.decorations[i]));
@@ -178,7 +180,7 @@
     
     function initDecor(decor) {
         var deferred = Q.defer();
-        var model = new Larx.Model();
+        var model = new LarxModel();
         
         model.load(decor.model).then(function () {
            deferred.resolve({
@@ -191,8 +193,8 @@
     }
    
     function doLogic(time) {
-        Larx.MousePicker.updateMouse();
-        input.update();
+        mousePicker.updateMouse();
+        input.update(mousePicker);
         Larx.Camera.update(time);
         models.water.update();
     }
@@ -254,12 +256,12 @@
                 waterShader.cleanUp();
                 
                 cursorShader.use();
-                cursor.render(cursorShader, Larx.MousePicker.getCoordinates());
+                cursor.render(cursorShader, mousePicker.getCoordinates());
                             
                 Larx.gl.disable(Larx.gl.BLEND);
                 
                 mouseShader.use();
-                Larx.MousePicker.render(mouseShader, models.terrain);
+                mousePicker.render(mouseShader, models.terrain);
             }
         );
     }

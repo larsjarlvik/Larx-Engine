@@ -1,9 +1,7 @@
 precision mediump float;
 
 varying vec4 vPosition;
-
 varying float vVisibility;
-
 varying vec3 vLightWeighting;
 varying vec3 vNormal;
 varying vec2 vRefractTexCoords;

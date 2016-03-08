@@ -11,19 +11,9 @@ var input = (function() {
         if(Larx.Viewport.keyDown('D')) { Larx.Camera.smoothMove( config.camera.moveSpeed,  0.0); }
     }
 
-    function mouse() {
-        /*
-        Larx.MousePicker.updateMouse(Larx.Viewport.mouse.x, Larx.Viewport.mouse.y);
+    function mouse(mousePicker) {
         if(Larx.Viewport.mouse.buttons.left) {
-            coords = mousePicker.getCoordinates(Larx.Viewport.mouse.x, Larx.Viewport.mouse.y);
-            sObject = mousePicker.getObject(Larx.Viewport.mouse.x, Larx.Viewport.mouse.y);
-            
-            setInfoText();
-        }
-        */
-        
-        if(Larx.Viewport.mouse.buttons.left) {
-            console.log(Larx.MousePicker.getCoordinates());
+            console.log(mousePicker.getCoordinates());
         }
         
         if(Larx.Viewport.mouse.buttons.right || Larx.Viewport.mouse.touchDown) {  
@@ -34,12 +24,7 @@ var input = (function() {
             dYRad = dY * Math.PI / 180;
             
             Larx.Camera.smoothRotateH(dX);
-            
-            if(dYRad > 0) {
-                if(cMatrix.rotV + dYRad < Math.PI - 0.3) { Larx.Camera.smoothRotateV(dY); }
-            } else {
-                if(cMatrix.rotV + dYRad > 0.3) { Larx.Camera.smoothRotateV(dY); }
-            }
+            Larx.Camera.smoothRotateV(dY);
         }
         
         if(Larx.Viewport.mouse.wheelDelta !== 0) {
@@ -67,9 +52,9 @@ var input = (function() {
                 Larx.Viewport.toggleFullscreen();
             });
         },
-        update: function() {
+        update: function(mousePicker) {
             keyboard();
-            mouse();
+            mouse(mousePicker);
         },
         worldCoords: coords,
         getSelectedObject: function() {

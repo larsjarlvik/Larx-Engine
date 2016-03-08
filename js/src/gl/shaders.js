@@ -1,19 +1,21 @@
-/* global Larx */
-/* global vec3 */
+"use strict";
 
-Larx.Shaders = {
-    light: {
-        ambient: [0.3, 0.3, 0.3],
-        directional: [0.5, 0.5, 0.5],
-        specular: [1.0, 1.0, 1.0],
-        direction: [-0.5, -0.7, -0.5]
-    },
+class LarxShader {
+    
+    constructor() {
+        this.light = {
+            ambient: [0.3, 0.3, 0.3],
+            directional: [0.5, 0.5, 0.5],
+            specular: [1.0, 1.0, 1.0],
+            direction: [-0.5, -0.7, -0.5]
+        };
+    }
 
-    downloadShader: function(id, type) {
-        var deferred = Q.defer();
-        var http = new XMLHttpRequest();
+    downloadShader(id, type) {
+        let deferred = Q.defer();
+        let http = new XMLHttpRequest();
         
-        http.onreadystatechange = function () {
+        http.onreadystatechange = () => {
             if(http.readyState === 4 && http.status === 200) {
                 deferred.resolve(http.responseText);
             }
@@ -23,13 +25,13 @@ Larx.Shaders = {
         http.send();
         
         return deferred.promise;
-    },
+    }
 
-    createShader: function(id, ext, type) {
-        var deferred = Q.defer();
-        
-        Larx.Shaders.downloadShader(id, ext).then(function (shaderData) {
-            var shader = Larx.gl.createShader(type);
+    createShader(id, ext, type) {
+        let deferred = Q.defer();
+
+        this.downloadShader(id, ext).then((shaderData) => {
+            let shader = Larx.gl.createShader(type);
             Larx.gl.shaderSource(shader, shaderData);
             Larx.gl.compileShader(shader);
             
@@ -43,14 +45,14 @@ Larx.Shaders = {
         });
         
         return deferred.promise;
-    },
+    }
 
-    downloadShaderProgram: function(name) {
-        var deferred = Q.defer();
-
-        Larx.Shaders.createShader(name, 'fs', Larx.gl.FRAGMENT_SHADER).then(function (fs) {
-            Larx.Shaders.createShader(name, 'vs', Larx.gl.VERTEX_SHADER).then(function (vs) {
-                var program = Larx.gl.createProgram();
+    downloadShaderProgram(name) {
+        let deferred = Q.defer();
+        
+        this.createShader(name, 'fs', Larx.gl.FRAGMENT_SHADER).then((fs) => {
+            this.createShader(name, 'vs', Larx.gl.VERTEX_SHADER).then((vs) => {
+                let program = Larx.gl.createProgram();
                 
                 Larx.gl.attachShader(program, vs);
                 Larx.gl.attachShader(program, fs);
@@ -60,9 +62,9 @@ Larx.Shaders = {
         });  
         
         return deferred.promise;      
-    },
+    }
 
-    setDefaults: function (shader, useLights) {
+    setDefaults(shader, useLights) {
         shader.pMatrixUniform = Larx.gl.getUniformLocation(shader, 'uPMatrix');
         shader.mvMatrixUniform = Larx.gl.getUniformLocation(shader, 'uMVMatrix');
         shader.nMatrixUniform  = Larx.gl.getUniformLocation(shader, 'uNMatrix');
@@ -78,15 +80,19 @@ Larx.Shaders = {
             shader.shininess = Larx.gl.getUniformLocation(shader, 'uShininess');
             shader.specularWeight = Larx.gl.getUniformLocation(shader, 'uSpecularWeight');
             
-            Larx.gl.uniform3f(shader.ambientColor, Larx.Shaders.light.ambient[0], Larx.Shaders.light.ambient[1], Larx.Shaders.light.ambient[2]);
-            Larx.gl.uniform3f(shader.directionalColor, Larx.Shaders.light.directional[0], Larx.Shaders.light.directional[1], Larx.Shaders.light.directional[2]);
-            Larx.gl.uniform3f(shader.specularColor, Larx.Shaders.light.specular[0], Larx.Shaders.light.specular[1], Larx.Shaders.light.specular[2]);
+            Larx.gl.uniform3f(shader.ambientColor, this.light.ambient[0], this.light.ambient[1], this.light.ambient[2]);
+            Larx.gl.uniform3f(shader.directionalColor, this.light.directional[0], this.light.directional[1], this.light.directional[2]);
+            Larx.gl.uniform3f(shader.specularColor, this.light.specular[0], this.light.specular[1], this.light.specular[2]);
             
-            var adjustedLightDir = vec3.create();      
-            vec3.normalize(adjustedLightDir, Larx.Shaders.light.direction);
+            let adjustedLightDir = vec3.create();      
+            vec3.normalize(adjustedLightDir, this.light.direction);
             vec3.scale(adjustedLightDir, adjustedLightDir, -1);
             Larx.gl.uniform3fv(shader.lightDirection, adjustedLightDir);
         }
+    }
+
+    get() {
+        return this.shader;
     }
 };
         

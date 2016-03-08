@@ -1,19 +1,19 @@
-/* global Larx */
+"use strict";
 
-Larx.Frustum =  {
-    clip: Array(16),
-    frustum: Array(6),
-    
-    init: function() {
-        for(var i = 0; i < this.frustum.length; i++) {
+class LarxFrustum  {
+    constructor () {
+        this.clip = Array(16);
+        this.frustum = Array(6);
+        
+        for(let i = 0; i < this.frustum.length; i++) {
             this.frustum[i] = new Array(4);
         }
-    },
+    }
     
-    extractFrustum: function() {
-        var mMat = Larx.Matrix.mvMatrix;
-        var pMat = Larx.Matrix.pMatrix;
-        var t;
+    extractFrustum() {
+        let mMat = Larx.Matrix.mvMatrix;
+        let pMat = Larx.Matrix.pMatrix;
+        let t;
 
         this.clip[ 0] = mMat[ 0] * pMat[ 0] + mMat[ 1] * pMat[ 4] + mMat[ 2] * pMat[ 8] + mMat[ 3] * pMat[12];
         this.clip[ 1] = mMat[ 0] * pMat[ 1] + mMat[ 1] * pMat[ 5] + mMat[ 2] * pMat[ 9] + mMat[ 3] * pMat[13];
@@ -114,10 +114,10 @@ Larx.Frustum =  {
         this.frustum[5][3] /= t;
         
         return this.frustum;
-    },
+    }
     
-    inFrustum: function(v1, v2) {
-        for(var p = 0; p < 6; p++) {
+    inFrustum (v1, v2) {
+        for(let p = 0; p < 6; p++) {
             if(this.frustum[p][0] * v1[0] + this.frustum[p][1] * v1[1] + this.frustum[p][2] * v1[2] + this.frustum[p][3] > -1.0) { continue; }
             if(this.frustum[p][0] * v2[0] + this.frustum[p][1] * v1[1] + this.frustum[p][2] * v1[2] + this.frustum[p][3] > -1.0) { continue; }
             if(this.frustum[p][0] * v1[0] + this.frustum[p][1] * v2[1] + this.frustum[p][2] * v1[2] + this.frustum[p][3] > -1.0) { continue; }

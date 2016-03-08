@@ -1,9 +1,8 @@
-/* global Larx */
+"use strict";
 
-Larx.MousePicker = {
-    
-    init: function(precision) {
-        var res = Math.pow(2, precision);
+class LarxMousePicker {
+    constructor(precision) {
+        let res = Math.pow(2, precision);
         
         this.capture;
         this.mouse;
@@ -11,12 +10,12 @@ Larx.MousePicker = {
         this.width = res;
         this.height = res;
         
-        this.buffer = new Larx.Framebuffer(this.width, this.height);
+        this.buffer = new LarxFramebuffer(this.width, this.height);
         this.buffer.buildColorBuffer(Larx.gl.FLOAT);
         this.pixels = new Float32Array(4);
-    },
+    }
     
-    render: function(shader, model) {
+    render(shader, model) {
         this.buffer.bind();
         Larx.Matrix.setIdentity();
         Larx.Matrix.setUniforms(shader);
@@ -28,20 +27,26 @@ Larx.MousePicker = {
         }
         
         this.buffer.unbind();
-    },
+    }
 
-    updateMouse: function() {
+    updateMouse() {
+        if (Larx.Viewport.mouse.x <= 0 || Larx.Viewport.mouse.x >= Larx.gl.viewportWidth ||
+            Larx.Viewport.mouse.y <= 0 || Larx.Viewport.mouse.y >= Larx.gl.viewportHeight) {
+            this.mouse = undefined;
+            return;
+        }
+        
         this.mouse = {
             x: (Larx.Viewport.mouse.x / Larx.gl.viewportWidth * this.width),
             y: this.height - (Larx.Viewport.mouse.y / Larx.gl.viewportHeight * this.height)
         };
-    },
+    }
 
-    getCoordinates: function() {
+    getCoordinates() {
         if(this.pixels[0] === 0.0 && this.pixels[2] === 0.0) {
             return [0, 0];
         }
         
         return [this.pixels[0], this.pixels[2]];
     }
-};
+}

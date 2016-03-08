@@ -1,18 +1,20 @@
-Larx.Framebuffer = function(width, height) {    
-    this.width = width;
-    this.height = height;
-    
-    this.framebuffer = Larx.gl.createFramebuffer();
-    this.renderbuffer = Larx.gl.createRenderbuffer();
-    
-    this.colorTexture;
-    this.depthTexture;
-    
-    this.build();
-};
+"use strict";
 
-Larx.Framebuffer.prototype = {
-    build: function() {
+class LarxFramebuffer {
+    constructor(width, height) {
+        this.width = width;
+        this.height = height;
+        
+        this.framebuffer = Larx.gl.createFramebuffer();
+        this.renderbuffer = Larx.gl.createRenderbuffer();
+        
+        this.colorTexture;
+        this.depthTexture;
+        
+        this.build();
+    }
+    
+    build() {
         Larx.gl.bindFramebuffer(Larx.gl.FRAMEBUFFER, this.framebuffer);
         Larx.gl.bindRenderbuffer(Larx.gl.RENDERBUFFER, this.renderbuffer);
         
@@ -22,9 +24,9 @@ Larx.Framebuffer.prototype = {
         
         Larx.gl.bindFramebuffer(Larx.gl.FRAMEBUFFER, null);
         Larx.gl.bindFramebuffer(Larx.gl.FRAMEBUFFER, null);
-    },
-
-    buildColorBuffer: function(format, clamp) {
+    }
+    
+    buildColorBuffer(format, clamp) {
         this.colorTexture = Larx.gl.createTexture();
         
         Larx.gl.bindFramebuffer(Larx.gl.FRAMEBUFFER, this.framebuffer);
@@ -43,9 +45,9 @@ Larx.Framebuffer.prototype = {
             
         Larx.gl.bindTexture(Larx.gl.TEXTURE_2D, null);
         Larx.gl.bindFramebuffer(Larx.gl.FRAMEBUFFER, null);
-    },
-
-    buildDepthBuffer: function() {
+    }
+    
+    buildDepthBuffer() {
         this.depthTexture = Larx.gl.createTexture();
         
         Larx.gl.bindFramebuffer(Larx.gl.FRAMEBUFFER, this.framebuffer);
@@ -57,9 +59,9 @@ Larx.Framebuffer.prototype = {
 
         Larx.gl.bindTexture(Larx.gl.TEXTURE_2D, null);
         Larx.gl.bindRenderbuffer(Larx.gl.RENDERBUFFER, null);
-    },
-
-    bind: function(clear) {
+    }
+    
+    bind(clear) {
         Larx.gl.bindFramebuffer(Larx.gl.FRAMEBUFFER, this.framebuffer);
         Larx.gl.viewport(0, 0, this.width, this.height);
         
@@ -74,28 +76,28 @@ Larx.Framebuffer.prototype = {
         if(this.depthTexture) { 
             Larx.gl.framebufferTexture2D(Larx.gl.FRAMEBUFFER, Larx.gl.DEPTH_ATTACHMENT, Larx.gl.TEXTURE_2D, this.depthTexture, 0);
         }
-    },
-
-    unbind: function() {
+    }
+    
+    unbind() {
         if(Larx.renderMode === Larx.RENDER_MODES.FXAA) {
             Larx.Fxaa.bind();
         } else {
             Larx.gl.viewport(0, 0, Larx.Viewport.canvas.width, Larx.Viewport.canvas.height);
             Larx.gl.bindFramebuffer(Larx.gl.FRAMEBUFFER, null);
         }
-    },
-
-    bindColorTexture: function(textureUnit) {
+    }
+    
+    bindColorTexture(textureUnit) {
         Larx.gl.activeTexture(textureUnit);
         Larx.gl.bindTexture(Larx.gl.TEXTURE_2D, this.colorTexture);  
-    },
+    }
 
-    bindDepthTexture: function(textureUnit) {
+    bindDepthTexture(textureUnit) {
         Larx.gl.activeTexture(textureUnit);
         Larx.gl.bindTexture(Larx.gl.TEXTURE_2D, this.depthTexture);  
-    },
+    }
 
-    unbindTextures: function() {
+    unbindTextures() {
         Larx.gl.bindTexture(Larx.gl.TEXTURE_2D, null);  
     }
 }

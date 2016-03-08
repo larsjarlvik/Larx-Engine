@@ -1,27 +1,27 @@
-/* global Larx */
+"use strict";
 
-Larx.Cursor = function(terrain) {
-    this.model = new Larx.Model('cursor');
-    this.model.indices = [
-        0, 1, 2,     
-        3, 0, 2
-    ];
+class LarxCursor {
+    constructor(terrain) {
+        this.model = new LarxModel('cursor');
+        this.model.indices = [
+            0, 1, 2,     
+            3, 0, 2
+        ];
+        
+        this.model.texCoords = [
+            0, 0,
+            0, 1,
+            1, 1,
+            1, 0
+        ];
     
-    this.model.texCoords = [
-        0, 0,
-        0, 1,
-        1, 1,
-        1, 0
-    ];
-   
-    this.color;
-    this.cursorSize = [1.0, 1.0];
-    this.buildCursor();
-    this.terrain = terrain;
-};
-
-Larx.Cursor.prototype = {
-    buildCursor: function() {
+        this.color;
+        this.cursorSize = [1.0, 1.0];
+        this.buildCursor();
+        this.terrain = terrain;
+    }
+    
+    buildCursor() {
         this.model.vertices = [
             -this.cursorSize, 0.0, -this.cursorSize,
             -this.cursorSize, 0.0,  this.cursorSize,
@@ -30,9 +30,9 @@ Larx.Cursor.prototype = {
         ];
         
         this.model.bindBuffers();
-    },
+    }
     
-    render: function(shader, pos, size) {
+    render(shader, pos, size) {
         if(!pos) { return; }
             
         //this.model.rotate(this.terrain.getAngle(pos[0], pos[2], this.cursorSize[0], this.cursorSize[2]));
@@ -48,7 +48,5 @@ Larx.Cursor.prototype = {
         
         Larx.Matrix.pop();
         Larx.gl.enable(Larx.gl.DEPTH_TEST);
-    },
-    
-    constructor: Larx.Cursor
-};
+    }
+}

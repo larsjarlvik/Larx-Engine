@@ -1,24 +1,24 @@
-/* global Larx */
-/* global mat3 */
-/* global mat4 */
+"use strict";
 
-Larx.Matrix = {
-    mvMatrix: mat4.create(),
-    pMatrix: mat4.create(),
-    mvStack: [],
-    aspect: 0,
+class LarxMatrix {
+    constructor() {
+        this.mvMatrix = mat4.create();
+        this.pMatrix = mat4.create();
+        this.mvStack = [];
+        this.aspect = 0;
+    }
     
-    push: function () {
+    push() {
         this._copy = mat4.create();
         mat4.copy(this._copy, this.mvMatrix);
         this.mvStack.push(this._copy);
-    },
+    }
 
-    pop: function () {
+    pop() {
         this.mvMatrix = this.mvStack.pop();
-    },
+    }
 
-    setIdentity: function (invert) {
+    setIdentity(invert) {
         mat4.perspective(this.pMatrix, 45, this.aspect, 5.0, 500.0);
         mat4.identity(this.mvMatrix);   
         
@@ -31,9 +31,9 @@ Larx.Matrix = {
         mat4.rotate(this.mvMatrix, this.mvMatrix, this.cMat.rotV, [1, 0, 0]);
         mat4.rotate(this.mvMatrix, this.mvMatrix, this.cMat.rotH, [0, 1, 0]);
         mat4.translate(this.mvMatrix, this.mvMatrix, [this.cMat.x, this.cMat.y, this.cMat.z]);
-    },
+    }
 
-    setUniforms: function (shaderProgram) {
+    setUniforms(shaderProgram) {
         this.sp = shaderProgram.get();
         
         Larx.gl.uniformMatrix4fv(this.sp.pMatrixUniform, false, this.pMatrix);
@@ -45,13 +45,13 @@ Larx.Matrix = {
         mat3.transpose(this.nMatrix, this.nMatrix);
         
         Larx.gl.uniformMatrix3fv(this.sp.nMatrixUniform, false, this.nMatrix);
-    },
+    }
 
-    translate: function (vec) {
+    translate(vec) {
         mat4.translate(this.mvMatrix, this.mvMatrix, vec);
-    },
+    }
 
-    rotate: function (vec) {
+    rotate(vec) {
         mat4.rotate(this.mvMatrix, this.mvMatrix, vec);
     }
 };

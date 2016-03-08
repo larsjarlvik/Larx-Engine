@@ -33,7 +33,7 @@ var config = {
         reflectionColor: [0.098, 0.535, 0.520],
         waveHeight: 0.6,
         speed: 0.001,
-        distortion: 2.5,
+        distortion: 1.5,
         edgeWhitening: 1.7, 
         edgeSoftening: 2.0,
         density: 0.07
@@ -57,17 +57,17 @@ var config = {
             description: 'Spruce'
         },
         {
-            count: 350,
+            count: 500,
             model: 'rock-1',
             tiltLimit: 0.0,
-            scale: [0.8, 2.0],
+            scale: [0.8, 3.0],
             tiltToTerrain: false,
             yLimits: [-3.0, 1.5],
             selectable: true,
             description: 'Flat rock'
         },
         {
-            count: 350,
+            count: 1000,
             model: 'rock-2',
             tiltLimit: 0.0,
             scale: [0.8, 2.0],

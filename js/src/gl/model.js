@@ -1,30 +1,29 @@
-/* global Larx */
+"use strict";
 
-Larx.Model = function () {
-    this.vertices = [];
-    this.colors;
-    this.normals;
-    this.texCoords;
-    this.indices = [];
-    this.shininess = 0;
-    this.opacity = 1.0;
-    this.specularWeight = 1.0;
-    this.faceCount = 0;
-    this.vertexCount = 0;
+class LarxModel {
+    constructor() {
+        this.vertices = [];
+        this.colors;
+        this.normals;
+        this.texCoords;
+        this.indices = [];
+        this.shininess = 0;
+        this.opacity = 1.0;
+        this.specularWeight = 1.0;
+        this.faceCount = 0;
+        this.vertexCount = 0;
+        
+        this.bounds;
+        this.frustumBounds;
+    }
     
-    this.bounds;
-    this.frustumBounds;
-};
-
-Larx.Model.prototype = {
-    setBounds: function() {
+    setBounds() {
         this.bounds = {
             vMin: undefined,
             vMax: undefined
         };
         
-        for(var i = 0; i < this.vertices.length; i += 3) {
-            
+        for(let i = 0; i < this.vertices.length; i += 3) {
             if(this.bounds.vMin === undefined) {
                 this.bounds.vMin = [this.vertices[i], this.vertices[i + 1], this.vertices[i + 2]];
             }
@@ -33,7 +32,6 @@ Larx.Model.prototype = {
                 this.bounds.vMax = [this.vertices[i], this.vertices[i + 1], this.vertices[i + 2]];
             }
             
-            
             if(this.vertices[i + 0] < this.bounds.vMin[0]) { this.bounds.vMin[0] = this.vertices[i + 0]; }
             if(this.vertices[i + 0] > this.bounds.vMax[0]) { this.bounds.vMax[0] = this.vertices[i + 0]; }
             if(this.vertices[i + 1] < this.bounds.vMin[1]) { this.bounds.vMin[1] = this.vertices[i + 1]; }
@@ -41,11 +39,11 @@ Larx.Model.prototype = {
             if(this.vertices[i + 2] < this.bounds.vMin[2]) { this.bounds.vMin[2] = this.vertices[i + 2]; }
             if(this.vertices[i + 2] > this.bounds.vMax[2]) { this.bounds.vMax[2] = this.vertices[i + 2]; }
         }
-    },
+    }
     
-    download: function(name) {
-        var deferred = Q.defer();
-        var http = new XMLHttpRequest();
+    download(name) {
+        let deferred = Q.defer();
+        let http = new XMLHttpRequest();
         
         http.onreadystatechange = function () {
             if(http.readyState === 4 && http.status === 200) {
@@ -57,20 +55,20 @@ Larx.Model.prototype = {
         http.send();
         
         return deferred.promise;
-    },
+    }
 
-    parse: function(data) {
-        var self = this;
-        var properties = [];
+    parse(data) {
+        let self = this;
+        let properties = [];
 
         function parseHeader(lines) {
-            var propertyIndex = 0;
+            let propertyIndex = 0;
             
-            for(var i = 0; i < lines.length; i ++) {
-                var line = lines[i].trim();
+            for(let i = 0; i < lines.length; i ++) {
+                let line = lines[i].trim();
                 
                 if(line.indexOf('property') == 0) {
-                    var headerValue = parseHeaderValue(line);
+                    let headerValue = parseHeaderValue(line);
                     
                     switch(headerValue) {
                         case 'x':
@@ -96,7 +94,7 @@ Larx.Model.prototype = {
         }
         
         function parseHeaderValue(line) {
-            var n = line.split(' ');
+            let n = line.split(' ');
             return n[n.length - 1];
         }
         
@@ -106,8 +104,8 @@ Larx.Model.prototype = {
             if(properties['colors']    !== undefined) { self.colors = []; }
             if(properties['texCoords'] !== undefined) { self.texCoords = []; }
             
-            for(var i = start; i < start + self.vertexCount; i ++) {
-                var values = lines[i].trim().split(' ');
+            for(let i = start; i < start + self.vertexCount; i ++) {
+                let values = lines[i].trim().split(' ');
                 
                 if(properties['vertices'] !== undefined) {
                     self.vertices.push(parseFloat(values[properties['vertices']]));
@@ -137,8 +135,8 @@ Larx.Model.prototype = {
         function parseFaces(lines, start) {
             self.indices = [];
 
-            for(var i = start; i < lines.length; i ++) {
-                var values = lines[i].trim().split(' ');
+            for(let i = start; i < lines.length; i ++) {
+                let values = lines[i].trim().split(' ');
                 if(values.length !== 4) { continue; }
                 
                 self.indices.push(parseInt(values[1]));
@@ -147,14 +145,14 @@ Larx.Model.prototype = {
             }
         }
         
-        var lines = data.split('\n');
-        var bodyStart = parseHeader(lines);
+        let lines = data.split('\n');
+        let bodyStart = parseHeader(lines);
         
         parseVertices(lines, bodyStart);
         parseFaces(lines, bodyStart + this.vertexCount);
-    },
+    }
     
-    bindBuffers: function() {
+    bindBuffers() {
         function bindBuffer(buffer, data, itemSize) {
             if(!data) { return; }
             if(!buffer) { buffer = Larx.gl.createBuffer();  }
@@ -175,11 +173,11 @@ Larx.Model.prototype = {
         Larx.gl.bindBuffer(Larx.gl.ELEMENT_ARRAY_BUFFER, this.indexBuffer);
         Larx.gl.bufferData(Larx.gl.ELEMENT_ARRAY_BUFFER, new Uint16Array(this.indices), Larx.gl.STATIC_DRAW);
         this.indexBuffer.numItems = this.indices.length;
-    },
+    }
     
-    load: function (name) {
-        var deferred = Q.defer();
-        var self = this;
+    load (name) {
+        let deferred = Q.defer();
+        let self = this;
         
         self.download(name).then(function (data) {
             self.parse(data);
@@ -193,44 +191,42 @@ Larx.Model.prototype = {
         });
 
         return deferred.promise;
-    },
+    }
 
-    translate: function (pos) {    
-        for(var i = 0; i < this.vertices.length; i += 3) {
+    translate (pos) {    
+        for(let i = 0; i < this.vertices.length; i += 3) {
             this.vertices[i] += pos[0];
             this.vertices[i + 1] += pos[1];
             this.vertices[i + 2] += pos[2];
         }
-    },
-
-    scale: function (value) {    
-        for(var i = 0; i < this.vertices.length; i += 3) {
+    }
+    
+    scale (value) {    
+        for(let i = 0; i < this.vertices.length; i += 3) {
             this.vertices[i] *= value;
             this.vertices[i + 1] *= value;
             this.vertices[i + 2] *= value;
         }
-    },
+    }
 
-    rotate: function (angle) {
-        var self = this;
-        
-        function doRotate(angle, a, b) {
-            var cosTheta = Math.cos(angle);
-            var sinTheta = Math.sin(angle);
+    rotate (angle) {
+        let doRotate = (angle, a, b) => {
+            let cosTheta = Math.cos(angle);
+            let sinTheta = Math.sin(angle);
             
-            for(var i = 0; i < self.vertices.length; i += 3) { 
-                var av = cosTheta * (self.vertices[i + a]) - sinTheta*(self.vertices[i + b]);
-                var bv = sinTheta * (self.vertices[i + a]) + cosTheta*(self.vertices[i + b]);
+            for(let i = 0; i < this.vertices.length; i += 3) { 
+                let av = cosTheta * (this.vertices[i + a]) - sinTheta*(this.vertices[i + b]);
+                let bv = sinTheta * (this.vertices[i + a]) + cosTheta*(this.vertices[i + b]);
                 
-                self.vertices[i + a] = av;
-                self.vertices[i + b] = bv;
+                this.vertices[i + a] = av;
+                this.vertices[i + b] = bv;
                 
-                if(self.normals) {
-                    var an = cosTheta * (self.normals[i + a]) - sinTheta*(self.normals[i + b]);
-                    var bn = sinTheta * (self.normals[i + a]) + cosTheta*(self.normals[i + b]);
+                if(this.normals) {
+                    let an = cosTheta * (this.normals[i + a]) - sinTheta*(this.normals[i + b]);
+                    let bn = sinTheta * (this.normals[i + a]) + cosTheta*(this.normals[i + b]);
                     
-                    self.normals[i + a] = an;
-                    self.normals[i + b] = bn;
+                    this.normals[i + a] = an;
+                    this.normals[i + b] = bn;
                 }
             }
         }
@@ -238,10 +234,10 @@ Larx.Model.prototype = {
         doRotate(angle[0], 1, 2);
         doRotate(angle[1], 0, 2);
         doRotate(angle[2], 0, 1);
-    },
+    }
 
-    clone: function () {
-        var target = new Larx.Model();
+    clone () {
+        let target = new LarxModel();
         
         Array.prototype.push.apply(target.vertices, this.vertices);
         Array.prototype.push.apply(target.indices, this.indices);
@@ -263,10 +259,10 @@ Larx.Model.prototype = {
         target.vertexCount = this.vertexCount;
         
         return target;
-    },
+    }
 
-    push: function(source) {
-        for(var i = 0; i < source.indices.length; i++) {
+    push(source) {
+        for(let i = 0; i < source.indices.length; i++) {
             this.indices.push(source.indices[i] + this.vertexCount);
         }
         
@@ -284,11 +280,11 @@ Larx.Model.prototype = {
         
         this.faceCount += source.faceCount;
         this.vertexCount += source.vertexCount;
-    },
+    }
     
-    calculateNormals: function () {
+    calculateNormals () {
         function calcNormal(a, b, c, out) {
-            var x,  y,  z,
+            let x,  y,  z,
                 x1, y1, z1,
                 x2, y2, z2,
                 x3, y3, z3,
@@ -315,10 +311,10 @@ Larx.Model.prototype = {
         
         this.normals = Array(this.vertices.length);
         
-        var v1 = [];
-        var a, b, c;
+        let v1 = [];
+        let a, b, c;
         
-        for (var i = 0; i < this.vertices.length; i += 9) {
+        for (let i = 0; i < this.vertices.length; i += 9) {
             a = [this.vertices[i], this.vertices[i + 1], this.vertices[i + 2]];
             b = [this.vertices[i + 3], this.vertices[i + 4], this.vertices[i + 5]];
             c = [this.vertices[i + 6], this.vertices[i + 7], this.vertices[i + 8]];
@@ -334,28 +330,28 @@ Larx.Model.prototype = {
             this.normals[i + 7] = v1[1];
             this.normals[i + 8] = v1[2];
         }
-    },
+    }
 
-    getSize: function() {
+    getSize() {
         return [
             this.bounds.vMax[0] - this.bounds.vMin[0], 
             this.bounds.vMax[1] - this.bounds.vMin[1], 
             this.bounds.vMax[2] - this.bounds.vMin[2]];
-    },
+    }
 
-    inFrustum: function() {
+    inFrustum() {
         if(!this.bounds) { return true; }
         return Larx.Frustum.inFrustum(this.bounds.vMin, this.bounds.vMax);
-    },
+    }
 
-    setAttribute: function(attribute, buffer) {
+    setAttribute(attribute, buffer) {
         if(buffer !== undefined && attribute != undefined) {
             Larx.gl.bindBuffer(Larx.gl.ARRAY_BUFFER, buffer);
             Larx.gl.vertexAttribPointer(attribute, buffer.itemSize, Larx.gl.FLOAT, false, 0, 0);
         }
-    },
+    }
     
-    render: function (sp, reflect) {
+    render (sp, reflect) {
         if(!this.vertexBuffer || !this.inFrustum()) {
             return;
         }
