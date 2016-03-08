@@ -1,7 +1,9 @@
+/* global Larx */
+
 Larx.Decorations = function(terrain) {
     this.terrain = terrain;
     
-    this.numBlocks = 6;
+    this.numBlocks = 4;
     this.size = this.terrain.getSize() - 0.5;
     this.blockSize = this.size / this.numBlocks;
     

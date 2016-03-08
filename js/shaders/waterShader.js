@@ -1,3 +1,5 @@
+/* global Larx */
+
 Larx.WaterShader = function () {
     this.shader = undefined;
 };
@@ -64,15 +66,15 @@ Larx.WaterShader.prototype = {
         Larx.gl.uniform1f(this.shader.time, time);
     },
 
-    setRefractionDepthTexture: function() {
+    setRefractionDepthTexture: function(index) {
         Larx.gl.uniform1i(this.shader.refractionDepthTexture, 0);  
     },
 
-    setRefractionColorTexture: function() {
+    setRefractionColorTexture: function(index) {
         Larx.gl.uniform1i(this.shader.refractionColorTexture, 1);  
     },
 
-    setReflectionColorTexture: function() {
+    setReflectionColorTexture: function(index) {
         Larx.gl.uniform1i(this.shader.reflectionColorTexture, 2);  
     },
 

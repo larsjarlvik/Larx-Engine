@@ -1,3 +1,5 @@
+/* global Larx */
+
 Larx.CursorShader = function() {
     this.shader;
 };

@@ -22,8 +22,8 @@ var config = {
         }
     },
     fog: {
-        density: 0.0015,
-        gradient: 3.0,
+        density: 0.002,
+        gradient: 6.0,
         color: [0.601, 0.816, 0.820]
     },
     water: {

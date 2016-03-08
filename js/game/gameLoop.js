@@ -1,3 +1,4 @@
+/* global Larx */
 
 Larx.GameLoop = {
     targetFps: 0,

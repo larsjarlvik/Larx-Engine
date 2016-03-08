@@ -1,4 +1,4 @@
-/* global Model */
+/* global Larx */
 
 var Sky = function(size) {
     this.size = size;
@@ -9,7 +9,7 @@ Sky.prototype.load = function(name) {
     var deferred = Q.defer();
     var self = this;
     
-    this.model = new Model();
+    this.model = new Larx.Model();
     this.model.load(name).then(function() {
         self.model.scale(self.size, self.size / 2, self.size);
         self.model.bindBuffers();

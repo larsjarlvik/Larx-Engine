@@ -1,9 +1,10 @@
+/* global Larx */
 /* global vec3 */
 
 Larx.Shaders = {
     light: {
-        ambient: [0.2, 0.2, 0.2],
-        directional: [0.6, 0.6, 0.6],
+        ambient: [0.3, 0.3, 0.3],
+        directional: [0.5, 0.5, 0.5],
         specular: [1.0, 1.0, 1.0],
         direction: [-0.5, -0.7, -0.5]
     },

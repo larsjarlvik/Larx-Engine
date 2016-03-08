@@ -1,3 +1,4 @@
+/* global Larx */
 /* global mat3 */
 /* global mat4 */
 
@@ -5,6 +6,7 @@ Larx.Matrix = {
     mvMatrix: mat4.create(),
     pMatrix: mat4.create(),
     mvStack: [],
+    aspect: 0,
     
     push: function () {
         this._copy = mat4.create();
@@ -17,7 +19,7 @@ Larx.Matrix = {
     },
 
     setIdentity: function (invert) {
-        mat4.perspective(this.pMatrix, 45, Larx.gl.viewportWidth / Larx.gl.viewportHeight, 0.1, 1000.0);
+        mat4.perspective(this.pMatrix, 45, this.aspect, 5.0, 500.0);
         mat4.identity(this.mvMatrix);   
         
         if(invert) {

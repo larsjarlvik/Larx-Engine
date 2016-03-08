@@ -1,3 +1,4 @@
+/* global Larx */
 
 Larx.Viewport = {
     

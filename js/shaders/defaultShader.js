@@ -1,11 +1,11 @@
-/* Larx.global Shaders */
+/* global Larx */
 
 Larx.DefaultShader = function () {
     this.shader;
     
     this.clip = {
-        above: 1,
-        below: 2
+        ABOVE: 1,
+        BELOW: 2
     }
 };
 
@@ -30,9 +30,6 @@ Larx.DefaultShader.prototype = {
             
             self.shader.clipPlane = Larx.gl.getUniformLocation(self.shader, 'uClipPlane');
             self.shader.clipPlaneLevel = Larx.gl.getUniformLocation(self.shader, 'uClipPlaneLevel');
-            
-            self.shader.drawCursor = Larx.gl.getUniformLocation(self.shader, 'uDrawCursor');
-            self.shader.cursorPosition = Larx.gl.getUniformLocation(self.shader, 'uCursorPosition');
             
             Larx.Shaders.setDefaults(self.shader, true);
             
@@ -73,13 +70,5 @@ Larx.DefaultShader.prototype = {
     
     useFog: function(enable) {
         Larx.gl.uniform1i(this.shader.useFog, enable == true ? 1 : 0);
-    },
-    
-    drawCursor: function(enable) {
-        Larx.gl.uniform1i(this.shader.drawCursor, enable == true ? 1 : 0);
-    },
-    
-    serCursorPosition: function(xz) {
-        Larx.gl.uniform2f(this.shader.cursorPosition, xz[0], xz[1]);
     }
 };

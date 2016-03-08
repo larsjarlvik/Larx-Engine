@@ -1,3 +1,5 @@
+/* global Larx */
+
 Larx.Frustum =  {
     clip: Array(16),
     frustum: Array(6),

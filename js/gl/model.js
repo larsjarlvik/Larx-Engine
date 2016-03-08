@@ -1,3 +1,4 @@
+/* global Larx */
 
 Larx.Model = function () {
     this.vertices = [];

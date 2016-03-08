@@ -19,10 +19,7 @@ uniform float uSpecularWeight;
 
 varying float vVisibility;
 varying vec3 vColor;
-varying vec3 vNormal;
 
-varying vec4 vPosition;
-varying vec3 vTransformedNormal;
 varying vec3 vVertexPosition;
 
 varying vec3 vLightWeighting;
@@ -34,9 +31,7 @@ void main(void) {
     gl_Position = uPMatrix * uMVMatrix * vec4(aVertexPosition, 1.0);
     vColor = aVertexColor;
     
-    vNormal = aVertexNormal;
-    vTransformedNormal = uNMatrix * aVertexNormal;
-    vPosition = uMVMatrix * vec4(aVertexPosition, 1.0);
+    vec4 position = uMVMatrix * vec4(aVertexPosition, 1.0);
     vVertexPosition = aVertexPosition;
     
     if(uUseFog == 1) {
@@ -48,14 +43,14 @@ void main(void) {
     
     vCursorCenter = vec2(vVertexPosition.x - uCursorPosition.x, vVertexPosition.z - uCursorPosition.y);
     
-    vec3 lightDirection = normalize(uLightingDirection - vPosition.xyz);
-    vec3 normal = normalize(vTransformedNormal);
+    vec3 lightDirection = normalize(uLightingDirection - position.xyz);
     
-    float directionalLightWeighting = max(dot(vNormal, uLightingDirection), 0.0);
+    float directionalLightWeighting = max(dot(aVertexNormal, uLightingDirection), 0.0);
     vLightWeighting = uAmbientColor + uDirectionalColor * directionalLightWeighting;
         
     if(uShininess > 0.0) {
-        vec3 eyeDirection = normalize(-vPosition.xyz);
+        vec3 normal = normalize(uNMatrix * aVertexNormal);
+        vec3 eyeDirection = normalize(-position.xyz);
         vec3 reflectionDirection = reflect(lightDirection, normal);
         float specularLightWeighting = pow(max(dot(reflectionDirection, eyeDirection), 0.0), uShininess);
     

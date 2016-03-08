@@ -1,3 +1,5 @@
+/* global Larx */
+
 Larx.SkyShader = function () {
     this.shader;
 };

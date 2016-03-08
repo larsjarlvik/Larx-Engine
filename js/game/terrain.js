@@ -1,3 +1,4 @@
+/* global Larx */
 
 Larx.Terrain = function(scale) {
     this.heights;

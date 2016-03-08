@@ -19,9 +19,9 @@ varying float vDistortion;
 varying vec3 vNormal;
 varying vec2 refractBlurCoordinates[5];
 varying vec2 reflectBlurCoordinates[5];
+varying vec4 vClipSpace;
 
 varying vec4 vPosition;
-varying vec4 vClipSpace;
 varying float vVisibility;
 varying vec3 vLightWeighting;
 varying vec2 vRefractTexCoords;

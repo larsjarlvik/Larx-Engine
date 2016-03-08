@@ -1,4 +1,4 @@
-
+/* global Larx */
 
 Larx.Camera = {
     zoomLevel: 0,

@@ -1,5 +1,5 @@
 /* global Q */
-/* global Model */
+/* global Larx */
 
 Larx.Water = function () {
     this.size = undefined;
@@ -10,7 +10,7 @@ Larx.Water = function () {
     this.refraction;
     this.reflection;
     
-    this.numBlocks = 6;
+    this.numBlocks = 4;
 };
     
     
