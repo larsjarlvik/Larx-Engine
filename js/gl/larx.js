@@ -30,6 +30,8 @@ Larx.init = function(canvas, renderMode) {
         Larx.gl.viewportWidth = Larx.Viewport.canvas.width;
         Larx.gl.viewportHeight = Larx.Viewport.canvas.height;
         Larx.Matrix.aspect = Larx.gl.viewportWidth / Larx.gl.viewportHeight;
+        
+        if(renderMode === Larx.RENDER_MODES.FXAA) { Larx.Fxaa.buildFramebuffer(); }
     });
     
     if(renderMode === Larx.RENDER_MODES.FXAA) {

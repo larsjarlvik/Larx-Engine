@@ -6,8 +6,7 @@ Larx.Fxaa = {
     init: function () {
         var deferred = Q.defer();
         
-        this.framebuffer = new Larx.Framebuffer(Larx.gl.viewportWidth, Larx.gl.viewportHeight);
-        this.framebuffer.buildColorBuffer(Larx.gl.UNSIGNED_BYTE, true);
+        this.buildFramebuffer();
         
         this.model = new Larx.Model();
         this.model.vertices = [
@@ -28,8 +27,13 @@ Larx.Fxaa = {
         return deferred.promise;
     },
     
+    buildFramebuffer: function () {
+        Larx.Fxaa.framebuffer = new Larx.Framebuffer(Larx.gl.viewportWidth, Larx.gl.viewportHeight);
+        Larx.Fxaa.framebuffer.buildColorBuffer(Larx.gl.UNSIGNED_BYTE, true);
+    },
+    
     bind: function () {
-        Larx.gl.viewport(0, 0, Larx.Viewport.canvas.width, Larx.Viewport.canvas.height);
+        Larx.gl.viewport(0, 0, Larx.Viewport.canvas.clientWidth, Larx.Viewport.canvas.clientHeight);
         this.framebuffer.bindColorTexture(Larx.gl.TEXTURE3)
         this.framebuffer.bind(false); 
     },

@@ -27,6 +27,5 @@ void main(void) {
     vec2 fragCoord = vTexCoords * vResolution;
     texcoords(fragCoord, uResolution, v_rgbNW, v_rgbNE, v_rgbSW, v_rgbSE, v_rgbM);
     
-    
     gl_Position = vec4(aVertexPosition, 1.0);
 }

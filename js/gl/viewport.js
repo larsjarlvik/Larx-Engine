@@ -131,8 +131,8 @@ Larx.Viewport = {
             height = Math.round(width / 16 * 9);
         }
         
-        this.canvas.setAttribute('width', width * window.devicePixelRatio);
-        this.canvas.setAttribute('height', height * window.devicePixelRatio);
+        this.canvas.setAttribute('width', width );
+        this.canvas.setAttribute('height', height );
         
         this.canvas.style.width  = width  + "px";
         this.canvas.style.height = height + "px";
