@@ -5,10 +5,10 @@ var input = (function() {
     var fullScreenButton = document.getElementById('fullscreen');
     
     function keyboard() {
-        if(Larx.Viewport.keyDown('W')) { Larx.Camera.move( 0.0,  config.camera.moveSpeed); }
-        if(Larx.Viewport.keyDown('S')) { Larx.Camera.move( 0.0, -config.camera.moveSpeed); }
-        if(Larx.Viewport.keyDown('A')) { Larx.Camera.move(-config.camera.moveSpeed,  0.0); }
-        if(Larx.Viewport.keyDown('D')) { Larx.Camera.move( config.camera.moveSpeed,  0.0); }
+        if(Larx.Viewport.keyDown('W')) { Larx.Camera.smoothMove( 0.0,  config.camera.moveSpeed); }
+        if(Larx.Viewport.keyDown('S')) { Larx.Camera.smoothMove( 0.0, -config.camera.moveSpeed); }
+        if(Larx.Viewport.keyDown('A')) { Larx.Camera.smoothMove(-config.camera.moveSpeed,  0.0); }
+        if(Larx.Viewport.keyDown('D')) { Larx.Camera.smoothMove( config.camera.moveSpeed,  0.0); }
     }
 
     function mouse() {
@@ -33,17 +33,17 @@ var input = (function() {
             cMatrix = Larx.Camera.getMatrix();
             dYRad = dY * Math.PI / 180;
             
-            Larx.Camera.rotate(dX, 0);
+            Larx.Camera.smoothRotateH(dX);
             
             if(dYRad > 0) {
-                if(cMatrix.rotV + dYRad < Math.PI - 0.3) { Larx.Camera.rotate(0, dY); }
+                if(cMatrix.rotV + dYRad < Math.PI - 0.3) { Larx.Camera.smoothRotateV(dY); }
             } else {
-                if(cMatrix.rotV + dYRad > 0.3) { Larx.Camera.rotate(0, dY); }
+                if(cMatrix.rotV + dYRad > 0.3) { Larx.Camera.smoothRotateV(dY); }
             }
         }
         
         if(Larx.Viewport.mouse.wheelDelta !== 0) {
-            Larx.Camera.zoom(-Larx.Viewport.mouse.wheelDelta * config.camera.zoomSpeed);
+            Larx.Camera.smoothZoom(-Larx.Viewport.mouse.wheelDelta * config.camera.zoomSpeed);
         }
         
         Larx.Viewport.resetDelta();

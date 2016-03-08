@@ -22,27 +22,18 @@ Larx.GameLoop = {
         var timeAtLastFrame = new Date().getTime(),
             timeAtThisFrame = new Date().getTime(),
             idealTimePerFrame = 1000 / this.targetFps,
-            leftover = 0.0,
-            timeSinceLastDoLogic ,
-            catchUpFrameCount;
+            timeSinceLastDoLogic;
         
         
         function tick() {
-            timeAtThisFrame = new Date().getTime();
-            timeSinceLastDoLogic = (timeAtThisFrame - timeAtLastFrame) + leftover;
-            catchUpFrameCount = Math.floor(timeSinceLastDoLogic / idealTimePerFrame);
-            
-            for(var i = 0 ; i < catchUpFrameCount && i < 180; i++){
-                self.logicCallback(new Date().getTime());
-            }
-            
-            requestAnimationFrame(function() {
+                timeAtThisFrame = new Date().getTime();
+                timeSinceLastDoLogic = (timeAtThisFrame - timeAtLastFrame);
+                
+                self.logicCallback(timeSinceLastDoLogic);
                 self.renderCallback()
                 currentFps ++;
-            });
-            
-            leftover = timeSinceLastDoLogic - (catchUpFrameCount * idealTimePerFrame);
-            timeAtLastFrame = timeAtThisFrame;
+                
+                timeAtLastFrame = timeAtThisFrame;
         }
         
         setInterval(function() { tick(); }, 1000 / this.targetFps);

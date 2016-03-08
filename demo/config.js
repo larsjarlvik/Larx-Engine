@@ -12,9 +12,9 @@ var config = {
         } 
     },
     camera: {
-        zoomSpeed: 5.0,
-        moveSpeed: 2.5,
-        rotationSpeed: 0.35,
+        zoomSpeed: 0.1,
+        moveSpeed: 0.04,
+        rotationSpeed: 0.006,
         default: {
             zoom: 125,
             look: { x: -25, y: 0, z: -25 },

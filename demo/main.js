@@ -193,6 +193,7 @@
     function doLogic(time) {
         Larx.MousePicker.updateMouse();
         input.update();
+        Larx.Camera.update(time);
         models.water.update();
     }
     
