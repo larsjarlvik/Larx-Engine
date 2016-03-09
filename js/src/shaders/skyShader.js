@@ -6,29 +6,28 @@ class LarxSkyShader extends LarxShader {
     }
     
     load() {
-        var deferred = Q.defer();
-        
-        Larx.Shaders.downloadShaderProgram('sky').then((shaderProgram) => {    
-            this.shader = shaderProgram;
-            
-            Larx.gl.linkProgram(this.shader);
-            Larx.gl.useProgram(this.shader);
-            
-            // START BUFFERS
-            this.shader.textureCoordAttribute = Larx.gl.getAttribLocation(this.shader, 'aTextureCoord');
-            // END BUFFERS
-            
-            this.shader.stop1 = Larx.gl.getUniformLocation(this.shader, 'uStop1');
-            this.shader.stop2 = Larx.gl.getUniformLocation(this.shader, 'uStop2');
-            this.shader.stop3 = Larx.gl.getUniformLocation(this.shader, 'uStop3');
-            this.shaders.setDefaults(this.shader, false);
-            
-            deferred.resolve();
-        }).catch(function (e) {
-            console.error(e);
+        return new Promise((resolve, reject) => {
+            Larx.Shaders.downloadShaderProgram('sky').then((shaderProgram) => {    
+                this.shader = shaderProgram;
+                
+                Larx.gl.linkProgram(this.shader);
+                Larx.gl.useProgram(this.shader);
+                
+                // START BUFFERS
+                this.shader.textureCoordAttribute = Larx.gl.getAttribLocation(this.shader, 'aTextureCoord');
+                // END BUFFERS
+                
+                this.shader.stop1 = Larx.gl.getUniformLocation(this.shader, 'uStop1');
+                this.shader.stop2 = Larx.gl.getUniformLocation(this.shader, 'uStop2');
+                this.shader.stop3 = Larx.gl.getUniformLocation(this.shader, 'uStop3');
+                this.shaders.setDefaults(this.shader, false);
+                
+                resolve();
+            }).catch(function (e) {
+                console.error(e);
+                reject(e);
+            });
         });
-        
-        return deferred.promise;
     }
 
     use() {

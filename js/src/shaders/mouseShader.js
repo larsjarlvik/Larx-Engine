@@ -6,23 +6,22 @@ class LarxMouseShader extends LarxShader {
     }
     
     load() {
-        var deferred = Q.defer();
-        
-        this.downloadShaderProgram('mouse').then((shaderProgram) => {    
-            this.shader = shaderProgram;
-            
-            Larx.gl.linkProgram(this.shader);
-            Larx.gl.useProgram(this.shader);
-            
-            this.shader.vertexPositionAttribute = Larx.gl.getAttribLocation(this.shader, 'aVertexPosition');
-            this.setDefaults(this.shader, false);
-            
-            deferred.resolve();
-        }).catch(function (e) {
-            console.error(e);
+        return new Promise((resolve, reject) => {
+            this.downloadShaderProgram('mouse').then((shaderProgram) => {    
+                this.shader = shaderProgram;
+                
+                Larx.gl.linkProgram(this.shader);
+                Larx.gl.useProgram(this.shader);
+                
+                this.shader.vertexPositionAttribute = Larx.gl.getAttribLocation(this.shader, 'aVertexPosition');
+                this.setDefaults(this.shader, false);
+                
+                resolve();
+            }).catch(function (e) {
+                console.error(e);
+                reject(e);
+            });
         });
-        
-        return deferred.promise;
     }
 
     use() {

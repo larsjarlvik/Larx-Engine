@@ -6,42 +6,41 @@ class LarxWaterShader extends LarxShader {
     }
     
     load() {
-        var deferred = Q.defer();
-        
-        this.downloadShaderProgram('water').then((shaderProgram) => {    
-            this.shader = shaderProgram;
-            
-            Larx.gl.linkProgram(this.shader);
-            Larx.gl.useProgram(this.shader);
-            
-            this.buffers = {};
-            
-            this.shader.vertexNormalAttribute = Larx.gl.getAttribLocation(this.shader, 'aVertexNormal');
-            
-            this.shader.color = Larx.gl.getUniformLocation(this.shader, 'uColor');
-            this.shader.time = Larx.gl.getUniformLocation(this.shader, 'uTime');
-            
-            this.shader.refractionDepthTexture = Larx.gl.getUniformLocation(this.shader, 'uRefractionDepthTexture');
-            this.shader.refractionColorTexture = Larx.gl.getUniformLocation(this.shader, 'uRefractionColorTexture');
-            this.shader.reflectionColorTexture = Larx.gl.getUniformLocation(this.shader, 'uReflectionColorTexture');
-            
-            this.shader.fogDensity = Larx.gl.getUniformLocation(this.shader, 'uFogDensity');
-            this.shader.fogGradient = Larx.gl.getUniformLocation(this.shader, 'uFogGradient');
-            this.shader.fogColor = Larx.gl.getUniformLocation(this.shader, 'uFogColor');
-            
-            this.shader.distortion = Larx.gl.getUniformLocation(this.shader, 'uDistortion');
-            this.shader.edgeWhitening = Larx.gl.getUniformLocation(this.shader, 'uEdgeWhitening');
-            this.shader.edgeSoftening = Larx.gl.getUniformLocation(this.shader, 'uEdgeSoftening');
-            this.shader.waterDensity = Larx.gl.getUniformLocation(this.shader, 'uWaterDensity');
-            
-            this.setDefaults(this.shader, true);
-            
-            deferred.resolve();
-        }).catch(function (e) {
-            console.error(e);
+        return new Promise((resolve, reject) => {
+            this.downloadShaderProgram('water').then((shaderProgram) => {    
+                this.shader = shaderProgram;
+                
+                Larx.gl.linkProgram(this.shader);
+                Larx.gl.useProgram(this.shader);
+                
+                this.buffers = {};
+                
+                this.shader.vertexNormalAttribute = Larx.gl.getAttribLocation(this.shader, 'aVertexNormal');
+                
+                this.shader.color = Larx.gl.getUniformLocation(this.shader, 'uColor');
+                this.shader.time = Larx.gl.getUniformLocation(this.shader, 'uTime');
+                
+                this.shader.refractionDepthTexture = Larx.gl.getUniformLocation(this.shader, 'uRefractionDepthTexture');
+                this.shader.refractionColorTexture = Larx.gl.getUniformLocation(this.shader, 'uRefractionColorTexture');
+                this.shader.reflectionColorTexture = Larx.gl.getUniformLocation(this.shader, 'uReflectionColorTexture');
+                
+                this.shader.fogDensity = Larx.gl.getUniformLocation(this.shader, 'uFogDensity');
+                this.shader.fogGradient = Larx.gl.getUniformLocation(this.shader, 'uFogGradient');
+                this.shader.fogColor = Larx.gl.getUniformLocation(this.shader, 'uFogColor');
+                
+                this.shader.distortion = Larx.gl.getUniformLocation(this.shader, 'uDistortion');
+                this.shader.edgeWhitening = Larx.gl.getUniformLocation(this.shader, 'uEdgeWhitening');
+                this.shader.edgeSoftening = Larx.gl.getUniformLocation(this.shader, 'uEdgeSoftening');
+                this.shader.waterDensity = Larx.gl.getUniformLocation(this.shader, 'uWaterDensity');
+                
+                this.setDefaults(this.shader, true);
+                
+                resolve();
+            }).catch(function (e) {
+                console.error(e);
+                reject(e);
+            });
         });
-        
-        return deferred.promise;
     }
 
     use() {

@@ -15,17 +15,15 @@ class LarxFxaa {
     }
     
     init() {
-        let deferred = Q.defer();
-        
-        this.buildFramebuffer();
-        this.model.bindBuffers();
-        
-        this.shader = new LarxFxaaShader();
-        this.shader.load().then(function () {
-            deferred.resolve();
+        return new Promise((resolve) => {
+            this.buildFramebuffer();
+            this.model.bindBuffers();
+            
+            this.shader = new LarxFxaaShader();
+            this.shader.load().then(function () {
+                resolve();
+            });
         });
-        
-        return deferred.promise;
     }
     
     buildFramebuffer() {

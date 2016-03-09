@@ -173,27 +173,25 @@ class LarxTerrain {
     }
     
     generate(url, elevation, water) {
-        var deferred = Q.defer();   
-        
-        this.waterLevel = water;
-        
-        this.getImage(url + '/heightmap.jpg').then((imgHeightmap) => {
-            this.getImage(url + '/colormap.jpg').then((imgColormap) => {
-                
-                this.heightmap = imgHeightmap;
-                this.colormap = imgColormap;
-                this.elevation = elevation;
-                this.build(); 
-                
-                deferred.resolve();
-            })
-            .catch(function (e) { 
-                console.error(e); 
-                deferred.reject();
-            });  
+        return new Promise((resolve, reject) => {
+            this.waterLevel = water;
+            
+            this.getImage(url + '/heightmap.jpg').then((imgHeightmap) => {
+                this.getImage(url + '/colormap.jpg').then((imgColormap) => {
+                    
+                    this.heightmap = imgHeightmap;
+                    this.colormap = imgColormap;
+                    this.elevation = elevation;
+                    this.build(); 
+                    
+                    resolve();
+                })
+                .catch(function (e) { 
+                    console.error(e); 
+                    reject(e);
+                });  
+            });
         });
-        
-        return deferred.promise;
     }
     
     getElevationAtPoint(x, z) {
@@ -233,28 +231,31 @@ class LarxTerrain {
     }
     
     getImage(url) {  
-        var image = new Image();
-        var deferred = Q.defer();
-        
-        image.onload = () => {
-            this.size = image.width;
+        return new Promise((resolve, reject) => {
+            var image = new Image();
             
-            var canvas = document.createElement('canvas');
-            canvas.setAttribute('width', this.size);
-            canvas.setAttribute('height', this.size);
+            image.onload = () => {
+                this.size = image.width;
+                
+                var canvas = document.createElement('canvas');
+                canvas.setAttribute('width', this.size);
+                canvas.setAttribute('height', this.size);
+                
+                var canvasCtx = canvas.getContext('2d');
+                canvasCtx.drawImage(image, 0, 0);
+                
+                resolve({
+                    size: this.size,
+                    data: canvasCtx.getImageData(0, 0, this.size, this.size).data
+                });
+            };
             
-            var canvasCtx = canvas.getContext('2d');
-            canvasCtx.drawImage(image, 0, 0);
+            image.onerror = () => {
+                reject('Failed to load: ' + url);
+            };  
             
-            deferred.resolve({
-                size: this.size,
-                data: canvasCtx.getImageData(0, 0, this.size, this.size).data
-            });
-        };
-        
-        image.src = url;
-        
-        return deferred.promise;
+            image.src = url;
+        });
     }
     
     baryCentric(p1, p2, p3, pos) {

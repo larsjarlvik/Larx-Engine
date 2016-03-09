@@ -7,33 +7,32 @@ class LarxDefaultShader extends LarxShader {
     }
     
     load() {
-        var deferred = Q.defer();
-        
-        this.downloadShaderProgram('default').then((shaderProgram) => {    
-            this.shader = shaderProgram;
-            
-            Larx.gl.linkProgram(this.shader);
-            Larx.gl.useProgram(this.shader);
-            
-            this.shader.vertexColorAttribute = Larx.gl.getAttribLocation(this.shader, 'aVertexColor');
-            this.shader.vertexNormalAttribute = Larx.gl.getAttribLocation(this.shader, 'aVertexNormal');
+        return new Promise((resolve, reject) => {
+            this.downloadShaderProgram('default').then((shaderProgram) => {    
+                this.shader = shaderProgram;
+                
+                Larx.gl.linkProgram(this.shader);
+                Larx.gl.useProgram(this.shader);
+                
+                this.shader.vertexColorAttribute = Larx.gl.getAttribLocation(this.shader, 'aVertexColor');
+                this.shader.vertexNormalAttribute = Larx.gl.getAttribLocation(this.shader, 'aVertexNormal');
 
-            this.shader.fogDensity = Larx.gl.getUniformLocation(this.shader, 'uFogDensity');
-            this.shader.fogGradient = Larx.gl.getUniformLocation(this.shader, 'uFogGradient');
-            this.shader.fogColor = Larx.gl.getUniformLocation(this.shader, 'uFogColor');
-            this.shader.useFog = Larx.gl.getUniformLocation(this.shader, 'uUseFog');
-            
-            this.shader.clipPlane = Larx.gl.getUniformLocation(this.shader, 'uClipPlane');
-            this.shader.clipPlaneLevel = Larx.gl.getUniformLocation(this.shader, 'uClipPlaneLevel');
-            
-            this.setDefaults(this.shader, true);
-            
-            deferred.resolve();
-        }).catch(function (e) {
-            console.error(e);
+                this.shader.fogDensity = Larx.gl.getUniformLocation(this.shader, 'uFogDensity');
+                this.shader.fogGradient = Larx.gl.getUniformLocation(this.shader, 'uFogGradient');
+                this.shader.fogColor = Larx.gl.getUniformLocation(this.shader, 'uFogColor');
+                this.shader.useFog = Larx.gl.getUniformLocation(this.shader, 'uUseFog');
+                
+                this.shader.clipPlane = Larx.gl.getUniformLocation(this.shader, 'uClipPlane');
+                this.shader.clipPlaneLevel = Larx.gl.getUniformLocation(this.shader, 'uClipPlaneLevel');
+                
+                this.setDefaults(this.shader, true);
+                
+                resolve();
+            }).catch(function (e) {
+                console.error(e);
+                reject(e);
+            });
         });
-        
-        return deferred.promise;
     }
 
     use() {

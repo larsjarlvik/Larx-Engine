@@ -42,19 +42,18 @@ class LarxModel {
     }
     
     download(name) {
-        let deferred = Q.defer();
-        let http = new XMLHttpRequest();
-        
-        http.onreadystatechange = function () {
-            if(http.readyState === 4 && http.status === 200) {
-                deferred.resolve(http.responseText);
-            }
-        };
-        
-        http.open('GET', '/models/' + name + '.ply?rnd=' + Math.random() * 1000);
-        http.send();
-        
-        return deferred.promise;
+        return new Promise((resolve) => {
+            let http = new XMLHttpRequest();
+            
+            http.onreadystatechange = function () {
+                if(http.readyState === 4 && http.status === 200) {
+                    resolve(http.responseText);
+                }
+            };
+            
+            http.open('GET', '/models/' + name + '.ply?rnd=' + Math.random() * 1000);
+            http.send();
+        });
     }
 
     parse(data) {
@@ -176,21 +175,18 @@ class LarxModel {
     }
     
     load (name) {
-        let deferred = Q.defer();
-        let self = this;
-        
-        self.download(name).then(function (data) {
-            self.parse(data);
-            self.bindBuffers();
-            self.setBounds();
-            deferred.resolve(); 
-        })
-        .catch(function(e) {
-            console.error(e); 
-            deferred.reject();
+        return new Promise((resolve) => {            
+            this.download(name).then((data) => {
+                this.parse(data);
+                this.bindBuffers();
+                this.setBounds();
+                resolve(); 
+            })
+            .catch(function(e) {
+                console.error(e); 
+                reject(e);
+            });
         });
-
-        return deferred.promise;
     }
 
     translate (pos) {    

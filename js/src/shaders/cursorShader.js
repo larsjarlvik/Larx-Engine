@@ -6,26 +6,25 @@ class LarxCursorShader extends LarxShader {
     }
     
     load() {
-        var deferred = Q.defer();
-        
-        this.downloadShaderProgram('cursor').then((shaderProgram) => {    
-            this.shader = shaderProgram;
-            
-            Larx.gl.linkProgram(this.shader);
-            Larx.gl.useProgram(this.shader);
-            
-            this.shader.textureCoordAttribute = Larx.gl.getAttribLocation(this.shader, 'aTextureCoord');
-            this.shader.radius = Larx.gl.getUniformLocation(this.shader, 'uRadius');
-            this.shader.color = Larx.gl.getUniformLocation(this.shader, 'uColor');
-            
-            this.setDefaults(this.shader, false);
-            
-            deferred.resolve();
-        }).catch(function (e) {
-            console.error(e);
+        return new Promise((resolve, reject) => {
+            this.downloadShaderProgram('cursor').then((shaderProgram) => {    
+                this.shader = shaderProgram;
+                
+                Larx.gl.linkProgram(this.shader);
+                Larx.gl.useProgram(this.shader);
+                
+                this.shader.textureCoordAttribute = Larx.gl.getAttribLocation(this.shader, 'aTextureCoord');
+                this.shader.radius = Larx.gl.getUniformLocation(this.shader, 'uRadius');
+                this.shader.color = Larx.gl.getUniformLocation(this.shader, 'uColor');
+                
+                this.setDefaults(this.shader, false);
+                
+                resolve();
+            }).catch(function (e) {
+                console.error(e);
+                reject(e);
+            });
         });
-        
-        return deferred.promise;
     }
 
     use() {

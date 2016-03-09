@@ -12,56 +12,51 @@ class LarxShader {
     }
 
     downloadShader(id, type) {
-        let deferred = Q.defer();
-        let http = new XMLHttpRequest();
-        
-        http.onreadystatechange = () => {
-            if(http.readyState === 4 && http.status === 200) {
-                deferred.resolve(http.responseText);
-            }
-        };
-        
-        http.open('GET', '/shaders/' + id + '.' + type + '?rnd=' + Math.random() * 1000);
-        http.send();
-        
-        return deferred.promise;
+        return new Promise((resolve) => {
+            let http = new XMLHttpRequest();
+            
+            http.onreadystatechange = () => {
+                if(http.readyState === 4 && http.status === 200) {
+                    resolve(http.responseText);
+                }
+            };
+            
+            http.open('GET', '/shaders/' + id + '.' + type + '?rnd=' + Math.random() * 1000);
+            http.send();
+        });
     }
 
     createShader(id, ext, type) {
-        let deferred = Q.defer();
-
-        this.downloadShader(id, ext).then((shaderData) => {
-            let shader = Larx.gl.createShader(type);
-            Larx.gl.shaderSource(shader, shaderData);
-            Larx.gl.compileShader(shader);
-            
-            if(!Larx.gl.getShaderParameter(shader, Larx.gl.COMPILE_STATUS)) {
-                console.error(id, ext);
-                console.error(Larx.gl.getShaderInfoLog(shader));
-                deferred.reject(Larx.gl.getShaderInfoLog(shader));
-            } else {
-                deferred.resolve(shader);
-            }
+        return new Promise((resolve, reject) => {
+            this.downloadShader(id, ext).then((shaderData) => {
+                let shader = Larx.gl.createShader(type);
+                Larx.gl.shaderSource(shader, shaderData);
+                Larx.gl.compileShader(shader);
+                
+                if(!Larx.gl.getShaderParameter(shader, Larx.gl.COMPILE_STATUS)) {
+                    console.error(id, ext);
+                    console.error(Larx.gl.getShaderInfoLog(shader));
+                    reject(Larx.gl.getShaderInfoLog(shader));
+                } else {
+                    resolve(shader);
+                }
+            });
         });
-        
-        return deferred.promise;
     }
 
     downloadShaderProgram(name) {
-        let deferred = Q.defer();
-        
-        this.createShader(name, 'fs', Larx.gl.FRAGMENT_SHADER).then((fs) => {
-            this.createShader(name, 'vs', Larx.gl.VERTEX_SHADER).then((vs) => {
-                let program = Larx.gl.createProgram();
-                
-                Larx.gl.attachShader(program, vs);
-                Larx.gl.attachShader(program, fs);
-                
-                deferred.resolve(program);
-            });
-        });  
-        
-        return deferred.promise;      
+        return new Promise((resolve) => {
+            this.createShader(name, 'fs', Larx.gl.FRAGMENT_SHADER).then((fs) => {
+                this.createShader(name, 'vs', Larx.gl.VERTEX_SHADER).then((vs) => {
+                    let program = Larx.gl.createProgram();
+                    
+                    Larx.gl.attachShader(program, vs);
+                    Larx.gl.attachShader(program, fs);
+                    
+                    resolve(program);
+                });
+            });  
+        });    
     }
 
     setDefaults(shader, useLights) {

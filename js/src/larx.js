@@ -35,7 +35,7 @@ class Larx {
             if(renderMode === Larx.RENDER_MODES.FXAA) { Larx.Fxaa.buildFramebuffer(); }
         });
         
-        return renderMode === Larx.RENDER_MODES.FXAA ? Larx.Fxaa.init() : Q();
+        return renderMode === Larx.RENDER_MODES.FXAA ? Larx.Fxaa.init() : Promise.resolve();
     }
     
     static setClearColor(color) {

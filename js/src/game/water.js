@@ -157,7 +157,7 @@ class LarxWater {
         this.build(terrain);
         this.generateLoop(targetFps);
         
-        return Q();
+        return Promise.resolve();
     }
     
     update() {
