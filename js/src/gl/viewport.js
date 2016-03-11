@@ -53,9 +53,9 @@ class LarxViewport {
         });
             
         this.canvas.addEventListener('mousemove', (event) => {    
-            var cx = event.layerX * devicePixelRatio,
-                cy = event.layerY * devicePixelRatio;
-                    
+            let cx = event.layerX,
+                cy = event.layerY;
+                
             this.mouse.deltaX += cx - this.mouse.x;
             this.mouse.deltaY += cy - this.mouse.y;
             

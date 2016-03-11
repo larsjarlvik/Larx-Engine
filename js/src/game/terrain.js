@@ -10,7 +10,7 @@ class LarxTerrain {
         this.scale = scale;
         
         this.numBlocks = 4;
-        this.blockSize = 12;
+        this.blockSize;
         this.blocks = [];
         
         this.reflect = { NO: 0, YES: 1 };

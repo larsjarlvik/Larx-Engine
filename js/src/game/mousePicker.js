@@ -1,26 +1,23 @@
 "use strict";
 
 class LarxMousePicker {
-    constructor(precision) {
-        let res = Math.pow(2, precision);
-        
+    constructor(terrain, precision) {
+        this.terrain = terrain;
         this.capture;
         this.mouse;
         
-        this.width = res;
-        this.height = res;
+        this.size = Math.pow(2, precision);
         
-        this.buffer = new LarxFramebuffer(this.width, this.height);
-        this.buffer.buildColorBuffer(Larx.gl.FLOAT);
+        this.buffer = new LarxFramebuffer(this.size, this.size);
+        this.buffer.buildColorBuffer(Larx.gl.FLOAT, true);
         this.pixels = new Float32Array(4);
     }
     
-    render(shader, model) {
-        this.buffer.bind();
-        Larx.Matrix.setIdentity();
+    render(shader) {
+        this.buffer.bind(true);
         Larx.Matrix.setUniforms(shader);
         
-        model.render(shader);
+        this.terrain.render(shader);
         
         if (this.mouse && Larx.gl.checkFramebufferStatus(Larx.gl.FRAMEBUFFER) == Larx.gl.FRAMEBUFFER_COMPLETE) {
             Larx.gl.readPixels(this.mouse.x, this.mouse.y, 1, 1, Larx.gl.RGBA, Larx.gl.FLOAT, this.pixels);
@@ -37,8 +34,8 @@ class LarxMousePicker {
         }
         
         this.mouse = {
-            x: (Larx.Viewport.mouse.x / Larx.gl.viewportWidth * this.width),
-            y: this.height - (Larx.Viewport.mouse.y / Larx.gl.viewportHeight * this.height)
+            x: (Larx.Viewport.mouse.x / Larx.gl.viewportWidth * this.size),
+            y: this.size - (Larx.Viewport.mouse.y / Larx.gl.viewportHeight * this.size)
         };
     }
 
@@ -47,6 +44,6 @@ class LarxMousePicker {
             return [0, 0];
         }
         
-        return [this.pixels[0], this.pixels[2]];
+        return [this.pixels[0], this.pixels[1], this.pixels[2]];
     }
 }

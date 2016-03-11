@@ -24,6 +24,7 @@
         .then(initCursors)
         .then(function() {
             gameLoop.start();
+            mousePicker = new LarxMousePicker(models.terrain, 10);
             
             setInterval(function() {
                 document.getElementById('fps').innerHTML = 
@@ -99,7 +100,6 @@
         Larx.Matrix.farPlane = settings.values.viewDistance;
         
         gameLoop = new LarxGameLoop(doLogic, render, config.targetFps);
-        mousePicker = new LarxMousePicker(10);
     
         ui = new UI();
         return Promise.resolve();
@@ -253,6 +253,13 @@
                 Larx.Matrix.setIdentity();
                 Larx.Matrix.setUniforms(defaultShader);
                 models.terrain.render(defaultShader, models.terrain.clip.BOTTOM, models.terrain.reflect.NO);
+                
+                Larx.gl.enable(Larx.gl.BLEND);
+                cursorShader.use();
+                cursor.render(cursorShader, mousePicker.getCoordinates());
+                Larx.gl.disable(Larx.gl.BLEND);
+                
+                defaultShader.use(); 
                 Larx.Matrix.setUniforms(defaultShader);
                 models.decorations.render(defaultShader);
                 
@@ -272,13 +279,11 @@
                 models.water.render(waterShader);
                 waterShader.cleanUp();
                 
-                cursorShader.use();
-                cursor.render(cursorShader, mousePicker.getCoordinates());
                             
                 Larx.gl.disable(Larx.gl.BLEND);
                 
                 mouseShader.use();
-                mousePicker.render(mouseShader, models.terrain);
+                mousePicker.render(mouseShader);
             }
         );
     }

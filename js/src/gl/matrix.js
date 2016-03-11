@@ -52,8 +52,8 @@ class LarxMatrix {
         mat4.translate(this.mvMatrix, this.mvMatrix, vec);
     }
 
-    rotate(vec) {
-        mat4.rotate(this.mvMatrix, this.mvMatrix, vec);
+    rotate(angle, vec) {
+        mat4.rotate(this.mvMatrix, this.mvMatrix, angle, vec);
     }
 };
 
