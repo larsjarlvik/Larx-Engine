@@ -33,8 +33,8 @@ void main(void) {
     vVisibility = clamp(exp(-pow((distance * uFogDensity), uFogGradient)), 0.0, 1.0);
     
     vNormal = aVertexNormal;
-    vNormal.x *= 6.0;
-    vNormal.z *= 6.0;
+    vNormal.x *= 2.0;
+    vNormal.z *= 2.0;
     vNormal = normalize(uNMatrix * vNormal);
     
     vec3 lightDirection = normalize(uLightingDirection - vPosition.xyz);

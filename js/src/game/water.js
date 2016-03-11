@@ -137,9 +137,19 @@ class LarxWater {
                 
                 for(var v = 0; v < this.blocks[n].vertices.length; v += 3) {
                     target[n].vertices[v + 1] = 
-                        Math.sin(tx + this.blocks[n].vertices[v]) * 
-                        Math.cos(tx + this.blocks[n].vertices[v + 2])
+                        Math.sin(tx + this.blocks[n].vertices[v] * 2) * 
+                        Math.cos(tx + this.blocks[n].vertices[v + 2] * 2)
                         * this.waveHeight;
+                        
+                    target[n].vertices[v] += 
+                        Math.sin(tx + this.blocks[n].vertices[v] * 2) * 
+                        Math.cos(tx + this.blocks[n].vertices[v + 2] * 2)
+                        * this.waveHeight * 2;
+                        
+                    target[n].vertices[v + 2] += 
+                        Math.sin(tx - this.blocks[n].vertices[v] * 2) * 
+                        Math.cos(tx - this.blocks[n].vertices[v + 2] * 2)
+                        * this.waveHeight * 2;
                 }
                 
                 target[n].calculateNormals();

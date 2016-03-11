@@ -9,7 +9,7 @@ class LarxTerrain {
         this.underwater;
         this.scale = scale;
         
-        this.numBlocks;
+        this.numBlocks = 4;
         this.blockSize = 12;
         this.blocks = [];
         
@@ -156,7 +156,7 @@ class LarxTerrain {
     
     build() {      
         this.size = this.heightmap.size;
-        this.numBlocks = this.size / this.blockSize;
+        this.blockSize = this.size / this.numBlocks;
         this.setImageHeights();
         
         for(var x = 0; x < this.numBlocks; x++) {

@@ -6,8 +6,8 @@ class LarxCamera  {
         this.look = { x: 0, y: 0, z: 0 };
         this.rot = { v: 0, h: 0 };
         this.speed = { x: 0, z: 0, h: 0, v: 0, zoom: 0 };
-        this.deceleration = { zoom: 0.9, move: 0.9, rotation: 0.8 };
-        this.limits = { zoom: 0.6, move: 0.4, rotation: 0.4 };
+        this.deceleration = { zoom: 1, move: 1, rotation: 1.5 };
+        this.limits = { zoom: 4.0, move: 4.0 };
     }
     
     calcPos(rot, look, zoom) {
@@ -81,14 +81,10 @@ class LarxCamera  {
     
     smoothRotateH(hSpeed) {
         this.speed.h += hSpeed;
-        if(this.speed.h >  this.limits.rotation) { this.speed.h =  this.limits.rotation; }
-        if(this.speed.h < -this.limits.rotation) { this.speed.h = -this.limits.rotation; }
     }
     
     smoothRotateV(vSpeed) {
         this.speed.v += vSpeed;
-        if(this.speed.v >  this.limits.rotation) { this.speed.v =  this.limits.rotation; }
-        if(this.speed.v < -this.limits.rotation) { this.speed.v = -this.limits.rotation; }
     }
     
     smoothZoom(zoomSpeed) {
@@ -99,16 +95,16 @@ class LarxCamera  {
     }
     
     update(time) {
-        this.move(this.speed.x * time, this.speed.z * time);
-        this.rotate(this.speed.h * time, this.speed.v * time);
+        this.move((this.speed.x / 10) * time, (this.speed.z / 10) * time);
+        this.rotate((this.speed.h / 100) * time, (this.speed.v / 100) * time);
         this.zoom(this.speed.zoom * time);
         
-        this.speed.x *= this.deceleration.move;
-        this.speed.z *= this.deceleration.move;
+        this.speed.x /= (time * (this.deceleration.move / 100)) + 1;
+        this.speed.z /= (time * (this.deceleration.move / 100)) + 1;
         
-        this.speed.h *= this.deceleration.rotation;
-        this.speed.v *= this.deceleration.rotation;
+        this.speed.h /= (time * (this.deceleration.rotation / 100)) + 1;
+        this.speed.v /= (time * (this.deceleration.rotation / 100)) + 1;
         
-        this.speed.zoom *= this.deceleration.zoom;
+        this.speed.zoom /= (time * (this.deceleration.zoom / 100)) + 1;
     }
 }

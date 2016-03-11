@@ -13,8 +13,8 @@ var config = {
     },
     camera: {
         zoomSpeed: 0.1,
-        moveSpeed: 0.04,
-        rotationSpeed: 0.006,
+        moveSpeed: 0.4,
+        rotationSpeed: 0.7,
         default: {
             zoom: 125,
             look: { x: -25, y: 0, z: -25 },
@@ -31,12 +31,12 @@ var config = {
         detail: 10,
         color: [0.195, 0.805, 0.723],
         reflectionColor: [0.098, 0.535, 0.520],
-        waveHeight: 0.6,
+        waveHeight: 0.8,
         speed: 0.001,
-        distortion: 1.5,
-        edgeWhitening: 1.7, 
-        edgeSoftening: 2.0,
-        density: 0.07
+        distortion: 2.5,
+        edgeWhitening: 1.8, 
+        edgeSoftening: 3.0,
+        density: 0.1
     },
     terrain: {
         path: '/maps/test',
@@ -47,7 +47,7 @@ var config = {
     },
     decorations: [
         {
-            count: 4000,
+            count: 2000,
             model: 'tree',
             tiltLimit: 12.0,
             scale: [1.0, 1.4],

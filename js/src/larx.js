@@ -11,8 +11,13 @@ class Larx {
         this.Matrix = new LarxMatrix();
         this.Viewport = new LarxViewport(canvas);
         
-        Larx.gl = Larx.Viewport.canvas.getContext('webgl', { antialias: renderMode.antialias });
-        if(!Larx.gl) { Larx.gl = Larx.Viewport.canvas.getContext('experimental-webgl', { antialias: renderMode.antialias }); }
+        let antialias = false;
+        if(renderMode == Larx.RENDER_MODES.MSAA) {
+            antialias = true;
+        }
+        
+        Larx.gl = Larx.Viewport.canvas.getContext('webgl', { antialias: antialias });
+        if(!Larx.gl) { Larx.gl = Larx.Viewport.canvas.getContext('experimental-webgl', { antialias: antialias }); }
         
         Larx.gl.getExtension("OES_texture_float");
         Larx.gl.getExtension("WEBGL_depth_texture");
@@ -65,9 +70,5 @@ class Larx {
 }
 
 Larx.VERSION = 1.0;
-Larx.RENDER_MODES = {
-    NONE: { id: 0, antialias: false },
-    FXAA: { id: 1, antialias: false },
-    MSAA: { id: 2, antialias: true },
-};
+Larx.RENDER_MODES = { NONE: 0, FXAA: 1, MSAA: 2 };
     

@@ -6,6 +6,7 @@ class LarxMatrix {
         this.pMatrix = mat4.create();
         this.mvStack = [];
         this.aspect = 0;
+        this.farPlane = 500.0;
     }
     
     push() {
@@ -19,7 +20,7 @@ class LarxMatrix {
     }
 
     setIdentity(invert) {
-        mat4.perspective(this.pMatrix, 45, this.aspect, 5.0, 500.0);
+        mat4.perspective(this.pMatrix, 45, this.aspect, 5.0, this.farPlane);
         mat4.identity(this.mvMatrix);   
         
         if(invert) {

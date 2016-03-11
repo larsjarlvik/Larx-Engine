@@ -47,11 +47,6 @@ var input = (function() {
     }
     
     return {
-        init: function() {
-            fullScreenButton.addEventListener('click', function() {
-                Larx.Viewport.toggleFullscreen();
-            });
-        },
         update: function(mousePicker) {
             keyboard();
             mouse(mousePicker);

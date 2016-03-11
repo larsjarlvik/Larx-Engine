@@ -99,8 +99,8 @@ class LarxViewport {
     }
     
     setViewportSize() {
-        var width = window.innerWidth;
-        var height = window.innerHeight;
+        let width = window.innerWidth;
+        let height = window.innerHeight;
         
         if(Math.round(width / 16 * 9) > height) {
             width = Math.round(height / 9 * 16);
@@ -111,10 +111,10 @@ class LarxViewport {
         this.canvas.setAttribute('width', width );
         this.canvas.setAttribute('height', height );
         
-        this.canvas.style.width  = width  + "px";
-        this.canvas.style.height = height + "px";
+        this.viewport.style.width  = width  + "px";
+        this.viewport.style.height = height + "px";
         
-        for(var i in this.resizeCallbacks) {
+        for(let i in this.resizeCallbacks) {
             this.resizeCallbacks[i]();
         }
     }

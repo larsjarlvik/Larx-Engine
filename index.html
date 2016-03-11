@@ -10,18 +10,71 @@
     
     <body> 
         <div id="viewport">
-            <div id="fullscreen" class="box">Fullscreen</div>
-            <div id="info" class="box"></div>
-            <div id="fps" class="box"></div>
-            
-            <div class="box interactions">
-                <h2>Interactions</h2>
-                <ul>
-                    <li>MOUSE RIGHT > Rotate camera</li>
-                    <li>MOUSE SCROLL > Zoom In/Out</li>
-                    <li>W, A, S, D > Move Camera</li>
-                    <li>Rocks and crates are selectable</li>
-                </ul>
+            <div id="topBar" class="top-bar">
+                <div id="fullscreenButton" class="ui-icon fullscreen"></div>
+                <div id="settingsButton" class="ui-icon settings"></div>
+                <div id="infoButton" class="ui-icon info"></div>
+                
+                <div id="fps" class="fps"></div>
+            </div>
+            <div id="infoOverlay" class="overlay hide">
+                <section class="content">
+                    <h1>Larx Engine</h1>
+                    <p>An open source low poly, flat shading and texture free WebGL and ECMA Script 6 game engine.</p>
+                    <p>Created by Lars Jarlvik, contact: lars.jarlvik@gmail.com</p>
+                    <p><a href="https://github.com/Lazze2k5/Larx-Engine">Visit on GitHub</a></p>
+                    
+                    <a id="closeInfoButton" class="button marginTop">CLOSE</a>
+                </section>
+            </div>
+            <div id="settingsOverlay" class="overlay hide">
+                <section class="content">
+                    <h1>Settings</h1>
+                    <label class="setting">
+                        <span class="label">Antialiasing</span>
+                        <select id="renderModeSetting">
+                            <option value="0">None</option>
+                            <option value="1">FXAA</option>
+                            <option value="2">MSAA</option>
+                        </select>
+                    </label>
+                    <label class="setting">
+                        <span class="label">View distance</span>
+                        <select id="viewDistanceSetting">
+                            <option value="300">Short</option>
+                            <option value="500">Medium</option>
+                            <option value="1000">Long</option>
+                        </select>
+                    </label>
+                    <h2>Water</h2>
+                    <label class="setting">
+                        <span class="label">Detail</span>
+                        <select id="waterDetailSetting">
+                            <option value="0">Low</option>
+                            <option value="1">Medium</option>
+                            <option value="2">High</option>
+                        </select>
+                    </label>
+                    <label class="setting">
+                        <span class="label">Reflection</span>
+                        <select id="waterReflectionSetting">
+                            <option value="1">On</option>
+                            <option value="0">Off</option>
+                        </select>
+                    </label>
+                    <label class="setting">
+                        <span class="label">Refraction</span>
+                        <select id="waterRefractionSetting">
+                            <option value="1">On</option>
+                            <option value="0">Off</option>
+                        </select>
+                    </label>
+                    <label class="setting">
+                        <span class="label"></span>
+                        <a id="closeSettingsButton" class="button marginTop">CLOSE</a>
+                        <a id="applySettingsButton" class="button marginTop">APPLY</a>
+                    </label>
+                </section>
             </div>
             
             <canvas class="renderTarget"></canvas>
@@ -57,8 +110,10 @@
         <script src="js/src/shaders/fxaaShader.js"></script>
         
         <!-- DEMO -->
+        <script src="demo/settings.js"></script>
         <script src="demo/config.js"></script>
         <script src="demo/input.js"></script>
+        <script src="demo/ui.js"></script>
         <script src="demo/main.js"></script>
         
         <script>

@@ -5,16 +5,8 @@
 (function() {
     var renderTarget = document.getElementById('viewport');
     var defaultShader, waterShader, mouseShader, cursorShader;
-    var cursor;
-    
-    Larx.init(renderTarget, Larx.RENDER_MODES.FXAA);
-    Larx.setClearColor(config.clearColor);
-    
-    var gameLoop = new LarxGameLoop(doLogic, render, config.targetFps);
-    var mousePicker = new LarxMousePicker(10);
-    
-    
-    input.init();
+    var settings = new Settings();
+    var ui, gameLoop, cursor, mousePicker;
     
     var models = {
         terrain: undefined,
@@ -22,7 +14,9 @@
         decorations: undefined
     };
     
-    initCamera()
+    initSettings()
+        .then(initEngine())
+        .then(initCamera())
         .then(initShaders)
         .then(initTerrain)
         .then(initWater)
@@ -58,6 +52,7 @@
                 
                 waterShader.use();
                 waterShader.setFog(config.fog.density, config.fog.gradient, config.fog.color);
+                waterShader.setNearFarPlane(5.0, config.viewDistance)
                 waterShader.setWaterColor(config.water.color);
                 waterShader.setDistortion(config.water.distortion);
                 waterShader.setEdgeWhitening(config.water.edgeWhitening);
@@ -71,6 +66,43 @@
                 reject();
             });
         });      
+    }
+    
+    function initSettings() {
+        settings.loadSettings();
+        
+        switch(settings.values.waterDetail) {
+            case 0:
+                config.water.quality = 4;
+                config.water.detail = 8;
+                break;
+            case 1:
+                config.water.quality = 6;
+                config.water.detail = 9;
+                break;
+            case 2:
+                config.water.quality = 8;
+                config.water.detail = 10;
+                break;
+        }
+        
+        
+        config.fog.density = 1.0 / settings.values.viewDistance;
+        config.viewDistance = settings.values.viewDistance;
+        
+        return Promise.resolve();
+    }
+    
+    function initEngine() {
+        Larx.init(renderTarget, settings.values.renderMode);
+        Larx.setClearColor(config.clearColor);
+        Larx.Matrix.farPlane = settings.values.viewDistance;
+        
+        gameLoop = new LarxGameLoop(doLogic, render, config.targetFps);
+        mousePicker = new LarxMousePicker(10);
+    
+        ui = new UI();
+        return Promise.resolve();
     }
     
     function initCamera() {
@@ -183,6 +215,8 @@
     function render() {
         
         function renderWaterReflection() {
+            if(settings.values.waterReflection == 0) { return; }
+            
             Larx.Matrix.setIdentity(true);
             Larx.Matrix.setUniforms(defaultShader);
             
@@ -199,6 +233,8 @@
         }
         
         function renderWaterRefraction() {
+            if(settings.values.waterRefraction == 0) { return; }
+            
             defaultShader.setClipPlane(defaultShader.clip.BELOW, -config.water.waveHeight);  
             
             models.water.refraction.bind(true);

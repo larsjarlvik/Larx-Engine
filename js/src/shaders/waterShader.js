@@ -33,6 +33,9 @@ class LarxWaterShader extends LarxShader {
                 this.shader.edgeSoftening = Larx.gl.getUniformLocation(this.shader, 'uEdgeSoftening');
                 this.shader.waterDensity = Larx.gl.getUniformLocation(this.shader, 'uWaterDensity');
                 
+                this.shader.nearPlane = Larx.gl.getUniformLocation(this.shader, 'uNearPlane');
+                this.shader.farPlane = Larx.gl.getUniformLocation(this.shader, 'uFarPlane');
+                
                 this.setDefaults(this.shader, true);
                 
                 resolve();
@@ -93,4 +96,10 @@ class LarxWaterShader extends LarxShader {
         Larx.gl.uniform1f(this.shader.fogGradient, gradient);
         Larx.gl.uniform3f(this.shader.fogColor, color[0], color[1], color[2]);
     }
+    
+    setNearFarPlane(near, far) {
+        Larx.gl.uniform1f(this.shader.nearPlane, near);  
+        Larx.gl.uniform1f(this.shader.farPlane, far);  
+    }
+
 }

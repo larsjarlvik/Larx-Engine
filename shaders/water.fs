@@ -19,8 +19,8 @@ uniform float uWaterDensity;
 uniform float uEdgeSoftening;
 uniform float uEdgeWhitening;
 
-const float near = 5.0;
-const float far = 500.0;
+uniform float uFarPlane;
+uniform float uNearPlane;
                                                    
 void main(void) {    
     // Depth
@@ -28,8 +28,8 @@ void main(void) {
     vec2 textCoords = vec2(ndc.x, ndc.y);
     
     float depth = texture2D(uRefractionDepthTexture, textCoords).r;
-    float floorDistance = 2.0 * near * far / (far + near - (2.0 * depth - 1.0) * (far - near));
-    float surfaceDistance = 2.0 * near * far / (far + near - (2.0 * gl_FragCoord.z - 1.0) * (far - near));
+    float floorDistance = 2.0 * uNearPlane * uFarPlane / (uFarPlane + uNearPlane - (2.0 * depth - 1.0) * (uFarPlane - uNearPlane));
+    float surfaceDistance = 2.0 * uNearPlane * uFarPlane / (uFarPlane + uNearPlane - (2.0 * gl_FragCoord.z - 1.0) * (uFarPlane - uNearPlane));
     
     depth = (floorDistance - surfaceDistance);
     float distort = ((vNormal.x / 80.0) * uDistortion) *  vLightWeighting.r;
