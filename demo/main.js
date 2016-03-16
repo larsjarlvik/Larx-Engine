@@ -4,7 +4,7 @@
 
 (function() {
     var renderTarget = document.getElementById('viewport');
-    var defaultShader, waterShader, mouseShader, cursorShader;
+    var defaultShader, waterShader, mouseShader, cursorShader, shadowShader;
     var settings = new Settings();
     var ui, gameLoop, cursor, mousePicker;
     
@@ -15,8 +15,8 @@
     };
     
     initSettings()
-        .then(initEngine())
-        .then(initCamera())
+        .then(initEngine)
+        .then(initCamera)
         .then(initShaders)
         .then(initTerrain)
         .then(initWater)
@@ -25,6 +25,7 @@
         .then(function() {
             gameLoop.start();
             mousePicker = new LarxMousePicker(models.terrain, 10);
+            Larx.Shadows.init(13, shadowShader);
             
             setInterval(function() {
                 document.getElementById('fps').innerHTML = 
@@ -40,12 +41,14 @@
             waterShader = new LarxWaterShader();
             mouseShader = new LarxMouseShader();
             cursorShader = new LarxCursorShader();
+            shadowShader = new LarxShadowShader();
             
             Promise.all([
                 defaultShader.load(),
                 waterShader.load(),
                 mouseShader.load(),
-                cursorShader.load()
+                cursorShader.load(),
+                shadowShader.load()
             ]).then(function() {
                 defaultShader.use();
                 defaultShader.setFog(config.fog.density, config.fog.gradient, config.fog.color);
@@ -217,7 +220,10 @@
         function renderWaterReflection() {
             if(settings.values.waterReflection == 0) { return; }
             
-            Larx.Matrix.setIdentity(true);
+            var matrix = Larx.Camera.getMatrix();
+            matrix.rotV = -matrix.rotV;
+            
+            Larx.Matrix.setIdentity(matrix);
             Larx.Matrix.setUniforms(defaultShader);
             
             defaultShader.setClipPlane(defaultShader.clip.ABOVE, config.water.waveHeight);  
@@ -243,15 +249,28 @@
             models.water.reflection.unbind();  
         }
         
+        function renderShadowMap() {
+            Larx.Shadows.bind();
+            
+            //models.terrain.render(Larx.Shadows.shader, models.terrain.clip.BOTTOM, models.terrain.reflect.NO);
+            models.decorations.render(Larx.Shadows.shader);
+            
+            Larx.Shadows.unbind();
+        }
+        
         Larx.render(
             function() {            
                 Larx.clear();
                 
+                renderShadowMap();
+                
                 defaultShader.use(); 
                 defaultShader.useFog(true);
                 
-                Larx.Matrix.setIdentity();
+                Larx.Matrix.setIdentity(Larx.Camera.getMatrix());                
                 Larx.Matrix.setUniforms(defaultShader);
+                Larx.Shadows.bindToShader(defaultShader);
+                
                 models.terrain.render(defaultShader, models.terrain.clip.BOTTOM, models.terrain.reflect.NO);
                 
                 Larx.gl.enable(Larx.gl.BLEND);
@@ -273,7 +292,7 @@
                 Larx.gl.enable(Larx.gl.BLEND);
                 
                 waterShader.use();
-                Larx.Matrix.setIdentity();
+                Larx.Matrix.setIdentity(Larx.Camera.getMatrix());
                 Larx.Matrix.setUniforms(waterShader);
                 
                 models.water.render(waterShader);
@@ -284,6 +303,8 @@
                 
                 mouseShader.use();
                 mousePicker.render(mouseShader);
+                
+                Larx.Shadows.shader.cleanUp();
             }
         );
     }

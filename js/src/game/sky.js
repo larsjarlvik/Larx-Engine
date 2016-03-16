@@ -21,7 +21,7 @@ class LarxSky {
     }
 
     render(shader) {
-        Larx.Matrix.setIdentity();
+        Larx.Matrix.setIdentity(Larx.Camera.getMatrix());
         Larx.Matrix.translate([Larx.Camera.look.x, -350.0, Larx.Camera.look.z]);
         Larx.Matrix.setUniforms(shader);
         

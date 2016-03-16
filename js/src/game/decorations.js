@@ -4,7 +4,7 @@ class LarxDecorations {
     constructor(terrain) {
         this.terrain = terrain;
         
-        this.numBlocks = 12;
+        this.numBlocks = 6;
         this.size = this.terrain.getSize() - 0.5;
         this.blockSize = this.size / this.numBlocks;
         

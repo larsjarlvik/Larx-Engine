@@ -40,7 +40,7 @@ class LarxCursor {
         
         
         Larx.Matrix.push();
-        Larx.Matrix.setIdentity();      
+        Larx.Matrix.setIdentity(Larx.Camera.getMatrix());      
         Larx.Matrix.translate(pos);
         Larx.Matrix.rotate(angles[0], [1, 0, 0]);       
         Larx.Matrix.rotate(angles[2], [0, 0, 1]);     

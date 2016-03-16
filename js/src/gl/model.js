@@ -336,6 +336,8 @@ class LarxModel {
     }
 
     inFrustum() {
+        return true;
+        
         if(!this.bounds) { return true; }
         return Larx.Frustum.inFrustum(this.bounds.vMin, this.bounds.vMax);
     }

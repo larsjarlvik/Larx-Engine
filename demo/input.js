@@ -12,10 +12,6 @@ var input = (function() {
     }
 
     function mouse(mousePicker) {
-        if(Larx.Viewport.mouse.buttons.left) {
-            console.log(mousePicker.getCoordinates());
-        }
-        
         if(Larx.Viewport.mouse.buttons.right || Larx.Viewport.mouse.touchDown) {  
             dX = Larx.Viewport.mouse.deltaX * config.camera.rotationSpeed;
             dY = Larx.Viewport.mouse.deltaY * config.camera.rotationSpeed;

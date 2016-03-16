@@ -7,7 +7,7 @@ class LarxShader {
             ambient: [0.3, 0.3, 0.3],
             directional: [0.5, 0.5, 0.5],
             specular: [1.0, 1.0, 1.0],
-            direction: [-0.5, -0.7, -0.5]
+            direction: [-1.0, -1.0, 1.0]
         };
     }
 

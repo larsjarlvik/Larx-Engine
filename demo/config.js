@@ -17,8 +17,8 @@ var config = {
         rotationSpeed: 0.7,
         default: {
             zoom: 125,
-            look: { x: -25, y: 0, z: -25 },
-            rotation: { v: 35, h: 45 }
+            look: { x: 0, y: 0, z: 0 },
+            rotation: { v: 90, h: 0 }
         }
     },
     fog: {
@@ -52,7 +52,7 @@ var config = {
             tiltLimit: 12.0,
             scale: [1.0, 1.4],
             tiltToTerrain: false,
-            yLimits: [0.7, 3.5],
+            yLimits: [1.0, 4.5],
             selectable: true,
             description: 'Spruce'
         },
@@ -60,9 +60,9 @@ var config = {
             count: 500,
             model: 'rock-1',
             tiltLimit: 0.0,
-            scale: [0.8, 3.0],
+            scale: [-1.5, 3.0],
             tiltToTerrain: false,
-            yLimits: [-3.0, 1.5],
+            yLimits: [-1.5, 1.5],
             selectable: true,
             description: 'Flat rock'
         },
@@ -72,7 +72,7 @@ var config = {
             tiltLimit: 0.0,
             scale: [0.8, 2.0],
             tiltToTerrain: false,
-            yLimits: [-3.0, 1.5],
+            yLimits: [-1.5, 1.5],
             selectable: true,
             description: 'Round rock'
         },
@@ -82,7 +82,7 @@ var config = {
             scale: [1.0, 1.0],
             tiltLimit: 0.0,
             tiltToTerrain: true,
-            yLimits: [0.5, 3.5],
+            yLimits: [0.5, 2.5],
             selectable: true,
             description: 'Crate'
         }

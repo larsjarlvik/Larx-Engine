@@ -5,19 +5,15 @@ class Larx {
         
         Larx.renderMode = renderMode;
         
+        this.Viewport = new LarxViewport(canvas);
+        this.initGL();
+        
         this.Frustum = new LarxFrustum();
         this.Camera = new LarxCamera();
         this.Fxaa = new LarxFxaa();
         this.Matrix = new LarxMatrix();
-        this.Viewport = new LarxViewport(canvas);
-        
-        let antialias = false;
-        if(renderMode == Larx.RENDER_MODES.MSAA) {
-            antialias = true;
-        }
-        
-        Larx.gl = Larx.Viewport.canvas.getContext('webgl', { antialias: antialias });
-        if(!Larx.gl) { Larx.gl = Larx.Viewport.canvas.getContext('experimental-webgl', { antialias: antialias }); }
+        this.Shadows = new LarxShadows();
+        this.Math = new LarxMath();
         
         Larx.gl.getExtension("OES_texture_float");
         Larx.gl.getExtension("WEBGL_depth_texture");
@@ -43,6 +39,16 @@ class Larx {
         return renderMode === Larx.RENDER_MODES.FXAA ? Larx.Fxaa.init() : Promise.resolve();
     }
     
+    static initGL() {
+        let antialias = false;
+        if(Larx.renderMode == Larx.RENDER_MODES.MSAA) {
+            antialias = true;
+        }
+        
+        Larx.gl = Larx.Viewport.canvas.getContext('webgl', { antialias: antialias });
+        if(!Larx.gl) { Larx.gl = Larx.Viewport.canvas.getContext('experimental-webgl', { antialias: antialias }); }
+    }
+    
     static setClearColor(color) {
         Larx.gl.clearColor(color[0], color[1], color[2], 1.0);
     }
@@ -50,7 +56,8 @@ class Larx {
     static render(drawCallback) {
         Larx.clear();
         Larx.Matrix.push();
-        Larx.Matrix.setIdentity();
+        Larx.Matrix.setPerspectiveProjection();
+        Larx.Matrix.setIdentity(this.Camera.getMatrix());
         Larx.Frustum.extractFrustum();
         
         Larx.gl.enable(Larx.gl.DEPTH_TEST); 

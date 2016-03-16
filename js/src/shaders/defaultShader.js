@@ -25,6 +25,9 @@ class LarxDefaultShader extends LarxShader {
                 this.shader.clipPlane = Larx.gl.getUniformLocation(this.shader, 'uClipPlane');
                 this.shader.clipPlaneLevel = Larx.gl.getUniformLocation(this.shader, 'uClipPlaneLevel');
                 
+                this.shader.shadowMvpMatrixUniform = Larx.gl.getUniformLocation(this.shader, 'shadowMvpMatrix');
+                this.shader.shadowMapTexture = Larx.gl.getUniformLocation(this.shader, 'uShadowMapTexture');
+                
                 this.setDefaults(this.shader, true);
                 
                 resolve();
@@ -60,5 +63,13 @@ class LarxDefaultShader extends LarxShader {
     
     useFog(enable) {
         Larx.gl.uniform1i(this.shader.useFog, enable == true ? 1 : 0);
+    }
+    
+    setShadowMapTexture(textureUnit) {
+        Larx.gl.uniform1i(this.shader.shadowMapTexture, textureUnit);
+    }
+    
+    setShadowMapSpaceMatrix(matrix) {
+        Larx.gl.uniformMatrix4fv(this.shader.shadowMvpMatrixUniform, false, matrix);
     }
 }

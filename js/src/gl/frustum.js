@@ -34,7 +34,7 @@ class LarxFrustum  {
         this.clip[13] = mMat[12] * pMat[ 1] + mMat[13] * pMat[ 5] + mMat[14] * pMat[ 9] + mMat[15] * pMat[13];
         this.clip[14] = mMat[12] * pMat[ 2] + mMat[13] * pMat[ 6] + mMat[14] * pMat[10] + mMat[15] * pMat[14];
         this.clip[15] = mMat[12] * pMat[ 3] + mMat[13] * pMat[ 7] + mMat[14] * pMat[11] + mMat[15] * pMat[15];
-
+        
         /* Extract the numbers for the RIGHT plane */
         this.frustum[0][0] = this.clip[ 3] - this.clip[ 0];
         this.frustum[0][1] = this.clip[ 7] - this.clip[ 4];
@@ -131,5 +131,74 @@ class LarxFrustum  {
         }
         
         return true;
+    }
+    
+    getFrustumCorners() {
+        let points = Array(8);
+        
+        points[0] = this.getFrustumCorner(this.frustum[4], this.frustum[3], this.frustum[0]);
+        points[1] = this.getFrustumCorner(this.frustum[4], this.frustum[3], this.frustum[1]);
+        
+        points[2] = this.getFrustumCorner(this.frustum[4], this.frustum[2], this.frustum[0]);
+        points[3] = this.getFrustumCorner(this.frustum[4], this.frustum[2], this.frustum[1]);
+        
+        points[4] = this.getFrustumCorner(this.frustum[5], this.frustum[3], this.frustum[0]);
+        points[5] = this.getFrustumCorner(this.frustum[5], this.frustum[3], this.frustum[1]);
+        
+        points[6] = this.getFrustumCorner(this.frustum[5], this.frustum[2], this.frustum[0]);
+        points[7] = this.getFrustumCorner(this.frustum[5], this.frustum[2], this.frustum[1]);
+        
+        return points;
+    }
+    
+    getFrustumCorner(f1, f2, f3) {
+        let vf1 = vec3.fromValues(f1[0], f1[1], f1[2]);
+        let vf2 = vec3.fromValues(f2[0], f2[1], f2[2]);
+        let vf3 = vec3.fromValues(f3[0], f3[1], f3[2]);
+        
+        let normals = mat3.create();
+        
+        normals[0] = vf1[0];
+        normals[1] = vf1[1];
+        normals[2] = vf1[2];
+        
+        normals[3] = vf2[0];
+        normals[4] = vf2[1];
+        normals[5] = vf2[2];
+        
+        normals[6] = vf3[0];
+        normals[7] = vf3[1];
+        normals[8] = vf3[2];
+        
+        let det = mat3.determinant(normals);
+        let v1 = vec3.create(),
+            v2 = vec3.create(),
+            v3 = vec3.create();
+        
+        vec3.cross(v1, vf2, vf3);
+        vec3.cross(v2, vf3, vf1);
+        vec3.cross(v3, vf1, vf2);
+        
+        v1[0] *= -f1[3];
+        v1[1] *= -f1[3];
+        v1[2] *= -f1[3];
+        
+        v2[0] *= -f2[3];
+        v2[1] *= -f2[3];
+        v2[2] *= -f2[3];
+        
+        v3[0] *= -f3[3];
+        v3[1] *= -f3[3];
+        v3[2] *= -f3[3];
+        
+        let result = vec3.create();
+        vec3.add(result, v1, v2);
+        vec3.add(result, result, v3);
+        
+        result[0] = result[0] / det;
+        result[1] = result[1] / det;
+        result[2] = result[2] / det;
+        
+        return result;
     }
 };

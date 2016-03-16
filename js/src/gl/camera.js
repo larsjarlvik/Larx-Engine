@@ -6,13 +6,13 @@ class LarxCamera  {
         this.look = { x: 0, y: 0, z: 0 };
         this.rot = { v: 0, h: 0 };
         this.speed = { x: 0, z: 0, h: 0, v: 0, zoom: 0 };
-        this.deceleration = { zoom: 1, move: 1, rotation: 1.5 };
+        this.deceleration = { zoom: 4, move: 4, rotation: 1.5 };
         this.limits = { zoom: 4.0, move: 4.0 };
     }
     
     calcPos(rot, look, zoom) {
-        this.v = this.degToRad(rot.v);
-        this.h = this.degToRad(rot.h);
+        this.v = Larx.Math.degToRad(rot.v);
+        this.h = Larx.Math.degToRad(rot.h);
         
         return {
             z: look.z - (zoom * Math.cos(this.v) * Math.cos(this.h)),
@@ -21,28 +21,12 @@ class LarxCamera  {
         }
     }
     
-    degToRad(degrees) {
-        return degrees * Math.PI / 180;
-    }
-    
     getMatrix() {
         let pos = this.calcPos(this.rot, this.look, this.zoomLevel);
         
         return {
-            rotV: this.degToRad(this.rot.v),
-            rotH: this.degToRad(this.rot.h),
-            x: -pos.x,
-            y: -pos.y, 
-            z:  pos.z
-        };
-    }
-    
-    getInvertedMatrix() {
-        let pos = this.calcPos({ v: -this.rot.v, h: this.rot.h }, this.look, this.zoomLevel);
-        
-        return {
-            rotV: this.degToRad(-this.rot.v),
-            rotH: this.degToRad(this.rot.h),
+            rotV: Larx.Math.degToRad(this.rot.v),
+            rotH: Larx.Math.degToRad(this.rot.h),
             x: -pos.x,
             y: -pos.y, 
             z:  pos.z
@@ -50,7 +34,7 @@ class LarxCamera  {
     }
     
     move (xDelta, zDelta) {
-        this.moveH = this.degToRad(this.rot.h);
+        this.moveH = Larx.Math.degToRad(this.rot.h);
         
         this.look.z += zDelta * Math.cos(this.moveH);
         this.look.x += zDelta * Math.sin(this.moveH);

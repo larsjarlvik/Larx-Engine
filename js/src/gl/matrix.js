@@ -6,7 +6,9 @@ class LarxMatrix {
         this.pMatrix = mat4.create();
         this.mvStack = [];
         this.aspect = 0;
+        this.nearPlane = 5.0;
         this.farPlane = 500.0;
+        this.fieldOfView = 45;
     }
     
     push() {
@@ -18,20 +20,26 @@ class LarxMatrix {
     pop() {
         this.mvMatrix = this.mvStack.pop();
     }
+    
+    calcCameraRotationMatrix(mat) {
+    }
 
-    setIdentity(invert) {
-        mat4.perspective(this.pMatrix, 45, this.aspect, 5.0, this.farPlane);
+    setIdentity(matrix) {
         mat4.identity(this.mvMatrix);   
         
-        if(invert) {
-            this.cMat = Larx.Camera.getInvertedMatrix();
-        } else {
-            this.cMat = Larx.Camera.getMatrix();
+        if(matrix) {
+            mat4.rotateX(this.mvMatrix, this.mvMatrix, matrix.rotV);
+            mat4.rotateY(this.mvMatrix, this.mvMatrix, matrix.rotH);
+            mat4.translate(this.mvMatrix, this.mvMatrix, [matrix.x, matrix.y, matrix.z]);
         }
-        
-        mat4.rotate(this.mvMatrix, this.mvMatrix, this.cMat.rotV, [1, 0, 0]);
-        mat4.rotate(this.mvMatrix, this.mvMatrix, this.cMat.rotH, [0, 1, 0]);
-        mat4.translate(this.mvMatrix, this.mvMatrix, [this.cMat.x, this.cMat.y, this.cMat.z]);
+    }
+    
+    setPerspectiveProjection() {
+        mat4.perspective(this.pMatrix, this.fieldOfView, this.aspect, this.nearPlane, this.farPlane);
+    }
+    
+    setOrthoProjection(l, r, b, t) {
+        mat4.ortho(this.pMatrix, l, r, b, t, this.nearPlane, this.farPlane);
     }
 
     setUniforms(shaderProgram) {
