@@ -138,13 +138,10 @@ class LarxFrustum  {
         
         points[0] = this.getFrustumCorner(this.frustum[4], this.frustum[3], this.frustum[0]);
         points[1] = this.getFrustumCorner(this.frustum[4], this.frustum[3], this.frustum[1]);
-        
         points[2] = this.getFrustumCorner(this.frustum[4], this.frustum[2], this.frustum[0]);
         points[3] = this.getFrustumCorner(this.frustum[4], this.frustum[2], this.frustum[1]);
-        
         points[4] = this.getFrustumCorner(this.frustum[5], this.frustum[3], this.frustum[0]);
         points[5] = this.getFrustumCorner(this.frustum[5], this.frustum[3], this.frustum[1]);
-        
         points[6] = this.getFrustumCorner(this.frustum[5], this.frustum[2], this.frustum[0]);
         points[7] = this.getFrustumCorner(this.frustum[5], this.frustum[2], this.frustum[1]);
         
@@ -155,20 +152,11 @@ class LarxFrustum  {
         let vf1 = vec3.fromValues(f1[0], f1[1], f1[2]);
         let vf2 = vec3.fromValues(f2[0], f2[1], f2[2]);
         let vf3 = vec3.fromValues(f3[0], f3[1], f3[2]);
-        
         let normals = mat3.create();
         
-        normals[0] = vf1[0];
-        normals[1] = vf1[1];
-        normals[2] = vf1[2];
-        
-        normals[3] = vf2[0];
-        normals[4] = vf2[1];
-        normals[5] = vf2[2];
-        
-        normals[6] = vf3[0];
-        normals[7] = vf3[1];
-        normals[8] = vf3[2];
+        normals[0] = vf1[0]; normals[1] = vf1[1]; normals[2] = vf1[2];
+        normals[3] = vf2[0]; normals[4] = vf2[1]; normals[5] = vf2[2];
+        normals[6] = vf3[0]; normals[7] = vf3[1]; normals[8] = vf3[2];
         
         let det = mat3.determinant(normals);
         let v1 = vec3.create(),
@@ -179,17 +167,9 @@ class LarxFrustum  {
         vec3.cross(v2, vf3, vf1);
         vec3.cross(v3, vf1, vf2);
         
-        v1[0] *= -f1[3];
-        v1[1] *= -f1[3];
-        v1[2] *= -f1[3];
-        
-        v2[0] *= -f2[3];
-        v2[1] *= -f2[3];
-        v2[2] *= -f2[3];
-        
-        v3[0] *= -f3[3];
-        v3[1] *= -f3[3];
-        v3[2] *= -f3[3];
+        v1[0] *= -f1[3]; v1[1] *= -f1[3]; v1[2] *= -f1[3];
+        v2[0] *= -f2[3]; v2[1] *= -f2[3]; v2[2] *= -f2[3];
+        v3[0] *= -f3[3]; v3[1] *= -f3[3]; v3[2] *= -f3[3];
         
         let result = vec3.create();
         vec3.add(result, v1, v2);

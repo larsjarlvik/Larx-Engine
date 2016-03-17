@@ -33,6 +33,18 @@ class LarxCamera  {
         };
     }
     
+    getInvertedMatrix() {
+        let pos = this.calcPos({ v: -this.rot.v, h: this.rot.h }, this.look, this.zoomLevel);
+        
+        return {
+            rotV: Larx.Math.degToRad(-this.rot.v),
+            rotH: Larx.Math.degToRad(this.rot.h),
+            x: -pos.x,
+            y: -pos.y, 
+            z:  pos.z
+        };
+    }
+    
     move (xDelta, zDelta) {
         this.moveH = Larx.Math.degToRad(this.rot.h);
         

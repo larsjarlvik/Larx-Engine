@@ -25,7 +25,7 @@
         .then(function() {
             gameLoop.start();
             mousePicker = new LarxMousePicker(models.terrain, 10);
-            Larx.Shadows.init(13, shadowShader);
+            Larx.Shadows.init(12, shadowShader);
             
             setInterval(function() {
                 document.getElementById('fps').innerHTML = 
@@ -220,22 +220,17 @@
         function renderWaterReflection() {
             if(settings.values.waterReflection == 0) { return; }
             
-            var matrix = Larx.Camera.getMatrix();
-            matrix.rotV = -matrix.rotV;
+            var matrix = Larx.Camera.getInvertedMatrix();
             
             Larx.Matrix.setIdentity(matrix);
             Larx.Matrix.setUniforms(defaultShader);
             
             defaultShader.setClipPlane(defaultShader.clip.ABOVE, config.water.waveHeight);  
             
-            Larx.setClearColor(config.water.reflectionColor);
-            
             models.water.reflection.bind(true);  
             models.terrain.render(defaultShader, models.terrain.clip.BOTTOM, models.terrain.reflect.YES);
             models.decorations.render(defaultShader, models.decorations.flags.reflect);
             models.water.reflection.unbind();  
-            
-            Larx.setClearColor(config.clearColor);
         }
         
         function renderWaterRefraction() {
@@ -252,7 +247,6 @@
         function renderShadowMap() {
             Larx.Shadows.bind();
             
-            //models.terrain.render(Larx.Shadows.shader, models.terrain.clip.BOTTOM, models.terrain.reflect.NO);
             models.decorations.render(Larx.Shadows.shader);
             
             Larx.Shadows.unbind();
@@ -265,14 +259,15 @@
                 renderShadowMap();
                 
                 defaultShader.use(); 
-                defaultShader.useFog(true);
+                defaultShader.enableFog(true);
                 
                 Larx.Matrix.setIdentity(Larx.Camera.getMatrix());                
                 Larx.Matrix.setUniforms(defaultShader);
-                Larx.Shadows.bindToShader(defaultShader);
+                Larx.Shadows.enable(defaultShader);
                 
                 models.terrain.render(defaultShader, models.terrain.clip.BOTTOM, models.terrain.reflect.NO);
                 
+                Larx.Shadows.disable(defaultShader);
                 Larx.gl.enable(Larx.gl.BLEND);
                 cursorShader.use();
                 cursor.render(cursorShader, mousePicker.getCoordinates());
@@ -282,7 +277,7 @@
                 Larx.Matrix.setUniforms(defaultShader);
                 models.decorations.render(defaultShader);
                 
-                defaultShader.useFog(false);
+                defaultShader.enableFog(false);
                 
                 renderWaterRefraction();
                 renderWaterReflection();

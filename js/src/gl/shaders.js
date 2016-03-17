@@ -4,10 +4,10 @@ class LarxShader {
     
     constructor() {
         this.light = {
-            ambient: [0.3, 0.3, 0.3],
-            directional: [0.5, 0.5, 0.5],
+            ambient: [0.2, 0.2, 0.2],
+            directional: [0.7, 0.7, 0.7],
             specular: [1.0, 1.0, 1.0],
-            direction: [-1.0, -1.0, 1.0]
+            direction: [-0.5, -0.5, 0.5]
         };
     }
 

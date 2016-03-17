@@ -18,7 +18,7 @@ var config = {
         default: {
             zoom: 125,
             look: { x: 0, y: 0, z: 0 },
-            rotation: { v: 90, h: 0 }
+            rotation: { v: 35, h: 45 }
         }
     },
     fog: {
@@ -29,14 +29,13 @@ var config = {
     water: {
         quality: 6,
         detail: 10,
-        color: [0.195, 0.805, 0.723],
-        reflectionColor: [0.098, 0.535, 0.520],
+        color: [0.295, 0.905, 0.823],
         waveHeight: 0.8,
         speed: 0.001,
         distortion: 2.5,
         edgeWhitening: 1.8, 
         edgeSoftening: 3.0,
-        density: 0.1
+        density: 0.15
     },
     terrain: {
         path: '/maps/test',

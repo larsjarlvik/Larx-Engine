@@ -59,7 +59,7 @@ class LarxWater {
         var model = new LarxModel();
         
         model.normals = [];
-        model.shininess = 3.0;
+        model.shininess = 6.0;
         model.opacity = 0.5;
         model.specularWeight = 0.5;
         

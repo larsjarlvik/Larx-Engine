@@ -20,9 +20,6 @@ class LarxMatrix {
     pop() {
         this.mvMatrix = this.mvStack.pop();
     }
-    
-    calcCameraRotationMatrix(mat) {
-    }
 
     setIdentity(matrix) {
         mat4.identity(this.mvMatrix);   

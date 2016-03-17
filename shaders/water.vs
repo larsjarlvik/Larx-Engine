@@ -37,19 +37,18 @@ void main(void) {
     vNormal.z *= 2.0;
     vNormal = normalize(uNMatrix * vNormal);
     
-    vec3 lightDirection = normalize(uLightingDirection - vPosition.xyz);
-    float directionalLightWeighting = max(dot(vNormal, uLightingDirection), 0.0);
-    
-    vLightWeighting = 
-        uAmbientColor * 1.3 + 
-        uDirectionalColor * directionalLightWeighting;
+
+    vec3 lightDirection = normalize(uLightingDirection - position.xyz);
+    float directionalLightWeighting = max(dot(aVertexNormal, uLightingDirection), 0.0);
+    vLightWeighting = uAmbientColor + uDirectionalColor * directionalLightWeighting;
         
     if(uShininess > 0.0) {
-        vec3 eyeDirection = normalize(-vPosition.xyz);
-        vec3 reflectionDirection = reflect(lightDirection, vNormal);
+        vec3 normal = normalize(uNMatrix * aVertexNormal);
+        vec3 eyeDirection = normalize(-position.xyz);
+        vec3 reflectionDirection = reflect(lightDirection, normal);
         float specularLightWeighting = pow(max(dot(reflectionDirection, eyeDirection), 0.0), uShininess);
     
-        vec3 specularColor = vec3(1.0, 1.0, 1.0) * uSpecularWeight;
+        vec3 specularColor = uSpecularColor * uSpecularWeight;
         vLightWeighting += specularColor * specularLightWeighting;
     }
 }
