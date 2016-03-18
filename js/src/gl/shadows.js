@@ -85,21 +85,17 @@ class LarxShadows {
         
 		yaw = lightDirection[2] > 0 ? yaw - 180 : yaw;
         
-        
-        let camMatrix = Larx.Camera.getMatrix();
-        
         mat4.rotateX(this.lightViewMatrix, this.lightViewMatrix, pitch);
         mat4.rotateY(this.lightViewMatrix, this.lightViewMatrix, -Larx.Math.degToRad(yaw)); 
-        mat4.translate(this.lightViewMatrix, this.lightViewMatrix, vec3.fromValues(camMatrix.x, camMatrix.y, camMatrix.z));
+        mat4.translate(this.lightViewMatrix, this.lightViewMatrix, vec3.fromValues(this.camMatrix.x, this.camMatrix.y, this.camMatrix.z));
     }
 
     update() {
+        this.camMatrix = Larx.Camera.getMatrix();
+        this.calculateShadowDistance();
+        
         let rotation = this.calculateCameraRotationMatrix();
         let forwardVector = vec3.create();
-        
-        
-        this.shadowDistance = Larx.Camera.zoomLevel * 3;
-
         vec3.transformMat4(forwardVector, this.FORWARD, rotation);
 
         let toFar = vec3.create(), toNear = vec3.create();
@@ -111,14 +107,13 @@ class LarxShadows {
         vec3.scale(toNear, toNear, Larx.Matrix.nearPlane);
 
         let centerNear = vec3.create(), centerFar = vec3.create();
-        let camMatrix = Larx.Camera.getMatrix();
         
-        vec3.add(centerNear, vec3.fromValues(camMatrix.x, camMatrix.y, camMatrix.z), toNear);
-        vec3.add(centerFar, vec3.fromValues(camMatrix.x, camMatrix.y, camMatrix.z), toFar);
+        vec3.add(centerNear, vec3.fromValues(this.camMatrix.x, this.camMatrix.y, this.camMatrix.z), toNear);
+        vec3.add(centerFar, vec3.fromValues(this.camMatrix.x, this.camMatrix.y, this.camMatrix.z), toFar);
         
         let points = this.calculateFrustumVertices(rotation, forwardVector, centerNear, centerFar);
-        
         let first = true;
+        
         for (var i = 0; i < 8; i++) {
             let p = points[i];
             
@@ -144,13 +139,19 @@ class LarxShadows {
         
         this.maxZ += 10;
     }
+    
+    calculateShadowDistance() {
+        this.shadowDistance = Larx.Camera.zoomLevel * 5;
+        if(this.shadowDistance > Larx.Matrix.farPlane) {
+            this.shadowDistance = Larx.Matrix.farPlane;
+        }
+    }
 
     calculateCameraRotationMatrix() {
         let rot = mat4.create();
-        let camMatrix = Larx.Camera.getMatrix();
         
-        mat4.rotateX(rot, rot, -camMatrix.rotV);
-        mat4.rotateY(rot, rot, -camMatrix.rotH);
+        mat4.rotateX(rot, rot, -this.camMatrix.rotV);
+        mat4.rotateY(rot, rot, -this.camMatrix.rotH);
         return rot;
     }
     

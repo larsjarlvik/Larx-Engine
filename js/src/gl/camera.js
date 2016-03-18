@@ -18,12 +18,12 @@ class LarxCamera  {
             z: look.z - (zoom * Math.cos(this.v) * Math.cos(this.h)),
             x: look.x - (zoom * Math.cos(this.v) * Math.sin(this.h)),
             y: zoom * Math.sin(this.v)
-        }
+        };
     }
     
     getMatrix() {
         let pos = this.calcPos(this.rot, this.look, this.zoomLevel);
-        
+                
         return {
             rotV: Larx.Math.degToRad(this.rot.v),
             rotH: Larx.Math.degToRad(this.rot.h),
@@ -102,5 +102,11 @@ class LarxCamera  {
         this.speed.v /= (time * (this.deceleration.rotation / 100)) + 1;
         
         this.speed.zoom /= (time * (this.deceleration.zoom / 100)) + 1;
+        
+        if(this.rot.v < 10.0) { this.rot.v = 10.0; }
+        if(this.rot.v > 85.0) { this.rot.v = 85.0; }
+        
+        if(this.zoomLevel < 30.0) { this.zoomLevel = 30.0; }
+        if(this.zoomLevel > 200.0) { this.zoomLevel = 200.0; }
     }
 }

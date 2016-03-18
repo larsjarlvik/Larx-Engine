@@ -19,6 +19,7 @@ class UI {
         
         this.renderModeSetting = document.getElementById('renderModeSetting');
         this.viewDistanceSetting = document.getElementById('viewDistanceSetting');
+        this.shadowsSetting = document.getElementById('shadowsSetting');
         this.waterDetailSetting = document.getElementById('waterDetailSetting');
         this.waterReflectionSetting = document.getElementById('waterReflectionSetting');
         this.waterRefractionSetting = document.getElementById('waterRefractionSetting');
@@ -57,6 +58,7 @@ class UI {
         
         this.renderModeSetting.value = settings.renderMode;
         this.viewDistanceSetting.value = settings.viewDistance;
+        this.shadowsSetting.value = settings.shadowQuality;
         this.waterDetailSetting.value = settings.waterDetail;
         this.waterReflectionSetting.value = settings.waterReflection;
         this.waterRefractionSetting.value = settings.waterRefraction;
@@ -67,6 +69,7 @@ class UI {
         
         settings.renderMode = parseInt(this.renderModeSetting.value);
         settings.viewDistance = parseInt(this.viewDistanceSetting.value);
+        settings.shadowQuality = parseInt(this.shadowsSetting.value);
         settings.waterDetail = parseInt(this.waterDetailSetting.value);
         settings.waterReflection = parseInt(this.waterReflectionSetting.value);
         settings.waterRefraction = parseInt(this.waterRefractionSetting.value);
@@ -78,14 +81,16 @@ class UI {
     
     setOverlayVisibility(element, visible) {
         if(visible) {
-            element.className = element.className.replace('hide', 'show');
-            this.topBar.className += ' hidden';
+            element.classList.remove('hide');
+            element.classList.add('show');
+            this.topBar.classList.add('hide');
         } else {
+            element.classList.remove('show');
             element.className = element.className.replace('show', '');
-            this.topBar.className = this.topBar.className.replace('hidden', '');
+            this.topBar.classList.remove('hide');
             
             setTimeout(() => {
-                element.className += ' hide';
+                element.classList.add('hide');
             }, 400);
         }
     }

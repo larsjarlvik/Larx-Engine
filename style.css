@@ -63,7 +63,7 @@ a:hover {
     -ms-appearance: none;
     -webkit-appearance: none;
     -moz-appearance: none;
-    border: 3px solid #484848;
+    border: .2em solid #484848;
     min-width: 30%;
     font-size: 85%;
 }
@@ -136,7 +136,7 @@ a:hover {
     transition: transform .2s ease-in-out;
 }
 
-.top-bar.hidden {
+.top-bar.hide {
     transform: translate3d(0, -100%, 0);
 }
 

@@ -22,6 +22,7 @@ class Settings {
         this.values = {
             renderMode: Larx.RENDER_MODES.FXAA,
             viewDistance: 500,
+            shadowQuality: 12,
             waterDetail: 1,
             waterReflection: 1,
             waterRefraction: 1

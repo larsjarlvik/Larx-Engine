@@ -25,7 +25,11 @@
         .then(function() {
             gameLoop.start();
             mousePicker = new LarxMousePicker(models.terrain, 10);
-            Larx.Shadows.init(12, shadowShader);
+            
+            let shadowQuality = settings.values.shadowQuality;
+            if (shadowQuality > 0) {
+                Larx.Shadows.init(shadowQuality, shadowShader);
+            }
             
             setInterval(function() {
                 document.getElementById('fps').innerHTML = 
@@ -211,8 +215,14 @@
     function doLogic(time) {
         mousePicker.updateMouse();
         input.update(mousePicker);
-        Larx.Camera.update(time);
         models.water.update();
+        
+        Larx.Camera.update(time);
+        
+        let camMatrix = Larx.Camera.getMatrix();
+        let elev = models.terrain.getElevationAtPoint(camMatrix.x, camMatrix.z);
+        
+        Larx.Camera.look.y = elev;
     }
     
     function render() {
@@ -245,10 +255,12 @@
         }
         
         function renderShadowMap() {
+            if(settings.values.shadowQuality === 0) {
+                return;
+            }
+            
             Larx.Shadows.bind();
-            
             models.decorations.render(Larx.Shadows.shader);
-            
             Larx.Shadows.unbind();
         }
         
@@ -263,11 +275,18 @@
                 
                 Larx.Matrix.setIdentity(Larx.Camera.getMatrix());                
                 Larx.Matrix.setUniforms(defaultShader);
-                Larx.Shadows.enable(defaultShader);
+                
+                if(settings.values.shadowQuality > 0) {
+                    Larx.Shadows.enable(defaultShader);
+                }
                 
                 models.terrain.render(defaultShader, models.terrain.clip.BOTTOM, models.terrain.reflect.NO);
                 
-                Larx.Shadows.disable(defaultShader);
+                if(settings.values.shadowQuality > 0) {
+                    Larx.Shadows.disable(defaultShader);
+                    Larx.Shadows.shader.cleanUp();
+                }
+                
                 Larx.gl.enable(Larx.gl.BLEND);
                 cursorShader.use();
                 cursor.render(cursorShader, mousePicker.getCoordinates());
@@ -298,8 +317,6 @@
                 
                 mouseShader.use();
                 mousePicker.render(mouseShader);
-                
-                Larx.Shadows.shader.cleanUp();
             }
         );
     }

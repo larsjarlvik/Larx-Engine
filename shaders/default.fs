@@ -18,17 +18,18 @@ const int CLIP_ABOVE = 1;
 const int CLIP_BELOW = 2;
 
 const float PCF_COUNT = 2.0;
-float texelSize = 1.0 / uShadowMapResolution;
+
 
 float getShadowFactor() {
     float totalTexels = (PCF_COUNT * 2.0 + 1.0) * (PCF_COUNT * 2.0 + 1.0);
+    float texelSize = 1.0 / uShadowMapResolution;
     float total = 0.0;
     
-    for(float x = -PCF_COUNT; x <= PCF_COUNT; x += 1.0) {
-        for(float y = -PCF_COUNT; y <= PCF_COUNT; y += 1.0) {
+    for(float x = -PCF_COUNT; x <= PCF_COUNT; x += 0.25) {
+        for(float y = -PCF_COUNT; y <= PCF_COUNT; y += 0.25) {
             float nearestLight = texture2D(uShadowMapTexture, vShadowCoords.xy + vec2(x, y) * texelSize).r;
             if(vShadowCoords.z > nearestLight) {
-                total += 1.0;
+                total += 0.08;
             }
         }
     }

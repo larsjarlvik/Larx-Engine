@@ -63,5 +63,5 @@ vec4 fxaa(sampler2D tex, vec2 fragCoord, vec2 resolution, vec2 v_rgbNW, vec2 v_r
 
 void main(void) {   
     gl_FragColor = texture2D(uTexture, vTexCoords);
-    //gl_FragColor = fxaa(uTexture, gl_FragCoord.xy, vResolution, v_rgbNW, v_rgbNE, v_rgbSW, v_rgbSE, v_rgbM);
+    gl_FragColor = fxaa(uTexture, gl_FragCoord.xy, vResolution, v_rgbNW, v_rgbNE, v_rgbSW, v_rgbSE, v_rgbM);
 }
