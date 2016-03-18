@@ -28,7 +28,7 @@ float getShadowFactor() {
     for(float x = -PCF_COUNT; x <= PCF_COUNT; x += 0.25) {
         for(float y = -PCF_COUNT; y <= PCF_COUNT; y += 0.25) {
             float nearestLight = texture2D(uShadowMapTexture, vShadowCoords.xy + vec2(x, y) * texelSize).r;
-            if(vShadowCoords.z > nearestLight) {
+            if(vShadowCoords.z <= 1.0 && vShadowCoords.z > nearestLight) {
                 total += 0.08;
             }
         }
