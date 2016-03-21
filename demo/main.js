@@ -29,15 +29,15 @@
             
             switch(settings.values.shadowQuality) {
                 case 1: 
-                    Larx.Shadows.init(11, 0.5, shadowShader);
+                    Larx.Shadows.init(11, shadowShader);
                     useShadows = true;
                     break;
                 case 2:
-                    Larx.Shadows.init(12, 1.0, shadowShader);
+                    Larx.Shadows.init(12, shadowShader);
                     useShadows = true;
                     break;
                 case 3:
-                    Larx.Shadows.init(13, 2.0, shadowShader);
+                    Larx.Shadows.init(13, shadowShader);
                     useShadows = true;
                     break;
             }

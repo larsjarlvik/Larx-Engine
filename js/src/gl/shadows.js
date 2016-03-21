@@ -1,9 +1,8 @@
 'use strict';
 
 class LarxShadows {
-    init(size, quality, shader) {
+    init(size, shader) {
         this.resolution = Math.pow(2, size);
-        this.pcfCount = quality;
 
         this.shadowMap = new LarxFramebuffer(this.resolution, this.resolution);
         this.shadowMap.buildDepthBuffer();
@@ -50,8 +49,6 @@ class LarxShadows {
         targetShader.setShadowDistanceTransition(this.shadowDistance, this.shadowDistance / 10);
         targetShader.setShadowMapResolution(this.resolution);
         targetShader.enableShadows(true);
-        
-        console.log(this.pcfCount);
         
         mat4.multiply(this.projectionViewMatrix, this.offset, this.projectionViewMatrix);
         targetShader.setShadowMapSpaceMatrix(this.projectionViewMatrix);
