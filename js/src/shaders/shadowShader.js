@@ -1,4 +1,4 @@
-"use strict";
+'use strict';
 
 class LarxShadowShader extends LarxShader {
     constructor() {

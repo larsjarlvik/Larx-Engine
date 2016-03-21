@@ -17,7 +17,7 @@ uniform float uShadowMapResolution;
 const int CLIP_ABOVE = 1;
 const int CLIP_BELOW = 2;
 
-const float PCF_COUNT = 2.0;
+const float PCF_COUNT = 1.0;
 
 
 float getShadowFactor() {
@@ -25,11 +25,11 @@ float getShadowFactor() {
     float texelSize = 1.0 / uShadowMapResolution;
     float total = 0.0;
     
-    for(float x = -PCF_COUNT; x <= PCF_COUNT; x += 0.25) {
-        for(float y = -PCF_COUNT; y <= PCF_COUNT; y += 0.25) {
+    for(float x = -PCF_COUNT; x <= PCF_COUNT; x += 0.5) {
+        for(float y = -PCF_COUNT; y <= PCF_COUNT; y += 0.5) {
             float nearestLight = texture2D(uShadowMapTexture, vShadowCoords.xy + vec2(x, y) * texelSize).r;
             if(vShadowCoords.z <= 1.0 && vShadowCoords.z > nearestLight) {
-                total += 0.08;
+                total += 0.16;
             }
         }
     }
@@ -39,8 +39,7 @@ float getShadowFactor() {
     return 1.0 - (total * vShadowCoords.w);
 }
 
-void main(void) {   
-    
+void main(void) {
     if(uClipPlane == CLIP_ABOVE && vVertexPosition.y < -uClipPlaneLevel) discard;
     if(uClipPlane == CLIP_BELOW && vVertexPosition.y > -uClipPlaneLevel) discard;   
     

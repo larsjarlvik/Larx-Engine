@@ -1,39 +1,13 @@
-"use strict";
+'use strict';
 
 class LarxDecorations {
     constructor(terrain) {
         this.terrain = terrain;
         
-        this.numBlocks = 6;
         this.size = this.terrain.getSize() - 0.5;
-        this.blockSize = this.size / this.numBlocks;
-        
-        this.decorsAboveWL = [];
-        this.decorsBelowWL = [];
-        
         this.flags = { default: 0, reflect: 1, refract: 2 };
         
-        function initDecorBlock(bx, bz) {
-            let model = new LarxModel();
-            model.x = bx;
-            model.z = bz;
-            model.shininess = 1.0;
-            model.specularWeight = 1.0;
-            
-            return model;
-        }
-        
-        for(let x = 0; x < this.numBlocks; x++) {
-            let bx = x * this.blockSize - (this.size / 2);
-        
-            for(let z = 0; z < this.numBlocks; z++) {
-                let bz = z * this.blockSize - (this.size / 2);
-                let i = z * this.numBlocks + x;
-                
-                this.decorsAboveWL[i] = initDecorBlock(bx, bz);
-                this.decorsBelowWL[i] = initDecorBlock(bx, bz);
-            }
-        }
+        this.blocks = new LarxModelBlock(this.size, 2);
     }
     
     testBounds(coords, yLimits) {
@@ -52,9 +26,6 @@ class LarxDecorations {
         let by = this.terrain.getElevationAtPoint(x, z);
         
         if(!this.testBounds([x, by, z], yLimit)) { return false; }
-        
-        let block = [Math.floor(xz[1] / this.blockSize), Math.floor(xz[0] / this.blockSize)];
-        let blockIndex = block[0] * this.numBlocks + block[1];
         
         let m = model.clone();
         m.scale(Math.random() * (scaleLimit[1] - scaleLimit[0]) + scaleLimit[0]);
@@ -75,42 +46,19 @@ class LarxDecorations {
         m.translate([x, by, z]);
         m.setBounds();
         
-        if(by + m.bounds.vMin[1] > -0.5) {
-            this.decorsAboveWL[blockIndex].push(m);
-        } else {
-            this.decorsBelowWL[blockIndex].push(m);
-        }
+        this.blocks.push(m);
         
         return true;
     }
     
     bind() {
-        for(let i = 0; i < this.decorsAboveWL.length; i ++) {
-            
-            this.decorsAboveWL[i].setBounds();
-            this.decorsAboveWL[i].bindBuffers();
-        }
-        
-        for(let i = 0; i < this.decorsBelowWL.length; i ++) {
-            this.decorsBelowWL[i].setBounds();
-            this.decorsBelowWL[i].bindBuffers();
-        }
+        this.blocks.bind();
     }
-
-    render(shader, clip, flag) {
+    
+    render(sp) {
+        Larx.gl.uniform1f(sp.shader.shininess, 3.0);
+        Larx.gl.uniform1f(sp.shader.specularWeight, 0.7);
         
-        if(flag !== this.flags.refract) {
-            for(let i = 0; i < this.decorsAboveWL.length; i ++) {
-                if(this.decorsAboveWL[i].vertices.length === 0) { continue; }
-                this.decorsAboveWL[i].render(shader, flag === this.flags.reflect);
-            }  
-        }
-
-        if(flag !== this.flags.reflect) {
-            for(let i = 0; i < this.decorsBelowWL.length; i ++) {
-                if(this.decorsBelowWL[i].vertices.length === 0) { continue; }
-                this.decorsBelowWL[i].render(shader, flag === this.flags.reflect);
-            }  
-        }
+        this.blocks.render(sp);
     }
 }

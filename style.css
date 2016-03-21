@@ -66,6 +66,7 @@ a:hover {
     border: .2em solid #484848;
     min-width: 30%;
     font-size: 85%;
+    padding: .8%;
 }
 
 .setting select option {

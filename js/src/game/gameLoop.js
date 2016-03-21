@@ -1,4 +1,4 @@
-"use strict";
+'use strict';
 
 class LarxGameLoop {
     constructor(logicCallback, renderCallback, targetFps) {
@@ -17,19 +17,21 @@ class LarxGameLoop {
             idealTimePerFrame = 1000 / this.targetFps,
             timeSinceLastDoLogic;
         
+        let self = this;
         function tick() {
-        }
-        
-        setInterval(() => {
             timeAtThisFrame = new Date().getTime();
             timeSinceLastDoLogic = (timeAtThisFrame - timeAtLastFrame);
             
-            this.logicCallback(timeSinceLastDoLogic);
-            this.renderCallback()
+            self.logicCallback(timeSinceLastDoLogic);
+            self.renderCallback()
             currentFps ++;
             
             timeAtLastFrame = timeAtThisFrame;
-        }, 1000 / this.targetFps);
+            
+            requestAnimationFrame(() => tick());
+        }
+        
+            requestAnimationFrame(() => tick());
         
         
         setInterval(() => {

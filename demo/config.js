@@ -27,10 +27,10 @@ var config = {
         color: [0.601, 0.816, 0.820]
     },
     water: {
-        quality: 6,
+        quality: 20,
         detail: 10,
         color: [0.295, 0.905, 0.823],
-        waveHeight: 0.8,
+        waveHeight: 1.4,
         speed: 0.001,
         distortion: 2.5,
         edgeWhitening: 1.8, 
@@ -59,7 +59,7 @@ var config = {
             count: 500,
             model: 'rock-1',
             tiltLimit: 0.0,
-            scale: [-1.5, 3.0],
+            scale: [0.5, 3.0],
             tiltToTerrain: false,
             yLimits: [-1.5, 1.5],
             selectable: true,

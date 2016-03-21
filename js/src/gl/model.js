@@ -151,8 +151,10 @@ class LarxModel {
         parseFaces(lines, bodyStart + this.vertexCount);
     }
     
+    
     bindBuffers() {
         function bindBuffer(buffer, data, itemSize) {
+            
             if(!data) { return; }
             if(!buffer) { buffer = Larx.gl.createBuffer();  }
             
@@ -248,11 +250,17 @@ class LarxModel {
             Array.prototype.push.apply(target.normals, this.normals);
         }
         
+        if(this.texCoords) {
+            target.texCoords = [];
+            Array.prototype.push.apply(target.texCoords, this.texCoords);
+        }
+        
         target.shininess = this.shininess;
         target.opacity = this.opacity;
         target.specularWeight = this.specularWeight;
         target.faceCount = this.faceCount;
         target.vertexCount = this.vertexCount;
+        target.bounds = this.bounds;
         
         return target;
     }
@@ -270,6 +278,11 @@ class LarxModel {
         if(source.normals) { 
             if(!this.normals) { this.normals = []; }
             Array.prototype.push.apply(this.normals, source.normals); 
+        }
+        
+        if(source.texCoords) { 
+            if(!this.texCoords) { this.texCoords = []; }
+            Array.prototype.push.apply(this.texCoords, source.texCoords); 
         }
         
         Array.prototype.push.apply(this.vertices, source.vertices);
@@ -334,11 +347,7 @@ class LarxModel {
             this.bounds.vMax[1] - this.bounds.vMin[1], 
             this.bounds.vMax[2] - this.bounds.vMin[2]];
     }
-
-    inFrustum() {
-        if(!this.bounds) { return true; }
-        return Larx.Frustum.inFrustum(this.bounds.vMin, this.bounds.vMax);
-    }
+    
 
     setAttribute(attribute, buffer) {
         if(buffer !== undefined && attribute != undefined) {
@@ -347,14 +356,10 @@ class LarxModel {
         }
     }
     
-    render (sp, reflect) {
-        if(!this.vertexBuffer || !this.inFrustum()) {
+    render (sp) {
+        if(!this.vertexBuffer) {
             return;
         }
-        
-        if(sp.shader.shininess) { Larx.gl.uniform1f(sp.shader.shininess, this.shininess); }
-        if(sp.shader.opacity) { Larx.gl.uniform1f(sp.shader.opacity, this.opacity); }
-        if(sp.shader.specularWeight) { Larx.gl.uniform1f(sp.shader.specularWeight, this.specularWeight); }
         
         this.setAttribute(sp.shader.vertexPositionAttribute, this.vertexBuffer);
         this.setAttribute(sp.shader.vertexColorAttribute, this.colorBuffer);

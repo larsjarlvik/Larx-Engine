@@ -1,4 +1,4 @@
-"use strict";
+'use strict';
 
 class LarxShadows {
     init(quality, shader) {
@@ -79,8 +79,7 @@ class LarxShadows {
         
         vec3.normalize(lightDirection, lightDirection);
         
-        let directionXY = vec2.fromValues(lightDirection[0], lightDirection[2]);
-        let pitch = Math.acos(vec2.length(directionXY));
+        let pitch = Math.acos(vec2.length(vec2.fromValues(lightDirection[0], lightDirection[2])));
         let yaw = Larx.Math.radToDeg(Math.atan(lightDirection[0] / lightDirection[2]));
         
 		yaw = lightDirection[2] > 0 ? yaw - 180 : yaw;

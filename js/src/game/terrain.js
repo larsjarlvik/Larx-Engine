@@ -1,4 +1,4 @@
-"use strict";
+'use strict';
 
 class LarxTerrain {
     constructor(scale) {
@@ -9,49 +9,23 @@ class LarxTerrain {
         this.underwater;
         this.scale = scale;
         
-        this.numBlocks = 4;
-        this.blockSize;
-        this.blocks = [];
+        this.blocks;
         
         this.reflect = { NO: 0, YES: 1 };
         this.clip = { NONE: 0, TOP: 1, BOTTOM: 2 };
     }
     
     setLightSettings(shininess, specularWeight) {
+        /*
         for(var i = 0; i < this.blocks.length; i++) {
             this.blocks[i].shininess = shininess;
             this.blocks[i].specularWeight = specularWeight;
         }
+        */
     }
 
     getSize() {
         return this.size * this.scale;
-    }
-       
-    append(model, mx, mz, vec, color) {
-        model.vertices.push(mx + vec[0]);
-        model.vertices.push(vec[1]);
-        model.vertices.push(mz + vec[2]);
-        
-        model.colors.push(color[0]); 
-        model.colors.push(color[1]); 
-        model.colors.push(color[2]); 
-        
-        model.normals.push(0); 
-        model.normals.push(1); 
-        model.normals.push(0); 
-    }
-    
-    setIndices(model, x, z) {
-        var start = (z * (this.blockSize) + x) * 6;
-        
-        model.indices.push(start + 0);
-        model.indices.push(start + 1);
-        model.indices.push(start + 2);
-        
-        model.indices.push(start + 3);
-        model.indices.push(start + 4);
-        model.indices.push(start + 5);
     }
     
     getColor(x, y) {    
@@ -62,77 +36,7 @@ class LarxTerrain {
         return [
             this.colormap.data[xy] / 255,
             this.colormap.data[xy + 1] / 255,
-            this.colormap.data[xy + 2] / 255,
-            this.colormap.data[xy + 3] / 255];
-    }
-    
-    buildBlock(bx, bz) {
-        var s = this.scale;
-        var model = new LarxModel();
-        
-        var mx = (bx * this.blockSize - (this.size / 2)) * this.scale;
-        var mz = (bz * this.blockSize - (this.size / 2)) * this.scale;
-        
-        model.colors = [];
-        model.normals = [];
-        
-        for(var z = 0; z < this.blockSize; z++) {
-            var vz = z * s;
-            
-            for(var x = 0; x < this.blockSize; x++) {
-                var vecs = [], colors = [];
-                var vx = x * s;
-                var tx = bx * this.blockSize + x,
-                    tz = bz * this.blockSize + z;
-                
-                if((x%2 === 0 && z%2 === 0) || (x%2 === 1 && z%2 === 1)) {
-                    vecs.push([vx + s, this.getHeight(tx + 1, tz),    vz]);
-                    vecs.push([vx,     this.getHeight(tx, tz),        vz]);
-                    vecs.push([vx,     this.getHeight(tx, tz + 1),    vz + s]);
-                    
-                    colors.push(this.getColor(tx + 1, tz));
-                    colors.push(this.getColor(tx, tz));
-                    colors.push(this.getColor(tx, tz + 1));
-                    
-                    vecs.push([vx + s, this.getHeight(tx + 1, tz),     vz]);
-                    vecs.push([vx,     this.getHeight(tx, tz + 1),     vz + s]);
-                    vecs.push([vx + s, this.getHeight(tx + 1, tz + 1), vz + s]);
-                    
-                    colors.push(this.getColor(tx + 1, tz));
-                    colors.push(this.getColor(tx, tz + 1));
-                    colors.push(this.getColor(tx + 1, tz + 1));
-                } else {
-                    vecs.push([vx + s, this.getHeight(tx + 1, tz + 1), vz + s]);
-                    vecs.push([vx,     this.getHeight(tx, tz),         vz]);
-                    vecs.push([vx,     this.getHeight(tx, tz + 1),     vz + s]);
-                    
-                    colors.push(this.getColor(tx + 1, tz + 1));
-                    colors.push(this.getColor(tx, tz));
-                    colors.push(this.getColor(tx, tz + 1));
-                    
-                    vecs.push([vx + s, this.getHeight(tx + 1, tz),     vz]);
-                    vecs.push([vx,     this.getHeight(tx, tz),         vz]);
-                    vecs.push([vx + s, this.getHeight(tx + 1, tz + 1), vz + s]);
-                    
-                    colors.push(this.getColor(tx + 1, tz));
-                    colors.push(this.getColor(tx, tz));
-                    colors.push(this.getColor(tx + 1, tz + 1));
-                }
-                
-                
-                this.append(model, mx, mz, vecs[0], colors[0]);
-                this.append(model, mx, mz, vecs[1], colors[1]);
-                this.append(model, mx, mz, vecs[2], colors[2]);
-                
-                this.append(model, mx, mz, vecs[3], colors[3]);
-                this.append(model, mx, mz, vecs[4], colors[4]);
-                this.append(model, mx, mz, vecs[5], colors[5]);
-                
-                this.setIndices(model, x, z);
-            } 
-        }
-        
-        return model;
+            this.colormap.data[xy + 2] / 255];
     }
         
     setImageHeights() {
@@ -154,21 +58,82 @@ class LarxTerrain {
         }
     }
     
-    build() {      
-        this.size = this.heightmap.size;
-        this.blockSize = this.size / this.numBlocks;
-        this.setImageHeights();
+    buildSquare(x, z, vx, vz, s) {
+        const m = new LarxModel();
+
+        m.colors = [];
+        m.normals = [];
+
+        if((x%2 === 0 && z%2 === 0) || (x%2 === 1 && z%2 === 1)) {
+            m.vertices = m.vertices.concat([vx + s, this.getHeight(x + 1, z),    vz]);
+            m.vertices = m.vertices.concat([vx,     this.getHeight(x, z),        vz]);
+            m.vertices = m.vertices.concat([vx,     this.getHeight(x, z + 1),    vz + s]);
+            
+            m.colors = m.colors.concat(this.getColor(x + 1, z));
+            m.colors = m.colors.concat(this.getColor(x, z));
+            m.colors = m.colors.concat(this.getColor(x, z + 1));
+            
+            m.vertices = m.vertices.concat([vx + s, this.getHeight(x + 1, z),     vz]);
+            m.vertices = m.vertices.concat([vx,     this.getHeight(x, z + 1),     vz + s]);
+            m.vertices = m.vertices.concat([vx + s, this.getHeight(x + 1, z + 1), vz + s]);
+            
+            m.colors = m.colors.concat(this.getColor(x + 1, z));
+            m.colors = m.colors.concat(this.getColor(x, z + 1));
+            m.colors = m.colors.concat(this.getColor(x + 1, z + 1));
+        } else {
+            m.vertices = m.vertices.concat([vx + s, this.getHeight(x + 1, z + 1), vz + s]);
+            m.vertices = m.vertices.concat([vx,     this.getHeight(x, z),         vz]);
+            m.vertices = m.vertices.concat([vx,     this.getHeight(x, z + 1),     vz + s]);
+            
+            m.colors = m.colors.concat(this.getColor(x + 1, z + 1));
+            m.colors = m.colors.concat(this.getColor(x, z));
+            m.colors = m.colors.concat(this.getColor(x, z + 1));
+            
+            m.vertices = m.vertices.concat([vx + s, this.getHeight(x + 1, z),     vz]);
+            m.vertices = m.vertices.concat([vx,     this.getHeight(x, z),         vz]);
+            m.vertices = m.vertices.concat([vx + s, this.getHeight(x + 1, z + 1), vz + s]);
+            
+            m.colors = m.colors.concat(this.getColor(x + 1, z));
+            m.colors = m.colors.concat(this.getColor(x, z));
+            m.colors = m.colors.concat(this.getColor(x + 1, z + 1));
+        }
         
-        for(var x = 0; x < this.numBlocks; x++) {
-            for(var z = 0; z < this.numBlocks; z++) {
-                var block = this.buildBlock(x, z);
+        m.vertexCount = 6;
+        m.faceCount = 2;
+
+        m.indices.push(0);
+        m.indices.push(1);
+        m.indices.push(2);
+        
+        m.indices.push(3);
+        m.indices.push(4);
+        m.indices.push(5);
+        
+        m.calculateNormals();
+        m.setBounds();
+
+        this.blocks.push(m);
+    }
+    
+    build() {      
+        try {
+            this.size = this.heightmap.size;
+            this.setImageHeights();
+            this.blocks = new LarxModelBlock(this.size * this.scale, 2);
+            let s = this.scale;
+            
+            for(let z = 0; z < this.size; z++) {
+                const vz = (z - (this.size / 2)) * s;
                 
-                block.calculateNormals();
-                block.setBounds();
-                block.bindBuffers(); 
-                
-                this.blocks.push(block);
+                for(let x = 0; x < this.size; x++) {
+                    const vx = (x - (this.size / 2)) * s;
+                    this.buildSquare(x, z, vx, vz, s);
+                } 
             }
+            
+            this.blocks.bind();
+        }catch(e) {
+            console.error(e)
         }
     }
     
@@ -208,7 +173,7 @@ class LarxTerrain {
             v3 = [1, this.getHeight(p.gx + 1, p.gz + 1), 1];
         }
 
-        return this.baryCentric(v1, v2, v3, [p.xc, p.zc]);
+        return Larx.Math.baryCentric(v1, v2, v3, [p.xc, p.zc]);
     }
     
     getAngle(cx, cz, sx, sz) {
@@ -258,14 +223,6 @@ class LarxTerrain {
         });
     }
     
-    baryCentric(p1, p2, p3, pos) {
-        var det = (p2[2] - p3[2]) * (p1[0] - p3[0]) + (p3[0] - p2[0]) * (p1[2] - p3[2]);
-        var l1 = ((p2[2] - p3[2]) * (pos[0] - p3[0]) + (p3[0] - p2[0]) * (pos[1] - p3[2])) / det;
-        var l2 = ((p3[2] - p1[2]) * (pos[0] - p3[0]) + (p1[0] - p3[0]) * (pos[1] - p3[2])) / det;
-        var l3 = 1.0 - l1 - l2;
-        
-        return l1 * p1[1] + l2 * p2[1] + l3 * p3[1];
-    }
     
     getPoint(x, z) {
         x = (x + (this.getSize() / 2)) / this.scale;
@@ -279,12 +236,10 @@ class LarxTerrain {
         };
     }
     
-    render(shader, clip, reflect) {   
-        for(var i = 0; i < this.blocks.length; i ++) {
-            if(clip === this.clip.BOTTOM && this.blocks[i].bounds.vMax[1] < -0.3) { continue; }
-            if(clip === this.clip.TOP && this.blocks[i].bounds.vMin[1] >  0.3) { continue; }
-            
-            this.blocks[i].render(shader, reflect === this.reflect.YES);
-        }
+    render(sp, reflect) {   
+        Larx.gl.uniform1f(sp.shader.shininess, 1.0);
+        Larx.gl.uniform1f(sp.shader.specularWeight, 0.1);
+        
+        this.blocks.render(sp);
     }
 };

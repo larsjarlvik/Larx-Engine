@@ -3,12 +3,11 @@
 /* global input */
 
 (function() {
-    var renderTarget = document.getElementById('viewport');
-    var defaultShader, waterShader, mouseShader, cursorShader, shadowShader;
-    var settings = new Settings();
-    var ui, gameLoop, cursor, mousePicker;
-    
-    var models = {
+    let renderTarget = document.getElementById('viewport');
+    let defaultShader, waterShader, mouseShader, cursorShader, shadowShader;
+    let settings = new Settings();
+    let ui, gameLoop, cursor, mousePicker;
+    let models = {
         terrain: undefined,
         water: undefined,
         decorations: undefined
@@ -70,6 +69,7 @@
                 
                 resolve();
             }).catch(function (e) { 
+                alert(e.message);
                 console.error(e);
                 reject();
             });
@@ -81,7 +81,7 @@
         
         switch(settings.values.waterDetail) {
             case 0:
-                config.water.quality = 4;
+                config.water.quality = 3;
                 config.water.detail = 8;
                 break;
             case 1:
@@ -89,7 +89,7 @@
                 config.water.detail = 9;
                 break;
             case 2:
-                config.water.quality = 8;
+                config.water.quality = 7;
                 config.water.detail = 10;
                 break;
         }
@@ -123,6 +123,7 @@
     function initCursors() {
         cursor = new LarxCursor(models.terrain);
         cursor.color = config.mouse.colors.default;
+        cursor.model.setBounds();
         
         return Promise.resolve();
     }
