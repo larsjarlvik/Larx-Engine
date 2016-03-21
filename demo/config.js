@@ -1,5 +1,4 @@
 var config = {
-    targetFps: 60,
     clearColor: [0.601, 0.816, 0.820, 1.0],
     mapScale: 5.0,
     mouse: {
@@ -27,6 +26,7 @@ var config = {
         color: [0.601, 0.816, 0.820]
     },
     water: {
+        fps: 40,
         quality: 20,
         detail: 10,
         color: [0.295, 0.905, 0.823],

@@ -6,7 +6,7 @@ class LarxCamera  {
         this.look = { x: 0, y: 0, z: 0 };
         this.rot = { v: 0, h: 0 };
         this.speed = { x: 0, z: 0, h: 0, v: 0, zoom: 0 };
-        this.deceleration = { zoom: 4, move: 4, rotation: 1.5 };
+        this.deceleration = { zoom: 4, move: 2, rotation: 1.5 };
         this.limits = { zoom: 4.0, move: 4.0 };
     }
     

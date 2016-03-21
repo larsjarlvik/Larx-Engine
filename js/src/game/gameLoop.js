@@ -1,10 +1,9 @@
 'use strict';
 
 class LarxGameLoop {
-    constructor(logicCallback, renderCallback, targetFps) {
-        this.targetFps = targetFps;
+    constructor(logicCallback, renderCallback) {
         this.fps = 0;
-        this.averageFpsMinute = 0;
+        this.averageFps = 0;
         this.logicCallback =  logicCallback;
         this.renderCallback = renderCallback;
     }
@@ -12,27 +11,24 @@ class LarxGameLoop {
     start() {
         let currentFps = 0;
         let averageFps = 0;
-        let timeAtLastFrame = new Date().getTime(),
-            timeAtThisFrame = new Date().getTime(),
-            idealTimePerFrame = 1000 / this.targetFps,
+        let timeAtLastFrame = performance.now(),
+            timeAtThisFrame = performance.now(),
             timeSinceLastDoLogic;
         
         let self = this;
-        function tick() {
-            timeAtThisFrame = new Date().getTime();
+        function render() {
+            timeAtThisFrame = performance.now();
             timeSinceLastDoLogic = (timeAtThisFrame - timeAtLastFrame);
             
             self.logicCallback(timeSinceLastDoLogic);
-            self.renderCallback()
+            self.renderCallback();
+            
+            requestAnimationFrame(() => render());
             currentFps ++;
-            
             timeAtLastFrame = timeAtThisFrame;
-            
-            requestAnimationFrame(() => tick());
         }
         
-            requestAnimationFrame(() => tick());
-        
+        requestAnimationFrame(() => render());
         
         setInterval(() => {
             this.fps = currentFps;
@@ -41,7 +37,7 @@ class LarxGameLoop {
         }, 1000);
         
         setInterval(() => {
-            this.averageFpsMinute = (averageFps / 20).toFixed(1);
+            this.averageFps = (averageFps / 20).toFixed(1);
             averageFps = 0;
         }, 20000);
     }

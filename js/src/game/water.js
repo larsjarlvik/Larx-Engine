@@ -6,18 +6,20 @@ class LarxWater {
         this.waveHeight = 0.25;
         this.speed = 0.01;
         this.frames = [];
-        this.currentFrame = 0;
         this.refraction;
-        this.reflection;        
+        this.reflection;      
+        
+        this.time = 0;
+        this.currentFrame = 0;  
     }
     
-    build(terrain, targetFps) {
+    build(terrain) {
         this.size = terrain.getSize() - (terrain.scale * 2);
         
         let tileCount = Math.floor(this.size / (100 / this.quality));
         let ts = this.size / tileCount;
                 
-        let frameTime = (1000.0 / targetFps);
+        let frameTime = (1000.0 / this.fps);
         let target;
         
         for(let i = 0; i < Math.PI / this.speed; i += frameTime) {
@@ -91,17 +93,21 @@ class LarxWater {
         }
     }
     
-    generate(terrain, quality, targetFps) {
+    generate(terrain, quality, fps) {
+        this.fps = fps;
         this.quality = quality;
         this.size = terrain.getSize() - (2 * terrain.scale) - 0.5;
         
-        this.build(terrain, targetFps);
+        this.build(terrain);
         
         return Promise.resolve();
     }
     
-    update() {
-        this.currentFrame ++;
+    update(delta) {
+        this.time += delta / 1000;
+        this.time = this.time;
+        
+        this.currentFrame = Math.floor(this.fps * this.time);
         this.currentFrame = this.currentFrame % this.frames.length;
     }
     

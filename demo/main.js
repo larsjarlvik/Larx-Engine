@@ -45,7 +45,7 @@
             setInterval(function() {
                 document.getElementById('fps').innerHTML = 
                     'FPS: ' + gameLoop.fps + ' ' +
-                    'AVG: ' + gameLoop.averageFpsMinute;
+                    'AVG: ' + gameLoop.averageFps;
             }, 1000);
         })
         .catch(function(err) { console.error(err); });
@@ -118,7 +118,7 @@
         Larx.setClearColor(config.clearColor);
         Larx.Matrix.farPlane = settings.values.viewDistance;
         
-        gameLoop = new LarxGameLoop(doLogic, render, config.targetFps);
+        gameLoop = new LarxGameLoop(doLogic, render);
     
         ui = new UI();
         return Promise.resolve();
@@ -171,7 +171,7 @@
             models.water.waveHeight = config.water.waveHeight;
             models.water.speed = config.water.speed;
             
-            models.water.generate(models.terrain, config.water.quality, config.targetFps)
+            models.water.generate(models.terrain, config.water.quality, config.water.fps)
                 .then(function(w) {
                     resolve();
                 })
@@ -225,17 +225,12 @@
         });
     }
    
-    function doLogic(time) {
+    function doLogic(delta) {
         mousePicker.updateMouse();
         input.update(mousePicker);
-        models.water.update();
         
-        Larx.Camera.update(time);
-        
-        let camMatrix = Larx.Camera.getMatrix();
-        let elev = models.terrain.getElevationAtPoint(camMatrix.x, camMatrix.z);
-        
-        Larx.Camera.look.y = elev;
+        models.water.update(delta);
+        Larx.Camera.update(delta);
     }
     
     function render() {
