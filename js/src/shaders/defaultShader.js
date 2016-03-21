@@ -56,6 +56,7 @@ class LarxDefaultShader extends LarxShader {
     cleanUp() {
         Larx.gl.disableVertexAttribArray(this.shader.vertexColorAttribute);
         Larx.gl.disableVertexAttribArray(this.shader.vertexNormalAttribute);
+        
         this.setClipPlane(0, 0); 
     }
 

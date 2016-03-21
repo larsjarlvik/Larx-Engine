@@ -4,6 +4,8 @@ varying vec3 vColor;
 varying vec3 vVertexPosition;
 varying float vVisibility;
 varying vec3 vLightWeighting;
+varying vec4 vShadowCoords;
+varying float vEnableShadows;
 
 uniform vec3 uFogColor;
 
@@ -11,25 +13,29 @@ uniform int uClipPlane;
 uniform float uClipPlaneLevel;
 
 uniform sampler2D uShadowMapTexture;
-varying vec4 vShadowCoords;
 uniform float uShadowMapResolution;
 
 const int CLIP_ABOVE = 1;
 const int CLIP_BELOW = 2;
 
 const float PCF_COUNT = 1.0;
+const float PCF_SAMLE_SIZE = 0.5;
 
 
 float getShadowFactor() {
-    float totalTexels = (PCF_COUNT * 2.0 + 1.0) * (PCF_COUNT * 2.0 + 1.0);
+    if(vShadowCoords.z > 1.0 || vEnableShadows == 0.0) {
+        return 1.0;
+    }
+    
+    float totalTexels = (PCF_COUNT * 2.0 + PCF_SAMLE_SIZE) * (PCF_COUNT * 2.0 + PCF_SAMLE_SIZE);
     float texelSize = 1.0 / uShadowMapResolution;
     float total = 0.0;
     
-    for(float x = -PCF_COUNT; x <= PCF_COUNT; x += 0.5) {
-        for(float y = -PCF_COUNT; y <= PCF_COUNT; y += 0.5) {
+    for(float x = -PCF_COUNT; x <= PCF_COUNT; x += PCF_SAMLE_SIZE) {
+        for(float y = -PCF_COUNT; y <= PCF_COUNT; y += PCF_SAMLE_SIZE) {
             float nearestLight = texture2D(uShadowMapTexture, vShadowCoords.xy + vec2(x, y) * texelSize).r;
-            if(vShadowCoords.z <= 1.0 && vShadowCoords.z > nearestLight) {
-                total += 0.16;
+            if(vShadowCoords.z > nearestLight) {
+                total += 0.2;
             }
         }
     }

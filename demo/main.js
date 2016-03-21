@@ -7,6 +7,8 @@
     let defaultShader, waterShader, mouseShader, cursorShader, shadowShader;
     let settings = new Settings();
     let ui, gameLoop, cursor, mousePicker;
+    let useShadows = false;
+    
     let models = {
         terrain: undefined,
         water: undefined,
@@ -25,9 +27,19 @@
             gameLoop.start();
             mousePicker = new LarxMousePicker(models.terrain, 10);
             
-            let shadowQuality = settings.values.shadowQuality;
-            if (shadowQuality > 0) {
-                Larx.Shadows.init(shadowQuality, shadowShader);
+            switch(settings.values.shadowQuality) {
+                case 1: 
+                    Larx.Shadows.init(11, 0.5, shadowShader);
+                    useShadows = true;
+                    break;
+                case 2:
+                    Larx.Shadows.init(12, 1.0, shadowShader);
+                    useShadows = true;
+                    break;
+                case 3:
+                    Larx.Shadows.init(13, 2.0, shadowShader);
+                    useShadows = true;
+                    break;
             }
             
             setInterval(function() {
@@ -256,7 +268,7 @@
         }
         
         function renderShadowMap() {
-            if(settings.values.shadowQuality === 0) {
+            if(!useShadows) {
                 return;
             }
             
@@ -277,13 +289,14 @@
                 Larx.Matrix.setIdentity(Larx.Camera.getMatrix());                
                 Larx.Matrix.setUniforms(defaultShader);
                 
-                if(settings.values.shadowQuality > 0) {
+                if(useShadows) {
                     Larx.Shadows.enable(defaultShader);
                 }
                 
                 models.terrain.render(defaultShader, models.terrain.clip.BOTTOM, models.terrain.reflect.NO);
+                defaultShader.cleanUp();
                 
-                if(settings.values.shadowQuality > 0) {
+                if(useShadows) {
                     Larx.Shadows.disable(defaultShader);
                     Larx.Shadows.shader.cleanUp();
                 }

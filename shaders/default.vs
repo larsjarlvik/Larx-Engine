@@ -22,11 +22,11 @@ uniform float uShadowTransition;
 uniform int uEnableShadows;
 
 varying float vVisibility;
-varying vec3 vColor;
+varying float vEnableShadows;
 
+varying vec3 vColor;
 varying vec3 vVertexPosition;
 varying vec3 vLightWeighting;
-
 varying vec4 vShadowCoords;
 
 void setShadowCoords(vec4 position, float distance) {
@@ -34,6 +34,8 @@ void setShadowCoords(vec4 position, float distance) {
         float fade = (distance - (uShadowDistance - uShadowTransition)) / uShadowTransition;
         vShadowCoords = shadowMvpMatrix * vec4(vVertexPosition, 1.0);
         vShadowCoords.w = clamp(1.0 - fade, 0.0, 0.5);
+        
+        vEnableShadows = 1.0;
     }
 }
 
