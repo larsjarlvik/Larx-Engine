@@ -6,12 +6,18 @@ class LarxShadows {
 
         this.shadowMap = new LarxFramebuffer(this.resolution, this.resolution);
         this.shadowMap.buildDepthBuffer();
+        this.shadowMap.bindDepthTexture(Larx.gl.TEXTURE4);
+        
         this.shader = shader;
         this.setOffset();
         this.calculateWidthsAndHeights();
         
         this.UP = vec3.fromValues(0, 1, 0);
         this.FORWARD = vec4.fromValues(0, 0, -1);
+        
+        this.projectionMatrix = mat4.create();
+        this.lightViewMatrix = mat4.create();
+        this.projectionViewMatrix = mat4.create();
     }
 
     setOffset() {
@@ -23,11 +29,8 @@ class LarxShadows {
 
 
     bind() {
-        this.projectionMatrix = mat4.create();
-        this.lightViewMatrix = mat4.create();
-        this.projectionViewMatrix = mat4.create();
+        this.camMatrix = Larx.Camera.getMatrix();
         
-        this.update();
         this.updateOrthoProjectionMatrix();
         this.updateLightViewMatrix();
         
@@ -43,8 +46,7 @@ class LarxShadows {
         this.shadowMap.unbind();
     }
 
-    enable(targetShader) {
-        this.shadowMap.bindDepthTexture(Larx.gl.TEXTURE4);
+    enable(targetShader) {        
         targetShader.setShadowMapTexture(4);
         targetShader.setShadowDistanceTransition(this.shadowDistance, this.shadowDistance / 10);
         targetShader.setShadowMapResolution(this.resolution);
@@ -89,9 +91,8 @@ class LarxShadows {
         mat4.translate(this.lightViewMatrix, this.lightViewMatrix, vec3.fromValues(this.camMatrix.x, this.camMatrix.y, this.camMatrix.z));
     }
 
-    update() {
-        this.camMatrix = Larx.Camera.getMatrix();
-        this.calculateShadowDistance();
+    update(shadowDistance) {
+        this.calculateShadowDistance(shadowDistance);
         
         let rotation = this.calculateCameraRotationMatrix();
         let forwardVector = vec3.create();
@@ -139,8 +140,8 @@ class LarxShadows {
         this.maxZ += 10;
     }
     
-    calculateShadowDistance() {
-        this.shadowDistance = Larx.Camera.zoomLevel * 5;
+    calculateShadowDistance(shadowDistance) {
+        this.shadowDistance = shadowDistance;
         if(this.shadowDistance > Larx.Matrix.farPlane) {
             this.shadowDistance = Larx.Matrix.farPlane;
         }

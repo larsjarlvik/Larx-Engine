@@ -1,13 +1,18 @@
 'use strict';
 
 class LarxDecorations {
-    constructor(terrain) {
+    constructor(terrain, fadeOut) {
         this.terrain = terrain;
+        this.fadeOut = fadeOut;
         
         this.size = this.terrain.getSize() - 0.5;
         this.flags = { default: 0, reflect: 1, refract: 2 };
         
-        this.blocks = new LarxModelBlock(this.size, 2);
+        this.blocks = new LarxModelBlock(this.size, 3);
+        
+        if(this.fadeOut) {
+            this.blocks.renderDistance = 1.0 / fadeOut;
+        }
     }
     
     testBounds(coords, yLimits) {
@@ -58,6 +63,8 @@ class LarxDecorations {
     render(sp) {
         Larx.gl.uniform1f(sp.shader.shininess, 3.0);
         Larx.gl.uniform1f(sp.shader.specularWeight, 0.7);
+        
+        if(sp.setFadeOut) { sp.setFadeOut(this.fadeOut); }
         
         this.blocks.render(sp);
     }

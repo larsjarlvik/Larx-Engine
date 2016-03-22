@@ -6,6 +6,7 @@ class LarxModelBlock {
         this.size = size;
         this.pos = -(size / 2);
         
+        this.renderDistance = undefined;
         this.maxDepth = maxDepth;
         this.root = {};
         
@@ -13,10 +14,14 @@ class LarxModelBlock {
     }
     
     initializeBlock(block, x, z, depth) {
+        block.size = this.size;
+        for(let i = 0; i < depth + 1; i ++) { block.size /= 2; }
+        
         block.pos = {
             x: x,
             z: z
         }
+        
         
         block.depth = depth;
         
@@ -27,12 +32,10 @@ class LarxModelBlock {
         
         block.children = [[{}, {}], [{}, {}]];
         
-        let blockSize = this.size;
-        for(let i = 0; i < depth + 1; i ++) { blockSize /= 2; }
         
         for(let nx = 0; nx < 2; nx++) {
             for(let nz = 0; nz < 2; nz++) {
-                this.initializeBlock(block.children[nx][nz], x + (nx * blockSize), z + (nz * blockSize), depth + 1);
+                this.initializeBlock(block.children[nx][nz], x + (nx * block.size), z + (nz * block.size), depth + 1);
             }
         }
     }
@@ -58,13 +61,26 @@ class LarxModelBlock {
         }
     }
     
+    getDistance(block) {
+        let dist = vec3.distance(vec3.fromValues(-this.camMatrix.x, this.camMatrix.y, -this.camMatrix.z), block.center);
+        return dist - block.size;
+    }
+    
     render(shader) {
+        this.camMatrix = Larx.Camera.getMatrix();
         this.renderBlock(shader, this.root);
     }
     
     renderBlock(shader, block) {
         if(block.children === undefined) {
-            block.model.render(shader);
+            if(!block.model.bounds.vMin || !block.center) {
+                return;
+            }
+            
+            if(!this.renderDistance || this.getDistance(block) < this.renderDistance) {
+                block.model.render(shader);
+            }            
+                
             return;   
         }
         
@@ -86,6 +102,15 @@ class LarxModelBlock {
         if(block.children === undefined) {
             block.model.setBounds();
             block.model.bindBuffers();
+            
+            if(block.model.bounds.vMin && block.model.bounds.vMax) {
+                block.center = vec3.fromValues(
+                    (block.model.bounds.vMax[0] - block.model.bounds.vMin[0]) / 2 + block.model.bounds.vMin[0],
+                    (block.model.bounds.vMax[1] - block.model.bounds.vMin[1]) / 2 + block.model.bounds.vMin[1],
+                    (block.model.bounds.vMax[2] - block.model.bounds.vMin[2]) / 2 + block.model.bounds.vMin[2]
+                );
+            }
+            
             return;
         }
 

@@ -12,7 +12,8 @@
     let models = {
         terrain: undefined,
         water: undefined,
-        decorations: undefined
+        decorations: undefined,
+        smallDecorations: undefined
     };
     
     initSettings()
@@ -22,6 +23,7 @@
         .then(initTerrain)
         .then(initWater)
         .then(initDecorations)
+        .then(initSmallDecorations)
         .then(initCursors)
         .then(function() {
             gameLoop.start();
@@ -218,6 +220,35 @@
         });
     }
     
+    function initSmallDecorations() {
+        return new Promise((resolve, reject) => {
+            models.smallDecorations = new LarxDecorations(models.terrain, 0.007);
+            
+            Promise.all(config.smallDecorations.map(initDecor)).then(function (result) {
+                for(var i in result) {
+                    var count = 0;
+                    var decor = result[i].decor;
+                    var model = result[i].model;
+                    
+                    while(count < decor.count) {
+                        var coords = getRandomCoords();
+                        var added = 
+                            models.smallDecorations.push(model, coords, true, decor.scale, decor.yLimits, decor.tiltToTerrain, decor.tiltLimit);
+                            
+                        if(added) { count++; }
+                    }                    
+                }
+                
+                models.smallDecorations.bind();
+                resolve();
+            })
+            .catch(function(e) { 
+                console.error(e); 
+                reject();
+            });
+        });
+    }
+    
     function initDecor(decor) {
         return new Promise((resolve) => {
             var model = new LarxModel();
@@ -268,7 +299,9 @@
             }
             
             Larx.Shadows.bind();
+            Larx.Shadows.update(Larx.Camera.zoomLevel * 3.5);
             models.decorations.render(Larx.Shadows.shader);
+            
             Larx.Shadows.unbind();
         }
         
@@ -289,6 +322,9 @@
                 }
                 
                 models.terrain.render(defaultShader, models.terrain.clip.BOTTOM, models.terrain.reflect.NO);
+                
+                Larx.gl.enable(Larx.gl.BLEND);
+                models.smallDecorations.render(defaultShader);
                 defaultShader.cleanUp();
                 
                 if(useShadows) {
@@ -296,14 +332,16 @@
                     Larx.Shadows.shader.cleanUp();
                 }
                 
-                Larx.gl.enable(Larx.gl.BLEND);
                 cursorShader.use();
                 cursor.render(cursorShader, mousePicker.getCoordinates());
-                Larx.gl.disable(Larx.gl.BLEND);
                 
                 defaultShader.use(); 
                 Larx.Matrix.setUniforms(defaultShader);
+                
+                Larx.gl.disable(Larx.gl.BLEND);
+                
                 models.decorations.render(defaultShader);
+                
                 
                 defaultShader.enableFog(false);
                 

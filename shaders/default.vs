@@ -21,7 +21,10 @@ uniform float uShadowDistance;
 uniform float uShadowTransition;
 uniform int uEnableShadows;
 
+uniform float uFadeOut;
+
 varying float vVisibility;
+varying float vFogIntensity;
 varying float vEnableShadows;
 
 varying vec3 vColor;
@@ -51,7 +54,13 @@ void main(void) {
     
     float distance = length(gl_Position);
     if(uEnableFog == 1) {
-        vVisibility = clamp(exp(-pow((distance * uFogDensity), uFogGradient)), 0.0, 1.0);
+        vFogIntensity = clamp(exp(-pow((distance * uFogDensity), uFogGradient)), 0.0, 1.0);
+    } else {
+        vFogIntensity = 1.0;
+    }
+    
+    if(uFadeOut > 0.0) {
+        vVisibility = clamp(exp(-pow((distance * uFadeOut), 5.0)), 0.0, 1.0);
     } else {
         vVisibility = 1.0;
     }

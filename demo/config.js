@@ -85,6 +85,34 @@ var config = {
             selectable: true,
             description: 'Crate'
         }
+    ],
+    smallDecorations: [
+        {
+            count: 12000,
+            model: 'grass',
+            tiltLimit: 0.0,
+            scale: [1.0, 1.4],
+            tiltToTerrain: false,
+            yLimits: [0.2, 2.7],
+            description: 'Grass'
+        },
+        {
+            count: 2000,
+            model: 'mushroom',
+            tiltLimit: 12.0,
+            scale: [1.0, 2.0],
+            tiltToTerrain: false,
+            yLimits: [0.6, 2.0],
+            description: 'Mushroom'
+        },
+        {
+            count: 5000,
+            model: 'rock-small',
+            tiltLimit: 12.0,
+            scale: [1.0, 2.0],
+            tiltToTerrain: false,
+            yLimits: [-0.3, 1.5],
+            description: 'Mushroom'
+        }
     ]
-    
 };

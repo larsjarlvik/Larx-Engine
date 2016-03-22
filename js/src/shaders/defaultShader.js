@@ -32,6 +32,8 @@ class LarxDefaultShader extends LarxShader {
                 this.shader.shadowMapResolution = Larx.gl.getUniformLocation(this.shader, 'uShadowMapResolution');
                 this.shader.enableShadows = Larx.gl.getUniformLocation(this.shader, 'uEnableShadows');
                 
+                this.shader.fadeOut = Larx.gl.getUniformLocation(this.shader, 'uFadeOut');
+                
                 this.setDefaults(this.shader, true);
                 
                 resolve();
@@ -58,6 +60,7 @@ class LarxDefaultShader extends LarxShader {
         Larx.gl.disableVertexAttribArray(this.shader.vertexNormalAttribute);
         
         this.setClipPlane(0, 0); 
+        this.setFadeOut(0);
     }
 
     setFog(density, gradient, color) {
@@ -89,5 +92,9 @@ class LarxDefaultShader extends LarxShader {
     
     setShadowMapResolution(size) {
         Larx.gl.uniform1f(this.shader.shadowMapResolution, size);
+    }
+    
+    setFadeOut(intensity) {
+        Larx.gl.uniform1f(this.shader.fadeOut, intensity);
     }
 }

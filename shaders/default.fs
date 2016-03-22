@@ -2,10 +2,11 @@ precision mediump float;
 
 varying vec3 vColor;
 varying vec3 vVertexPosition;
-varying float vVisibility;
+varying float vFogIntensity;
 varying vec3 vLightWeighting;
 varying vec4 vShadowCoords;
 varying float vEnableShadows;
+varying float vVisibility;
 
 uniform vec3 uFogColor;
 
@@ -49,7 +50,7 @@ void main(void) {
     if(uClipPlane == CLIP_ABOVE && vVertexPosition.y < -uClipPlaneLevel) discard;
     if(uClipPlane == CLIP_BELOW && vVertexPosition.y > -uClipPlaneLevel) discard;   
     
-    gl_FragColor = vec4((vColor * vLightWeighting), 1.0);
+    gl_FragColor = vec4((vColor * vLightWeighting), vVisibility);
     gl_FragColor*= getShadowFactor();
-    gl_FragColor = vec4(mix(uFogColor, gl_FragColor.xyz, vVisibility), gl_FragColor.w);
+    gl_FragColor = vec4(mix(uFogColor, gl_FragColor.xyz, vFogIntensity), gl_FragColor.w);
 }
