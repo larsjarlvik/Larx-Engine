@@ -21,11 +21,11 @@ void texcoords(vec2 fragCoord, vec2 resolution, out vec2 v_rgbNW, out vec2 v_rgb
 }
 
 void main(void) {  
-    vTexCoords = (aVertexPosition.xy + 1.0) * 0.5;
-    vResolution = uResolution;
-    
-    vec2 fragCoord = vTexCoords * vResolution;
-    texcoords(fragCoord, uResolution, v_rgbNW, v_rgbNE, v_rgbSW, v_rgbSE, v_rgbM);
-    
-    gl_Position = vec4(aVertexPosition, 1.0);
+	vTexCoords = (aVertexPosition.xy + 1.0) * 0.5;
+	vResolution = uResolution;
+	
+	vec2 fragCoord = vTexCoords * vResolution;
+	texcoords(fragCoord, uResolution, v_rgbNW, v_rgbNE, v_rgbSW, v_rgbSE, v_rgbM);
+	
+	gl_Position = vec4(aVertexPosition, 1.0);
 }

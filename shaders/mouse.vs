@@ -7,6 +7,6 @@ uniform vec2 translation;
 varying vec3 vVertexPosition;
 
 void main(void) {
-    gl_Position = uPMatrix * uMVMatrix * vec4(aVertexPosition, 1.0);
-    vVertexPosition = aVertexPosition;
+	gl_Position = uPMatrix * uMVMatrix * vec4(aVertexPosition, 1.0);
+	vVertexPosition = aVertexPosition;
 }

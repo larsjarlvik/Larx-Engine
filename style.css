@@ -1,88 +1,88 @@
 @import url(https://fonts.googleapis.com/css?family=Open+Sans:400,300,800);
 
 html, body {
-    height: 100%;
-    margin: 0;
-    padding: 0;
-    overflow: hidden;
-    color: #eee;
-    font: bold 1em 'Open Sans', sans-serif;
+	height: 100%;
+	margin: 0;
+	padding: 0;
+	overflow: hidden;
+	color: #eee;
+	font: bold 1em 'Open Sans', sans-serif;
 }
 
 body {
-    background: #242424;   
-    position: relative;
+	background: #242424;   
+	position: relative;
 }
 
 h1, h2 {
-    font-size: 180%;
-    font-weight: lighter;
+	font-size: 180%;
+	font-weight: lighter;
 }
 
 h2 {
-    font-size: 140%;
-    margin-bottom: 1.5%;
+	font-size: 140%;
+	margin-bottom: 1.5%;
 }
 
 a {
-    color: #ff4c4c;
-    text-decoration: none;
-    transition: color .2s ease-in;
+	color: #ff4c4c;
+	text-decoration: none;
+	transition: color .2s ease-in;
 }
 
 a:hover {
-    color: #9f2f2f;
+	color: #9f2f2f;
 }
 
 .button {
-    background-color: #ff4c4c;
-    padding: 0.3em 1em;
-    color: #fff;
-    cursor: pointer;
-    transition: background-color .2s ease-in;
-    margin-right: 2%;
+	background-color: #ff4c4c;
+	padding: 0.3em 1em;
+	color: #fff;
+	cursor: pointer;
+	transition: background-color .2s ease-in;
+	margin-right: 2%;
 }
 
 .button:hover {
-    color: #fff;
-    background-color: #9f2f2f;
+	color: #fff;
+	background-color: #9f2f2f;
 }
 
 .setting {
-    display: block;
-    padding: 1.2% 0;
-    text-align: left;
+	display: block;
+	padding: 1.2% 0;
+	text-align: left;
 }
 
 .setting .label {
-    width: 25%;
-    display: inline-block;
+	width: 25%;
+	display: inline-block;
 }
 
 .setting select {
-    -ms-appearance: none;
-    -webkit-appearance: none;
-    -moz-appearance: none;
-    border: .2em solid #484848;
-    min-width: 30%;
-    font-size: 85%;
-    padding: .8%;
+	-ms-appearance: none;
+	-webkit-appearance: none;
+	-moz-appearance: none;
+	border: .2em solid #484848;
+	min-width: 30%;
+	font-size: 85%;
+	padding: .8%;
 }
 
 .setting select option {
-    padding: 2.5%;
+	padding: 2.5%;
 }
 
 .marginTop {
-    margin-top: 6%;
-    display: inline-block;
+	margin-top: 6%;
+	display: inline-block;
 }
 
 #viewport {
-    position: relative;
-    margin: 0 auto;
-    display: block;
-    background: #000;
+	position: relative;
+	margin: 0 auto;
+	display: block;
+	background: #000;
    -ms-user-select: none;
    -moz-user-select: none;
    -webkit-user-select: none;
@@ -90,72 +90,72 @@ a:hover {
 }
 
 .renderTarget {
-    display: block;
+	display: block;
 }
 
 .fps {
-    float: right;
-    line-height: 100%;
-    font-size: 85%;
-    padding-right: .5%;
+	float: right;
+	line-height: 100%;
+	font-size: 85%;
+	padding-right: .5%;
 }
 
 .overlay {
-    position: absolute;
-    top: 0;
-    left: 0;
-    right: 0;
-    bottom: 0;
-    background: rgba(0, 0, 0, 0.8);
-    transition: opacity .4s ease-in-out;
-    opacity: 0;
-    font-weight: lighter;
+	position: absolute;
+	top: 0;
+	left: 0;
+	right: 0;
+	bottom: 0;
+	background: rgba(0, 0, 0, 0.8);
+	transition: opacity .4s ease-in-out;
+	opacity: 0;
+	font-weight: lighter;
 }
 
 .overlay.hide {
-    visibility: hidden;
+	visibility: hidden;
 }
 
 .overlay.show {
-    opacity: 1;
-    visibility: visible;
+	opacity: 1;
+	visibility: visible;
 }
 
 .overlay .content {
-    padding: 5% 10%;
-    max-width: 50%;
+	padding: 5% 10%;
+	max-width: 50%;
 }
 
 .top-bar {
-    position: absolute;
-    top: 0;
-    left: 0;
-    right: 0;
-    padding: 0.6%;
-    text-shadow: 1px 1px 1px rgba(0, 0, 0, 0.8);
-    font-weight: bold;
-    transition: transform .2s ease-in-out;
+	position: absolute;
+	top: 0;
+	left: 0;
+	right: 0;
+	padding: 0.6%;
+	text-shadow: 1px 1px 1px rgba(0, 0, 0, 0.8);
+	font-weight: bold;
+	transition: transform .2s ease-in-out;
 }
 
 .top-bar.hide {
-    transform: translate3d(0, -100%, 0);
+	transform: translate3d(0, -100%, 0);
 }
 
 .ui-icon {
-    opacity: 0.5;
-    width: 2.5%;
-    padding-bottom: 2.5%;
-    background-size: contain;
-    background-repeat: no-repeat;
-    cursor: pointer;
-    float: left;
-    margin-right: .5%;
-    z-index: 1000;
-    transition: opacity .2s ease-in-out;
+	opacity: 0.5;
+	width: 2.5%;
+	padding-bottom: 2.5%;
+	background-size: contain;
+	background-repeat: no-repeat;
+	cursor: pointer;
+	float: left;
+	margin-right: .5%;
+	z-index: 1000;
+	transition: opacity .2s ease-in-out;
 }
 
 .ui-icon:hover {
-    opacity: 0.8;
+	opacity: 0.8;
 }
 
 .ui-icon.info {

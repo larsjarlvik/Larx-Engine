@@ -9,8 +9,8 @@ varying vec2 vTextureCoord;
 varying vec3 vVertexPosition;
 
 void main(void) {
-    vVertexPosition = aVertexPosition;
+	vVertexPosition = aVertexPosition;
 
-    gl_Position = uPMatrix * uMVMatrix * vec4(aVertexPosition, 1.0);
-    vTextureCoord = aTextureCoord;
+	gl_Position = uPMatrix * uMVMatrix * vec4(aVertexPosition, 1.0);
+	vTextureCoord = aTextureCoord;
 }

@@ -33,51 +33,51 @@ varying vec3 vLightWeighting;
 varying vec4 vShadowCoords;
 
 void setShadowCoords(vec4 position, float distance) {
-    if(uEnableShadows == 1) {
-        float fade = (distance - (uShadowDistance - uShadowTransition)) / uShadowTransition;
-        vShadowCoords = shadowMvpMatrix * vec4(vVertexPosition, 1.0);
-        vShadowCoords.w = clamp(1.0 - fade, 0.0, 0.5);
-        
-        vEnableShadows = 1.0;
-    }
+	if(uEnableShadows == 1) {
+		float fade = (distance - (uShadowDistance - uShadowTransition)) / uShadowTransition;
+		vShadowCoords = shadowMvpMatrix * vec4(vVertexPosition, 1.0);
+		vShadowCoords.w = clamp(1.0 - fade, 0.0, 0.5);
+		
+		vEnableShadows = 1.0;
+	}
 }
 
 
 void main(void) {
-    gl_Position = uPMatrix * uMVMatrix * vec4(aVertexPosition, 1.0);
-    
-    vColor = aVertexColor;
-    
-    vec4 position = uMVMatrix * vec4(aVertexPosition, 1.0);
-    
-    vVertexPosition = aVertexPosition;
-    
-    float distance = length(gl_Position);
-    if(uEnableFog == 1) {
-        vFogIntensity = clamp(exp(-pow((distance * uFogDensity), uFogGradient)), 0.0, 1.0);
-    } else {
-        vFogIntensity = 1.0;
-    }
-    
-    if(uFadeOut > 0.0) {
-        vVisibility = clamp(exp(-pow((distance * uFadeOut), 5.0)), 0.0, 1.0);
-    } else {
-        vVisibility = 1.0;
-    }
-    
-    vec3 lightDirection = normalize(uLightingDirection - position.xyz);
-    float directionalLightWeighting = max(dot(aVertexNormal, uLightingDirection), 0.0);
-    vLightWeighting = uAmbientColor + uDirectionalColor * directionalLightWeighting;
-        
-    if(uShininess > 0.0) {
-        vec3 normal = normalize(uNMatrix * aVertexNormal);
-        vec3 eyeDirection = normalize(-position.xyz);
-        vec3 reflectionDirection = reflect(lightDirection, normal);
-        float specularLightWeighting = pow(max(dot(reflectionDirection, eyeDirection), 0.0), uShininess);
-    
-        vec3 specularColor = uSpecularColor * uSpecularWeight;
-        vLightWeighting += specularColor * specularLightWeighting;
-    }
-    
-    setShadowCoords(position, distance);
+	gl_Position = uPMatrix * uMVMatrix * vec4(aVertexPosition, 1.0);
+	
+	vColor = aVertexColor;
+	
+	vec4 position = uMVMatrix * vec4(aVertexPosition, 1.0);
+	
+	vVertexPosition = aVertexPosition;
+	
+	float distance = length(gl_Position);
+	if(uEnableFog == 1) {
+		vFogIntensity = clamp(exp(-pow((distance * uFogDensity), uFogGradient)), 0.0, 1.0);
+	} else {
+		vFogIntensity = 1.0;
+	}
+	
+	if(uFadeOut > 0.0) {
+		vVisibility = clamp(exp(-pow((distance * uFadeOut), 5.0)), 0.0, 1.0);
+	} else {
+		vVisibility = 1.0;
+	}
+	
+	vec3 lightDirection = normalize(uLightingDirection - position.xyz);
+	float directionalLightWeighting = max(dot(aVertexNormal, uLightingDirection), 0.0);
+	vLightWeighting = uAmbientColor + uDirectionalColor * directionalLightWeighting;
+	
+	if(uShininess > 0.0) {
+		vec3 normal = normalize(uNMatrix * aVertexNormal);
+		vec3 eyeDirection = normalize(-position.xyz);
+		vec3 reflectionDirection = reflect(lightDirection, normal);
+		float specularLightWeighting = pow(max(dot(reflectionDirection, eyeDirection), 0.0), uShininess);
+	
+		vec3 specularColor = uSpecularColor * uSpecularWeight;
+		vLightWeighting += specularColor * specularLightWeighting;
+	}
+	
+	setShadowCoords(position, distance);
 }

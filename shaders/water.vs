@@ -24,31 +24,30 @@ varying vec3 vLightWeighting;
 varying vec2 vRefractTexCoords;
 
 void main(void) {
-    vec4 position = vec4(aVertexPosition, 1.0);
-    vClipSpace = uPMatrix * uMVMatrix * position;
-    gl_Position = vClipSpace;
-    vPosition = uMVMatrix * position;
-    
-    float distance = length(gl_Position);
-    vVisibility = clamp(exp(-pow((distance * uFogDensity), uFogGradient)), 0.0, 1.0);
-    
-    vNormal = aVertexNormal;
-    vNormal.x *= 2.0;
-    vNormal.z *= 2.0;
-    vNormal = normalize(uNMatrix * vNormal);
-    
-
-    vec3 lightDirection = normalize(uLightingDirection - position.xyz);
-    float directionalLightWeighting = max(dot(aVertexNormal, uLightingDirection), 0.0);
-    vLightWeighting = uAmbientColor + uDirectionalColor * directionalLightWeighting;
-        
-    if(uShininess > 0.0) {
-        vec3 normal = normalize(uNMatrix * aVertexNormal);
-        vec3 eyeDirection = normalize(-position.xyz);
-        vec3 reflectionDirection = reflect(lightDirection, normal);
-        float specularLightWeighting = pow(max(dot(reflectionDirection, eyeDirection), 0.0), uShininess);
-    
-        vec3 specularColor = uSpecularColor * uSpecularWeight;
-        vLightWeighting += specularColor * specularLightWeighting;
-    }
+	vec4 position = vec4(aVertexPosition, 1.0);
+	vClipSpace = uPMatrix * uMVMatrix * position;
+	gl_Position = vClipSpace;
+	vPosition = uMVMatrix * position;
+	
+	float distance = length(gl_Position);
+	vVisibility = clamp(exp(-pow((distance * uFogDensity), uFogGradient)), 0.0, 1.0);
+	
+	vNormal = aVertexNormal;
+	vNormal.x *= 2.0;
+	vNormal.z *= 2.0;
+	vNormal = normalize(uNMatrix * vNormal);
+	
+	vec3 lightDirection = normalize(uLightingDirection - position.xyz);
+	float directionalLightWeighting = max(dot(aVertexNormal, uLightingDirection), 0.0);
+	vLightWeighting = uAmbientColor + uDirectionalColor * directionalLightWeighting;
+	
+	if(uShininess > 0.0) {
+		vec3 normal = normalize(uNMatrix * aVertexNormal);
+		vec3 eyeDirection = normalize(-position.xyz);
+		vec3 reflectionDirection = reflect(lightDirection, normal);
+		float specularLightWeighting = pow(max(dot(reflectionDirection, eyeDirection), 0.0), uShininess);
+	
+		vec3 specularColor = uSpecularColor * uSpecularWeight;
+		vLightWeighting += specularColor * specularLightWeighting;
+	}
 }
