@@ -96,15 +96,15 @@
 		switch(settings.values.waterDetail) {
 			case 0:
 				config.water.quality = 3;
-				config.water.detail = 8;
+				config.water.detail = 9;
 				break;
 			case 1:
 				config.water.quality = 6;
-				config.water.detail = 9;
+				config.water.detail = 10;
 				break;
 			case 2:
 				config.water.quality = 7;
-				config.water.detail = 10;
+				config.water.detail = 11;
 				break;
 		}
 		
@@ -222,7 +222,7 @@
 	
 	function initSmallDecorations() {
 		return new Promise((resolve, reject) => {
-			models.smallDecorations = new LarxDecorations(models.terrain, 0.007);
+			models.smallDecorations = new LarxDecorations(models.terrain, config.smallDecorationFadeOut);
 			
 			Promise.all(config.smallDecorations.map(initDecor)).then(function (result) {
 				for(var i in result) {

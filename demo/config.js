@@ -30,7 +30,7 @@ var config = {
 		quality: 20,
 		detail: 10,
 		color: [0.295, 0.905, 0.823],
-		waveHeight: 1.4,
+		waveHeight: 1.0,
 		speed: 0.001,
 		distortion: 2.5,
 		edgeWhitening: 1.8, 
@@ -106,6 +106,7 @@ var config = {
 			description: 'Crate'
 		}
 	],
+	smallDecorationFadeOut: 0.007,
 	smallDecorations: [
 		{
 			count: 12000,
