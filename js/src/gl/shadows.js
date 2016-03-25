@@ -6,7 +6,7 @@ class LarxShadows {
 
 		this.shadowMap = new LarxFramebuffer(this.resolution, this.resolution);
 		this.shadowMap.buildDepthBuffer();
-		this.shadowMap.bindDepthTexture(Larx.gl.TEXTURE4);
+		this.shadowMap.bindDepthTexture(Larx.gl.TEXTURE3);
 		
 		this.shader = shader;
 		this.setOffset();
@@ -19,15 +19,14 @@ class LarxShadows {
 		this.lightViewMatrix = mat4.create();
 		this.projectionViewMatrix = mat4.create();
 	}
-
+	
 	setOffset() {
 		let vec = vec3.fromValues(0.5, 0.5, 0.5);
 		this.offset = mat4.create();
 		mat4.translate(this.offset, this.offset, vec);
 		mat4.scale(this.offset, this.offset, vec);
 	}
-
-
+	
 	bind() {
 		this.camMatrix = Larx.Camera.getMatrix();
 		
@@ -37,17 +36,17 @@ class LarxShadows {
 		mat4.identity(this.projectionViewMatrix);
 		mat4.multiply(this.projectionViewMatrix, this.projectionMatrix, this.lightViewMatrix);
 		
+		this.shadowMap.bind(true);
 		this.shader.use();
 		this.shader.setMatrix(this.projectionViewMatrix);
-		this.shadowMap.bind(true);
 	}
-
+	
 	unbind() {
 		this.shadowMap.unbind();
 	}
-
-	enable(targetShader) {        
-		targetShader.setShadowMapTexture(4);
+	
+	enable(targetShader) {
+		targetShader.setShadowMapTexture(3);
 		targetShader.setShadowDistanceTransition(this.shadowDistance, this.shadowDistance / 3);
 		targetShader.setShadowMapResolution(this.resolution);
 		targetShader.enableShadows(true);
@@ -58,8 +57,11 @@ class LarxShadows {
 	
 	disable(targetShader) {
 		targetShader.enableShadows(false);
+		targetShader.setShadowMapTexture(null);
+		this.shadowMap.unbindTexture(3);
+		this.shader.cleanUp();
 	}
-
+	
 	updateOrthoProjectionMatrix() {
 		mat4.identity(this.projectionMatrix);
 		
@@ -68,7 +70,7 @@ class LarxShadows {
 		this.projectionMatrix[10] = -2.0 / (this.maxZ - this.minZ);
 		this.projectionMatrix[15] = 1.0;
 	}
-
+	
 	updateLightViewMatrix() {
 		mat4.identity(this.lightViewMatrix);
 		
@@ -90,22 +92,22 @@ class LarxShadows {
 		mat4.rotateY(this.lightViewMatrix, this.lightViewMatrix, -Larx.Math.degToRad(yaw)); 
 		mat4.translate(this.lightViewMatrix, this.lightViewMatrix, vec3.fromValues(this.camMatrix.x, this.camMatrix.y, this.camMatrix.z));
 	}
-
+	
 	update(shadowDistance) {
 		this.calculateShadowDistance(shadowDistance);
 		
 		let rotation = this.calculateCameraRotationMatrix();
 		let forwardVector = vec3.create();
 		vec3.transformMat4(forwardVector, this.FORWARD, rotation);
-
-		let toFar = vec3.create(), toNear = vec3.create();
-
+		
+		let toFar = vec3.create(), toNear = vec3.create()
+		
 		vec3.copy(toFar, forwardVector);
 		vec3.copy(toNear, forwardVector);
-
+		
 		vec3.scale(toFar, toFar, this.shadowDistance);
 		vec3.scale(toNear, toNear, Larx.Matrix.nearPlane);
-
+		
 		let centerNear = vec3.create(), centerFar = vec3.create();
 		
 		vec3.add(centerNear, vec3.fromValues(this.camMatrix.x, this.camMatrix.y, this.camMatrix.z), toNear);
@@ -129,10 +131,10 @@ class LarxShadows {
 			
 			if (p[0] > this.maxX) { this.maxX = p[0] }
 			if (p[0] < this.minX) { this.minX = p[0] }
-
+			
 			if (p[1] > this.maxY) { this.maxY = p[1] }
 			if (p[1] < this.minY) { this.minY = p[1] }
-
+			
 			if (p[2] > this.maxZ) { this.maxZ = p[2] }
 			if (p[2] < this.minZ) { this.minZ = p[2] }
 		}
@@ -146,7 +148,7 @@ class LarxShadows {
 			this.shadowDistance = Larx.Matrix.farPlane;
 		}
 	}
-
+	
 	calculateCameraRotationMatrix() {
 		let rot = mat4.create();
 		
@@ -163,7 +165,7 @@ class LarxShadows {
 		this.farHeight = this.farWidth / aspect;
 		this.nearHeight = this.nearWidth / aspect;
 	}
-
+	
 	calculateFrustumVertices(rotation, forwardVector, centerNear, centerFar) {
 		let upVector = vec3.create(), rightVector = vec3.create();
 			

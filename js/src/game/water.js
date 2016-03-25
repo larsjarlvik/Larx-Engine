@@ -129,7 +129,7 @@ class LarxWater {
 		
 		this.frames[this.currentFrame].render(sp);
 		
-		if(this.refraction) { this.refraction.unbindTextures(); }
-		if(this.reflection) { this.reflection.unbindTextures(); }
+		if(this.refraction) { this.refraction.unbindTexture(Larx.gl.TEXTURE0); this.refraction.unbindTexture(Larx.gl.TEXTURE1); }
+		if(this.reflection) { this.reflection.unbindTexture(Larx.gl.TEXTURE2); }
 	}
 };

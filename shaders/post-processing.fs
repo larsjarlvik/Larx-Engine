@@ -1,29 +1,29 @@
 precision mediump float;
 
+uniform sampler2D uTexture;
+varying vec2 vTexCoords;
+
+// FXAA
 #define FXAA_REDUCE_MIN   (1.0/ 128.0)
 #define FXAA_REDUCE_MUL   (1.0 / 8.0)
 #define FXAA_SPAN_MAX     8.0
 
-uniform sampler2D uTexture;
-varying vec2 vTexCoords;
+uniform bool uEnableFXAAFS;
 varying vec2 vResolution;
-
 varying vec2 v_rgbNW;
 varying vec2 v_rgbNE;
 varying vec2 v_rgbSW;
 varying vec2 v_rgbSE;
 varying vec2 v_rgbM;
 
-//optimized version for mobile, where dependent 
-//texture reads can be a bottleneck
-vec4 fxaa(sampler2D tex, vec2 fragCoord, vec2 resolution, vec2 v_rgbNW, vec2 v_rgbNE, vec2 v_rgbSW, vec2 v_rgbSE, vec2 v_rgbM) {
+void fxaa() {
 	vec4 color;
-	mediump vec2 inverseVP = vec2(1.0 / resolution.x, 1.0 / resolution.y);
-	vec3 rgbNW = texture2D(tex, v_rgbNW).xyz;
-	vec3 rgbNE = texture2D(tex, v_rgbNE).xyz;
-	vec3 rgbSW = texture2D(tex, v_rgbSW).xyz;
-	vec3 rgbSE = texture2D(tex, v_rgbSE).xyz;
-	vec4 texColor = texture2D(tex, v_rgbM);
+	mediump vec2 inverseVP = vec2(1.0 / vResolution.x, 1.0 / vResolution.y);
+	vec3 rgbNW = texture2D(uTexture, v_rgbNW).xyz;
+	vec3 rgbNE = texture2D(uTexture, v_rgbNE).xyz;
+	vec3 rgbSW = texture2D(uTexture, v_rgbSW).xyz;
+	vec3 rgbSE = texture2D(uTexture, v_rgbSE).xyz;
+	vec4 texColor = texture2D(uTexture, v_rgbM);
 	vec3 rgbM  = texColor.xyz;
 	vec3 luma = vec3(0.299, 0.587, 0.114);
 	float lumaNW = dot(rgbNW, luma);
@@ -47,21 +47,23 @@ vec4 fxaa(sampler2D tex, vec2 fragCoord, vec2 resolution, vec2 v_rgbNW, vec2 v_r
 			  dir * rcpDirMin)) * inverseVP;
 	
 	vec3 rgbA = 0.5 * (
-		texture2D(tex, fragCoord * inverseVP + dir * (1.0 / 3.0 - 0.5)).xyz +
-		texture2D(tex, fragCoord * inverseVP + dir * (2.0 / 3.0 - 0.5)).xyz);
+		texture2D(uTexture, gl_FragCoord.xy * inverseVP + dir * (1.0 / 3.0 - 0.5)).xyz +
+		texture2D(uTexture, gl_FragCoord.xy * inverseVP + dir * (2.0 / 3.0 - 0.5)).xyz);
 	vec3 rgbB = rgbA * 0.5 + 0.25 * (
-		texture2D(tex, fragCoord * inverseVP + dir * -0.5).xyz +
-		texture2D(tex, fragCoord * inverseVP + dir * 0.5).xyz);
+		texture2D(uTexture, gl_FragCoord.xy * inverseVP + dir * -0.5).xyz +
+		texture2D(uTexture, gl_FragCoord.xy * inverseVP + dir *  0.5).xyz);
 
 	float lumaB = dot(rgbB, luma);
 	if ((lumaB < lumaMin) || (lumaB > lumaMax))
 		color = vec4(rgbA, texColor.a);
 	else
 		color = vec4(rgbB, texColor.a);
-	return color;
+		
+	gl_FragColor = color;
 }
 
-void main(void) {   
+void main(void) {
 	gl_FragColor = texture2D(uTexture, vTexCoords);
-	gl_FragColor = fxaa(uTexture, gl_FragCoord.xy, vResolution, v_rgbNW, v_rgbNE, v_rgbSW, v_rgbSE, v_rgbM);
+	
+	if(uEnableFXAAFS) { fxaa(); }
 }

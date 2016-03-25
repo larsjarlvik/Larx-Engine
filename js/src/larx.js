@@ -10,7 +10,7 @@ class Larx {
 		
 		this.Frustum = new LarxFrustum();
 		this.Camera = new LarxCamera();
-		this.Fxaa = new LarxFxaa();
+		this.PostProcessing = new LarxPostProcessing();
 		this.Matrix = new LarxMatrix();
 		this.Shadows = new LarxShadows();
 		this.Math = new LarxMath();
@@ -32,21 +32,20 @@ class Larx {
 			Larx.gl.viewportWidth = Larx.Viewport.canvas.width;
 			Larx.gl.viewportHeight = Larx.Viewport.canvas.height;
 			Larx.Matrix.aspect = Larx.gl.viewportWidth / Larx.gl.viewportHeight;
-			
-			if(renderMode === Larx.RENDER_MODES.FXAA) { Larx.Fxaa.buildFramebuffer(); }
+			Larx.PostProcessing.resize();
 		});
 		
-		return renderMode === Larx.RENDER_MODES.FXAA ? Larx.Fxaa.init() : Promise.resolve();
+		return new Promise((resolve) => {
+			Larx.PostProcessing.init().then(() => {
+				if(Larx.renderMode == Larx.RENDER_MODES.FXAA) { Larx.PostProcessing.enableFXAA(4); }
+				resolve();
+			});
+		});
 	}
 	
 	static initGL() {
-		let antialias = false;
-		if(Larx.renderMode == Larx.RENDER_MODES.MSAA) {
-			antialias = true;
-		}
-		
-		Larx.gl = Larx.Viewport.canvas.getContext('webgl', { antialias: antialias });
-		if(!Larx.gl) { Larx.gl = Larx.Viewport.canvas.getContext('experimental-webgl', { antialias: antialias }); }
+		Larx.gl = Larx.Viewport.canvas.getContext('webgl', { antialias: false });
+		if(!Larx.gl) { Larx.gl = Larx.Viewport.canvas.getContext('experimental-webgl', { antialias: false }); }
 	}
 	
 	static setClearColor(color) {
@@ -54,19 +53,19 @@ class Larx {
 	}
 	
 	static render(drawCallback) {
-		Larx.clear();
 		Larx.Matrix.push();
 		Larx.Matrix.setPerspectiveProjection();
 		Larx.Matrix.setIdentity(this.Camera.getMatrix());
 		Larx.Frustum.extractFrustum();
 		
 		Larx.gl.enable(Larx.gl.DEPTH_TEST); 
-		
-		if(Larx.renderMode == Larx.RENDER_MODES.FXAA) { Larx.Fxaa.bind(); }
+		if(!Larx.PostProcessing.bind()) {
+			return;
+		}
 		
 		drawCallback();
 		
-		if(Larx.renderMode == Larx.RENDER_MODES.FXAA) { Larx.Fxaa.draw(); }
+		Larx.PostProcessing.draw();
 		Larx.Matrix.pop();
 	}
 	
@@ -77,5 +76,5 @@ class Larx {
 }
 
 Larx.VERSION = 1.0;
-Larx.RENDER_MODES = { NONE: 0, FXAA: 1, MSAA: 2 };
+Larx.RENDER_MODES = { NONE: 0, FXAA: 1 };
 	

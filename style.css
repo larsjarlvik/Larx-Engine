@@ -86,7 +86,7 @@ a:hover {
    -ms-user-select: none;
    -moz-user-select: none;
    -webkit-user-select: none;
-   cursor: default;
+   cursor: url('cursor.svg'), auto;
 }
 
 .renderTarget {

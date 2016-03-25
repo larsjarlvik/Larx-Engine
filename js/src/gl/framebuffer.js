@@ -79,12 +79,7 @@ class LarxFramebuffer {
 	}
 	
 	unbind() {
-		if(Larx.renderMode === Larx.RENDER_MODES.FXAA) {
-			Larx.Fxaa.bind();
-		} else {
-			Larx.gl.viewport(0, 0, Larx.Viewport.canvas.width, Larx.Viewport.canvas.height);
-			Larx.gl.bindFramebuffer(Larx.gl.FRAMEBUFFER, null);
-		}
+		Larx.PostProcessing.bind();
 	}
 	
 	bindColorTexture(textureUnit) {
@@ -97,7 +92,7 @@ class LarxFramebuffer {
 		Larx.gl.bindTexture(Larx.gl.TEXTURE_2D, this.depthTexture);  
 	}
 
-	unbindTextures() {
+	unbindTexture(textureUnit) {
 		Larx.gl.bindTexture(Larx.gl.TEXTURE_2D, null);  
 	}
 }

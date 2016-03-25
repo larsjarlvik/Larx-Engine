@@ -14,15 +14,6 @@ class LarxTerrain {
 		this.reflect = { NO: 0, YES: 1 };
 		this.clip = { NONE: 0, TOP: 1, BOTTOM: 2 };
 	}
-	
-	setLightSettings(shininess, specularWeight) {
-		/*
-		for(var i = 0; i < this.blocks.length; i++) {
-			this.blocks[i].shininess = shininess;
-			this.blocks[i].specularWeight = specularWeight;
-		}
-		*/
-	}
 
 	getSize() {
 		return this.size * this.scale;
