@@ -23,6 +23,7 @@ class UI {
 		this.waterDetailSetting = document.getElementById('waterDetailSetting');
 		this.waterReflectionSetting = document.getElementById('waterReflectionSetting');
 		this.waterRefractionSetting = document.getElementById('waterRefractionSetting');
+		this.bloomEffectSetting = document.getElementById('bloomEffectSetting');
 		
 		
 		this.setFontSize();
@@ -41,7 +42,7 @@ class UI {
 	}
 	
 	setFontSize() {
-		let fontSize = Larx.Viewport.canvas.height / 50;
+		let fontSize = Larx.Viewport.canvas.offsetHeight / 50;
 		document.body.style.fontSize = fontSize + 'px';
 	}
 	
@@ -62,6 +63,7 @@ class UI {
 		this.waterDetailSetting.value = settings.waterDetail;
 		this.waterReflectionSetting.value = settings.waterReflection;
 		this.waterRefractionSetting.value = settings.waterRefraction;
+		this.bloomEffectSetting.value = settings.bloomEffect;
 	}
 	
 	applySettings() {
@@ -73,6 +75,7 @@ class UI {
 		settings.waterDetail = parseInt(this.waterDetailSetting.value);
 		settings.waterReflection = parseInt(this.waterReflectionSetting.value);
 		settings.waterRefraction = parseInt(this.waterRefractionSetting.value);
+		settings.bloomEffect = parseInt(this.bloomEffectSetting.value);
 		
 		this.settings.storeSettings();
 		

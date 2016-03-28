@@ -1,10 +1,8 @@
 'use strict';
 
 class Larx {
-	static init(canvas, renderMode) {
-		
-		Larx.renderMode = renderMode;
-		
+	static init(canvas, clearColor) {
+		this.clearColor = clearColor;
 		this.Viewport = new LarxViewport(canvas);
 		this.initGL();
 		
@@ -15,8 +13,11 @@ class Larx {
 		this.Shadows = new LarxShadows();
 		this.Math = new LarxMath();
 		
+		
 		Larx.gl.getExtension("OES_texture_float");
 		Larx.gl.getExtension("WEBGL_depth_texture");
+		
+		Larx.gl.clearColor(clearColor[0], clearColor[1], clearColor[2], clearColor[3]);
 		
 		Larx.gl.viewportWidth = Larx.gl.drawingBufferWidth;
 		Larx.gl.viewportHeight = Larx.gl.drawingBufferHeight;
@@ -35,21 +36,12 @@ class Larx {
 			Larx.PostProcessing.resize();
 		});
 		
-		return new Promise((resolve) => {
-			Larx.PostProcessing.init().then(() => {
-				if(Larx.renderMode == Larx.RENDER_MODES.FXAA) { Larx.PostProcessing.enableFXAA(4); }
-				resolve();
-			});
-		});
+		return Larx.PostProcessing.init();
 	}
 	
 	static initGL() {
 		Larx.gl = Larx.Viewport.canvas.getContext('webgl', { antialias: false });
 		if(!Larx.gl) { Larx.gl = Larx.Viewport.canvas.getContext('experimental-webgl', { antialias: false }); }
-	}
-	
-	static setClearColor(color) {
-		Larx.gl.clearColor(color[0], color[1], color[2], 1.0);
 	}
 	
 	static render(drawCallback) {
@@ -65,7 +57,9 @@ class Larx {
 		
 		drawCallback();
 		
-		Larx.PostProcessing.draw();
+		// POST PROCESSING
+		Larx.gl.disable(Larx.gl.DEPTH_TEST);
+		Larx.PostProcessing.render();
 		Larx.Matrix.pop();
 	}
 	

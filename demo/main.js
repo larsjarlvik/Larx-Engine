@@ -18,6 +18,7 @@
 	
 	initSettings()
 		.then(initEngine)
+		.then(initEffects)
 		.then(initCamera)
 		.then(initShaders)
 		.then(initTerrain)
@@ -96,15 +97,15 @@
 		
 		switch(settings.values.waterDetail) {
 			case 0:
-				config.water.quality = 3;
+				config.water.quality = 9;
 				config.water.detail = 9;
 				break;
 			case 1:
-				config.water.quality = 6;
+				config.water.quality = 10;
 				config.water.detail = 10;
 				break;
 			case 2:
-				config.water.quality = 7;
+				config.water.quality = 13;
 				config.water.detail = 11;
 				break;
 		}
@@ -117,14 +118,29 @@
 	}
 	
 	function initEngine() {
-		Larx.init(renderTarget, settings.values.renderMode);
-		Larx.setClearColor(config.clearColor);
-		Larx.Matrix.farPlane = settings.values.viewDistance;
-		
-		gameLoop = new LarxGameLoop(doLogic, render);
+		return new Promise((resolve) => {
+			Larx.init(renderTarget, config.clearColor).then(() => {
+				Larx.Matrix.farPlane = settings.values.viewDistance;
+				gameLoop = new LarxGameLoop(doLogic, render);
+			
+				ui = new UI();
+				resolve();
+			});
+		});
+	}
 	
-		ui = new UI();
-		return Promise.resolve();
+	function initEffects() {
+		return new Promise((resolve) => {
+			if(settings.values.renderMode == Larx.RENDER_MODES.FXAA) { 
+				Larx.PostProcessing.enableFXAA(); 
+			}
+			
+			if(settings.values.bloomEffect == 1) { 
+				Larx.PostProcessing.enableBloom(config.clearColor); 
+			}
+			
+			Larx.PostProcessing.initEffects().then(() => resolve());
+		});
 	}
 	
 	function initCamera() {

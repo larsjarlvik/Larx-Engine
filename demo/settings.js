@@ -25,7 +25,8 @@ class Settings {
 			shadowQuality: 2,
 			waterDetail: 1,
 			waterReflection: 1,
-			waterRefraction: 1
+			waterRefraction: 1,
+			bloomEffect: 1
 		};
 	}
 }

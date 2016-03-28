@@ -15,13 +15,18 @@ class LarxPostProcessingShader extends LarxShader {
 				
 				// SHARED
 				this.shader.vertexPositionAttribute = Larx.gl.getAttribLocation(this.shader, 'aVertexPosition');
-				this.shader.texture = Larx.gl.getUniformLocation(this.shader, 'uTexture');
+				this.shader.colorTexture = Larx.gl.getUniformLocation(this.shader, 'uColorTexture');
+				this.shader.depthTexture = Larx.gl.getUniformLocation(this.shader, 'uDepthTexture');
 				this.shader.resolution = Larx.gl.getUniformLocation(this.shader, 'uResolution');
 				
 				// FXAA
 				this.shader.enableFXAAVS = Larx.gl.getUniformLocation(this.shader, 'uEnableFXAAVS');
 				this.shader.enableFXAAFS = Larx.gl.getUniformLocation(this.shader, 'uEnableFXAAFS');
 				
+				// Bloom
+				this.shader.bloomTexture = Larx.gl.getUniformLocation(this.shader, 'uBloomTexture');
+				this.shader.enableBloom = Larx.gl.getUniformLocation(this.shader, 'uEnableBloom');
+				this.shader.bloomColor = Larx.gl.getUniformLocation(this.shader, 'uBloomColor');
 				
 				this.setDefaults(this.shader, false);
 				
@@ -37,17 +42,27 @@ class LarxPostProcessingShader extends LarxShader {
 		Larx.gl.useProgram(this.shader);
 	}
 	
-	setTexture(index) {
-		Larx.gl.uniform1i(this.shader.texture, index);  
+	setColorTexture(index) {
+		Larx.gl.uniform1i(this.shader.colorTexture, index);  
+	}
+	
+	setDepthTexture(index) {
+		Larx.gl.uniform1i(this.shader.depthTexture, index);  
 	}
 	
 	setResolution(w, h) {
 		Larx.gl.uniform2f(this.shader.resolution, w, h);
 	}
 	
-	enableFxaa(quality) {
+	enableFxaa() {
 		Larx.gl.uniform1i(this.shader.enableFXAAVS, 1);
 		Larx.gl.uniform1i(this.shader.enableFXAAFS, 1);
+	}
+	
+	enableBloom(bloomColor) {
+		Larx.gl.uniform1i(this.shader.bloomTexture, 6);  
+		Larx.gl.uniform1i(this.shader.enableBloom, 1);
+		Larx.gl.uniform4f(this.shader.bloomColor, bloomColor[0], bloomColor[1], bloomColor[2], bloomColor[3]);
 	}
 }
 

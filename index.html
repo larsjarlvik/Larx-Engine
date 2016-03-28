@@ -77,6 +77,14 @@
 							<option value="0">Off</option>
 						</select>
 					</label>
+					<h2>Effects</h2>
+					<label class="setting">
+						<span class="label">Bloom</span>
+						<select id="bloomEffectSetting">
+							<option value="1">On</option>
+							<option value="0">Off</option>
+						</select>
+					</label>
 					<label class="setting">
 						<span class="label"></span>
 						<a id="closeSettingsButton" class="button marginTop">CLOSE</a>
@@ -103,7 +111,10 @@
 		<script src="js/src/gl/framebuffer.js"></script>
 		<script src="js/src/gl/frustum.js"></script>
 		<script src="js/src/gl/shadows.js"></script>
-		<script src="js/src/gl/postProcessing.js"></script>
+		
+		<script src="js/src/gl/effects/base.js"></script>
+		<script src="js/src/gl/effects/postProcessing.js"></script>
+		<script src="js/src/gl/effects/bloom.js"></script>
 		
 		<script src="js/src/game/gameLoop.js"></script>
 		<script src="js/src/game/mousePicker.js"></script>
@@ -120,6 +131,7 @@
 		<script src="js/src/shaders/cursorShader.js"></script>
 		<script src="js/src/shaders/skyShader.js"></script>
 		<script src="js/src/shaders/postProcessingShader.js"></script>
+		<script src="js/src/shaders/bloomShader.js"></script>
 		
 		<!-- DEMO -->
 		<script src="demo/settings.js"></script>

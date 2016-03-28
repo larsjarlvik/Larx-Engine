@@ -1,6 +1,7 @@
 precision mediump float;
 
-uniform sampler2D uTexture;
+uniform sampler2D uColorTexture;
+uniform sampler2D uDepthTexture;
 varying vec2 vTexCoords;
 
 // FXAA
@@ -19,11 +20,11 @@ varying vec2 v_rgbM;
 void fxaa() {
 	vec4 color;
 	mediump vec2 inverseVP = vec2(1.0 / vResolution.x, 1.0 / vResolution.y);
-	vec3 rgbNW = texture2D(uTexture, v_rgbNW).xyz;
-	vec3 rgbNE = texture2D(uTexture, v_rgbNE).xyz;
-	vec3 rgbSW = texture2D(uTexture, v_rgbSW).xyz;
-	vec3 rgbSE = texture2D(uTexture, v_rgbSE).xyz;
-	vec4 texColor = texture2D(uTexture, v_rgbM);
+	vec3 rgbNW = texture2D(uColorTexture, v_rgbNW).xyz;
+	vec3 rgbNE = texture2D(uColorTexture, v_rgbNE).xyz;
+	vec3 rgbSW = texture2D(uColorTexture, v_rgbSW).xyz;
+	vec3 rgbSE = texture2D(uColorTexture, v_rgbSE).xyz;
+	vec4 texColor = texture2D(uColorTexture, v_rgbM);
 	vec3 rgbM  = texColor.xyz;
 	vec3 luma = vec3(0.299, 0.587, 0.114);
 	float lumaNW = dot(rgbNW, luma);
@@ -47,11 +48,11 @@ void fxaa() {
 			  dir * rcpDirMin)) * inverseVP;
 	
 	vec3 rgbA = 0.5 * (
-		texture2D(uTexture, gl_FragCoord.xy * inverseVP + dir * (1.0 / 3.0 - 0.5)).xyz +
-		texture2D(uTexture, gl_FragCoord.xy * inverseVP + dir * (2.0 / 3.0 - 0.5)).xyz);
+		texture2D(uColorTexture, gl_FragCoord.xy * inverseVP + dir * (1.0 / 3.0 - 0.5)).xyz +
+		texture2D(uColorTexture, gl_FragCoord.xy * inverseVP + dir * (2.0 / 3.0 - 0.5)).xyz);
 	vec3 rgbB = rgbA * 0.5 + 0.25 * (
-		texture2D(uTexture, gl_FragCoord.xy * inverseVP + dir * -0.5).xyz +
-		texture2D(uTexture, gl_FragCoord.xy * inverseVP + dir *  0.5).xyz);
+		texture2D(uColorTexture, gl_FragCoord.xy * inverseVP + dir * -0.5).xyz +
+		texture2D(uColorTexture, gl_FragCoord.xy * inverseVP + dir *  0.5).xyz);
 
 	float lumaB = dot(rgbB, luma);
 	if ((lumaB < lumaMin) || (lumaB > lumaMax))
@@ -62,8 +63,38 @@ void fxaa() {
 	gl_FragColor = color;
 }
 
+
+// BLOOM
+uniform sampler2D uBloomTexture;
+uniform bool uEnableBloom;
+uniform vec4 uBloomColor;
+varying vec2 vBlurTexCoords1[5];
+
+void bloom() {
+	float sum = 0.0;
+	float count = 0.0;
+	const float size = 0.02;
+	const float interval = 0.005;
+	
+	for(float x = -size; x <= size; x += interval) {
+		for(float y = -size; y <= size; y += interval) {
+			vec4 col = texture2D(uBloomTexture, vTexCoords + vec2(x, y));
+			
+			if(col.r + col.g + col.b > 1.0) {
+				sum += (col.r + col.g + col.b) / 3.0;
+			}
+			
+			count += 1.0;
+		}
+	}
+	
+	sum /= count;
+	gl_FragColor = mix(gl_FragColor, vec4(0.768, 1.0, 0.992, 1.0), sum);
+}
+
 void main(void) {
-	gl_FragColor = texture2D(uTexture, vTexCoords);
+	gl_FragColor = texture2D(uColorTexture, vTexCoords);
 	
 	if(uEnableFXAAFS) { fxaa(); }
+	if(uEnableBloom) { bloom(); }
 }
