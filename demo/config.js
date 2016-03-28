@@ -1,5 +1,5 @@
 var config = {
-	clearColor: [0.601, 0.816, 0.820, 1.0],
+	clearColor: [0.768, 1.0, 0.992, 1.0],
 	mapScale: 5.0,
 	mouse: {
 		size: [0.5, 0.0, 0.5],
@@ -23,19 +23,19 @@ var config = {
 	fog: {
 		density: 0.002,
 		gradient: 6.0,
-		color: [0.601, 0.816, 0.820]
+		color: [0.768, 1.0, 0.992]
 	},
 	water: {
-		fps: 40,
-		quality: 20,
+		fps: 20,
+		quality: 48,
 		detail: 10,
-		color: [0.295, 0.905, 0.823],
-		waveHeight: 1.0,
-		speed: 0.001,
-		distortion: 2.5,
-		edgeWhitening: 1.8, 
-		edgeSoftening: 3.0,
-		density: 0.15
+		color: [0.265, 0.503, 0.453],
+		waveHeight: 0.5,
+		speed: 0.0005,
+		distortion: 0.9,
+		edgeWhitening: 2.0, 
+		edgeSoftening: 4.0,
+		density: 0.08
 	},
 	terrain: {
 		path: '/maps/test',

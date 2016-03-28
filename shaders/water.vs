@@ -33,19 +33,18 @@ void main(void) {
 	vVisibility = clamp(exp(-pow((distance * uFogDensity), uFogGradient)), 0.0, 1.0);
 	
 	vNormal = aVertexNormal;
-	vNormal.x *= 2.0;
-	vNormal.z *= 2.0;
-	vNormal = normalize(uNMatrix * vNormal);
+	vNormal = normalize(aVertexNormal * vNormal);
+	vNormal.x *= 12.0;
+	vNormal.z *= 12.0;
 	
 	vec3 lightDirection = normalize(uLightingDirection - position.xyz);
-	float directionalLightWeighting = max(dot(aVertexNormal, uLightingDirection), 0.0);
+	float directionalLightWeighting = max(dot(vNormal, uLightingDirection), 0.0);
 	vLightWeighting = uAmbientColor + uDirectionalColor * directionalLightWeighting;
 	
 	if(uShininess > 0.0) {
-		vec3 normal = normalize(uNMatrix * aVertexNormal);
 		vec3 eyeDirection = normalize(-position.xyz);
-		vec3 reflectionDirection = reflect(lightDirection, normal);
-		float specularLightWeighting = pow(max(dot(reflectionDirection, eyeDirection), 0.0), uShininess);
+		vec3 reflectionDirection = reflect(lightDirection, vNormal);
+		float specularLightWeighting = pow(max(0.0, dot(reflectionDirection, eyeDirection)), uShininess);
 	
 		vec3 specularColor = uSpecularColor * uSpecularWeight;
 		vLightWeighting += specularColor * specularLightWeighting;
