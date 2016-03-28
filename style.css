@@ -6,7 +6,7 @@ html, body {
 	padding: 0;
 	overflow: hidden;
 	color: #eee;
-	font: bold 1em 'Open Sans', sans-serif;
+	font: bold 1rem 'Open Sans', sans-serif;
 }
 
 body {
@@ -21,7 +21,7 @@ h1, h2 {
 
 h2 {
 	font-size: 140%;
-	margin-bottom: 1.5%;
+	margin-bottom: 1.2%;
 }
 
 a {
@@ -36,7 +36,7 @@ a:hover {
 
 .button {
 	background-color: #ff4c4c;
-	padding: 0.3em 1em;
+	padding: 0.3rem 1rem;
 	color: #fff;
 	cursor: pointer;
 	transition: background-color .2s ease-in;
@@ -50,7 +50,7 @@ a:hover {
 
 .setting {
 	display: block;
-	padding: 1.2% 0;
+	padding: 1.0% 0;
 	text-align: left;
 }
 
@@ -63,10 +63,10 @@ a:hover {
 	-ms-appearance: none;
 	-webkit-appearance: none;
 	-moz-appearance: none;
-	border: .2em solid #484848;
+	border: .2rem solid #484848;
 	min-width: 30%;
 	font-size: 85%;
-	padding: .8%;
+	padding: .3rem;
 }
 
 .setting select option {
@@ -83,10 +83,13 @@ a:hover {
 	margin: 0 auto;
 	display: block;
 	background: #000;
-   -ms-user-select: none;
-   -moz-user-select: none;
-   -webkit-user-select: none;
-   cursor: url('cursor.svg'), auto;
+	-ms-user-select: none;
+	-moz-user-select: none;
+	-webkit-user-select: none;
+}
+
+#viewport * {
+	cursor: url('cursor.svg'), auto;
 }
 
 .renderTarget {
@@ -122,7 +125,7 @@ a:hover {
 }
 
 .overlay .content {
-	padding: 5% 10%;
+	padding: 4% 10%;
 	max-width: 50%;
 }
 
