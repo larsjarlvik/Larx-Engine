@@ -21,7 +21,7 @@ class LarxShader {
 				}
 			};
 			
-			http.open('GET', '/shaders/' + id + '.' + type + '?rnd=' + Math.random() * 1000);
+			http.open('GET', 'shaders/' + id + '.' + type + '?rnd=' + Math.random() * 1000);
 			http.send();
 		});
 	}
