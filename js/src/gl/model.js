@@ -51,7 +51,7 @@ class LarxModel {
 				}
 			};
 			
-			http.open('GET', '/models/' + name + '.ply?rnd=' + Math.random() * 1000);
+			http.open('GET', 'models/' + name + '.ply?rnd=' + Math.random() * 1000);
 			http.send();
 		});
 	}
