@@ -38,7 +38,7 @@ var config = {
 		density: 0.08
 	},
 	terrain: {
-		path: '/maps/test',
+		path: 'maps/test',
 		elevation: 8.0,
 		waterLevel: 1.5,
 		shininess: 8.0,
