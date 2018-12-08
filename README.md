@@ -3,4 +3,4 @@ WebGL Engine for low poly games
 
 Simple Game engine for comic style low poly games.
 
-[Demo](http://larx.albounty.net)
+[Demo](http://larsjarlvik.github.io/Larx-Engine/index.html)
